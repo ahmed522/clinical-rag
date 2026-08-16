@@ -1,34 +1,468 @@
-[
+{
+  "description": "Labelled retrieval evaluation set for the Clinical RAG system. Every label was derived by reading the indexed documents directly (data/preprocessed/*.json), NOT from prior knowledge of NICE/WHO guidance and NOT from the retriever's own output. This matters: NG28's 2026 update changed first-line therapy to modified-release metformin plus an SGLT-2 inhibitor, so labels written from memory of earlier NG28 would be wrong, and labels taken from the retriever would bake in its own bias.",
+  "documents": {
+    "source1.pdf": "NICE NG28, Type 2 diabetes in adults: management (131 pages). Numbered recommendations (1.13.1 etc.) are the citable unit.",
+    "source2.pdf": "WHO HEARTS-D, Diagnosis and management of type 2 diabetes (35 pages). Organised by section, not numbered recommendations."
+  },
+  "scoring": {
+    "page_hit": "A retrieved chunk counts as relevant if its source matches expected_source AND its page_number is in expected_pages.",
+    "answer_present": "Stricter: the retrieved chunk text must also match one of the must_contain patterns (case-insensitive regex). This detects retrieving the right page but the wrong part of it.",
+    "out_of_scope": "expected_pages is empty. The system SHOULD retrieve nothing confidently. Scored by whether the best similarity distance exceeds abstain_above."
+  },
+  "notes": "page_number values are PDF page numbers as produced by ingest.py, 1-indexed, matching data/extracted and data/preprocessed. must_contain patterns are Python regex, applied case-insensitively.",
+  "queries": [
     {
-        "id": 1,
-        "query": "What are the recommended HbA1c targets for adults with type 2 diabetes?"
+      "id": 1,
+      "query": "What is the first-line pharmacological treatment for adults with type 2 diabetes and no relevant comorbidity?",
+      "category": "initial_treatment",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [32],
+      "expected_recommendation": "1.13.1",
+      "must_contain": ["modified-release metformin", "SGLT-2 inhibitor"]
     },
     {
-        "id": 2,
-        "query": "What lifestyle interventions are recommended for people with type 2 diabetes?"
+      "id": 2,
+      "query": "What should be offered if metformin is contraindicated or not tolerated?",
+      "category": "initial_treatment",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [32],
+      "expected_recommendation": "1.13.2",
+      "must_contain": ["contraindicated or not tolerated", "monotherapy"]
     },
     {
-        "id": 3,
-        "query": "What is the recommended initial pharmacological treatment?"
+      "id": 3,
+      "query": "Which medicines should be offered to adults with type 2 diabetes and heart failure?",
+      "category": "comorbidity",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [40],
+      "expected_recommendation": "1.14.1",
+      "must_contain": ["heart failure"]
     },
     {
-        "id": 4,
-        "query": "When should treatment be intensified?"
+      "id": 4,
+      "query": "What treatment is recommended for type 2 diabetes with atherosclerotic cardiovascular disease?",
+      "category": "comorbidity",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [45],
+      "expected_recommendation": "1.15.1",
+      "must_contain": ["atherosclerotic cardiovascular disease"]
     },
     {
-        "id": 5,
-        "query": "When should an SGLT2 inhibitor be considered?"
+      "id": 5,
+      "query": "How should early onset type 2 diabetes be treated?",
+      "category": "comorbidity",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [51],
+      "expected_recommendation": "1.16.1",
+      "must_contain": ["early onset type 2 diabetes"]
     },
     {
-        "id": 6,
-        "query": "What are the recommendations for patients with chronic kidney disease?"
+      "id": 6,
+      "query": "What medicines are recommended for adults with type 2 diabetes living with obesity?",
+      "category": "comorbidity",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [58],
+      "expected_recommendation": "1.17.1",
+      "must_contain": ["living with obesity"]
     },
     {
-        "id": 7,
-        "query": "What are the recommendations for patients with cardiovascular disease?"
+      "id": 7,
+      "query": "What treatment is recommended for type 2 diabetes with chronic kidney disease and reduced eGFR?",
+      "category": "comorbidity",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [62],
+      "expected_recommendation": "1.18.1",
+      "must_contain": ["eGFR", "kidney"]
     },
     {
-        "id": 8,
-        "query": "How should blood glucose control be monitored?"
+      "id": 8,
+      "query": "How should type 2 diabetes be managed in adults with frailty?",
+      "category": "comorbidity",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [65, 104],
+      "expected_recommendation": "1.19.1",
+      "must_contain": ["frailty"]
+    },
+    {
+      "id": 9,
+      "query": "How often should HbA1c levels be measured in adults with type 2 diabetes?",
+      "category": "monitoring",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [12],
+      "expected_recommendation": "1.5.1",
+      "must_contain": ["Measure HbA1c"]
+    },
+    {
+      "id": 10,
+      "query": "How should an individual HbA1c target be agreed with a person with type 2 diabetes?",
+      "category": "targets",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [13],
+      "expected_recommendation": "1.5.5",
+      "must_contain": ["individual HbA1c target|HbA1c target"]
+    },
+    {
+      "id": 11,
+      "query": "When should the target HbA1c level be relaxed?",
+      "category": "targets",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [13, 14],
+      "expected_recommendation": "1.5.9",
+      "must_contain": ["relaxing the target|relax"]
+    },
+    {
+      "id": 12,
+      "query": "Should self-monitoring of capillary blood glucose be offered routinely in type 2 diabetes?",
+      "category": "monitoring",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [14],
+      "expected_recommendation": "1.6.2",
+      "must_contain": ["self-monitoring of capillary blood glucose"]
+    },
+    {
+      "id": 13,
+      "query": "Who should be offered continuous glucose monitoring in type 2 diabetes?",
+      "category": "monitoring",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [15, 16],
+      "expected_recommendation": "1.7.1",
+      "must_contain": ["continuous glucose monitoring|isCGM|rtCGM"]
+    },
+    {
+      "id": 14,
+      "query": "What structured education should be offered to adults with type 2 diabetes?",
+      "category": "education",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [8, 9],
+      "expected_recommendation": "1.2.1",
+      "must_contain": ["structured education"]
+    },
+    {
+      "id": 15,
+      "query": "What dietary and nutritional advice should be given for type 2 diabetes?",
+      "category": "lifestyle",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [10, 11],
+      "expected_recommendation": "1.3.1",
+      "must_contain": ["dietary advice|nutritional advice"]
+    },
+    {
+      "id": 16,
+      "query": "When should bariatric surgery be considered for type 2 diabetes?",
+      "category": "lifestyle",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [11],
+      "expected_recommendation": "1.4.1",
+      "must_contain": ["bariatric surgery"]
+    },
+    {
+      "id": 17,
+      "query": "How should medicines be introduced when starting treatment for type 2 diabetes?",
+      "category": "escalation",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [69],
+      "expected_recommendation": "1.20.1",
+      "must_contain": ["stepwise"]
+    },
+    {
+      "id": 18,
+      "query": "What should be checked before starting an SGLT-2 inhibitor to prevent diabetic ketoacidosis?",
+      "category": "safety",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [70],
+      "expected_recommendation": "1.21.1",
+      "must_contain": ["diabetic ketoacidosis|DKA"]
+    },
+    {
+      "id": 19,
+      "query": "Which insulin should be offered when starting insulin therapy in type 2 diabetes?",
+      "category": "insulin",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [108],
+      "expected_recommendation": "1.33.1",
+      "must_contain": ["basal insulin"]
+    },
+    {
+      "id": 20,
+      "query": "What support should be provided to adults with type 2 diabetes who are starting insulin?",
+      "category": "insulin",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [107],
+      "expected_recommendation": "1.32.1",
+      "must_contain": ["insulin"]
+    },
+    {
+      "id": 21,
+      "query": "What should happen for people already taking standard-release metformin?",
+      "category": "review",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [74],
+      "expected_recommendation": "1.23.1",
+      "must_contain": ["standard-release metformin"]
+    },
+    {
+      "id": 22,
+      "query": "When should GLP-1 receptor agonists or tirzepatide be stopped?",
+      "category": "review",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [77],
+      "expected_recommendation": "1.24.3",
+      "must_contain": ["GLP-1 receptor agonist|tirzepatide"]
+    },
+    {
+      "id": 23,
+      "query": "Should aspirin or antiplatelet therapy be offered to adults with type 2 diabetes?",
+      "category": "cardiovascular",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [119],
+      "expected_recommendation": "1.45.1",
+      "must_contain": ["antiplatelet"]
+    },
+    {
+      "id": 24,
+      "query": "When should someone newly diagnosed with type 2 diabetes be referred for eye screening?",
+      "category": "complications",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [118, 119],
+      "expected_recommendation": "1.43.1",
+      "must_contain": ["eye screening|ophthalmologist|retinal"]
+    },
+    {
+      "id": 25,
+      "query": "How should erectile dysfunction be managed in men with type 2 diabetes?",
+      "category": "complications",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [118],
+      "expected_recommendation": "1.42.1",
+      "must_contain": ["erectile"]
+    },
+    {
+      "id": 26,
+      "query": "How should gastroparesis be treated in adults with type 2 diabetes?",
+      "category": "complications",
+      "scope": "in_scope",
+      "expected_source": "source1.pdf",
+      "expected_pages": [116],
+      "expected_recommendation": "1.38.1",
+      "must_contain": ["gastroparesis"]
+    },
+    {
+      "id": 27,
+      "query": "What are the diagnostic criteria and cut-off values for diagnosing diabetes?",
+      "category": "diagnosis",
+      "scope": "in_scope",
+      "expected_source": "source2.pdf",
+      "expected_pages": [13],
+      "expected_recommendation": null,
+      "must_contain": ["diagnostic criteria|Diagnostic cut-off|plasma glucose"]
+    },
+    {
+      "id": 28,
+      "query": "How are the different types of diabetes classified?",
+      "category": "diagnosis",
+      "scope": "in_scope",
+      "expected_source": "source2.pdf",
+      "expected_pages": [11],
+      "expected_recommendation": null,
+      "must_contain": ["Classification of diabetes"]
+    },
+    {
+      "id": 29,
+      "query": "When is metformin contraindicated?",
+      "category": "safety",
+      "scope": "in_scope",
+      "expected_source": "source2.pdf",
+      "expected_pages": [15],
+      "expected_recommendation": null,
+      "must_contain": ["Metformin is contraindicated|contraindicated"]
+    },
+    {
+      "id": 30,
+      "query": "How should blood pressure and blood lipids be controlled in people with diabetes?",
+      "category": "cardiovascular",
+      "scope": "in_scope",
+      "expected_source": "source2.pdf",
+      "expected_pages": [17],
+      "expected_recommendation": null,
+      "must_contain": ["blood pressure"]
+    },
+    {
+      "id": 31,
+      "query": "How should hypoglycaemia be managed?",
+      "category": "acute_complications",
+      "scope": "in_scope",
+      "expected_source": "source2.pdf",
+      "expected_pages": [19],
+      "expected_recommendation": null,
+      "must_contain": ["hypoglycaemia"]
+    },
+    {
+      "id": 32,
+      "query": "How should hyperglycaemic emergencies such as DKA and HHS be managed?",
+      "category": "acute_complications",
+      "scope": "in_scope",
+      "expected_source": "source2.pdf",
+      "expected_pages": [20],
+      "expected_recommendation": null,
+      "must_contain": ["hyperglycaemic emergenc"]
+    },
+    {
+      "id": 33,
+      "query": "How should people with type 2 diabetes be screened for retinopathy?",
+      "category": "complications",
+      "scope": "in_scope",
+      "expected_source": "source2.pdf",
+      "expected_pages": [21],
+      "expected_recommendation": null,
+      "must_contain": ["retinopathy"]
+    },
+    {
+      "id": 34,
+      "query": "How should urinary albumin excretion be measured to check for kidney disease?",
+      "category": "complications",
+      "scope": "in_scope",
+      "expected_source": "source2.pdf",
+      "expected_pages": [22],
+      "expected_recommendation": null,
+      "must_contain": ["albumin"]
+    },
+    {
+      "id": 35,
+      "query": "When should a patient with diabetes be referred urgently to a higher level of care?",
+      "category": "referral",
+      "scope": "in_scope",
+      "expected_source": "source2.pdf",
+      "expected_pages": [26],
+      "expected_recommendation": null,
+      "must_contain": ["referral|refer"]
+    },
+    {
+      "id": 36,
+      "query": "What is the protocol for starting insulin treatment in a primary care setting?",
+      "category": "insulin",
+      "scope": "in_scope",
+      "expected_source": "source2.pdf",
+      "expected_pages": [29],
+      "expected_recommendation": null,
+      "must_contain": ["intermediate-acting insulin|NPH|10 units"]
+    },
+    {
+      "id": 37,
+      "query": "How should loss of protective sensation in the diabetic foot be assessed?",
+      "category": "complications",
+      "scope": "in_scope",
+      "expected_source": "source2.pdf",
+      "expected_pages": [32, 33],
+      "expected_recommendation": null,
+      "must_contain": ["protective sensation|LOPS|monofilament|Semmes"]
+    },
+    {
+      "id": 38,
+      "query": "What should a diabetes monitoring system measure to assess service effectiveness?",
+      "category": "monitoring",
+      "scope": "in_scope",
+      "expected_source": "source2.pdf",
+      "expected_pages": [27],
+      "expected_recommendation": null,
+      "must_contain": ["monitoring"]
+    },
+
+    {
+      "id": 101,
+      "query": "What insulin regimen is recommended for children with type 1 diabetes?",
+      "category": "out_of_scope_near_domain",
+      "scope": "out_of_scope",
+      "expected_source": null,
+      "expected_pages": [],
+      "expected_recommendation": null,
+      "must_contain": [],
+      "abstain_above": 0.75,
+      "why": "Type 1 diabetes in children is a different guideline. Dangerous case: the corpus contains an adult insulin protocol that looks like a plausible answer."
+    },
+    {
+      "id": 102,
+      "query": "How should gestational diabetes be managed during pregnancy?",
+      "category": "out_of_scope_near_domain",
+      "scope": "out_of_scope",
+      "expected_source": null,
+      "expected_pages": [],
+      "expected_recommendation": null,
+      "must_contain": [],
+      "abstain_above": 0.75,
+      "why": "NG28 recommendation 1.5.11 explicitly refers pregnancy out to a different NICE guideline, so the correct behaviour is to say the corpus does not cover it."
+    },
+    {
+      "id": 103,
+      "query": "What is the recommended treatment for stage 4 pancreatic cancer?",
+      "category": "out_of_scope_medical",
+      "scope": "out_of_scope",
+      "expected_source": null,
+      "expected_pages": [],
+      "expected_recommendation": null,
+      "must_contain": [],
+      "abstain_above": 0.75,
+      "why": "Medical but entirely outside the indexed documents."
+    },
+    {
+      "id": 104,
+      "query": "How do I change the oil filter on a Toyota Corolla?",
+      "category": "out_of_scope_nonmedical",
+      "scope": "out_of_scope",
+      "expected_source": null,
+      "expected_pages": [],
+      "expected_recommendation": null,
+      "must_contain": [],
+      "abstain_above": 0.75,
+      "why": "Sanity check that obviously unrelated questions are rejected."
+    },
+    {
+      "id": 105,
+      "query": "What dose of metformin should I prescribe for my 62-year-old patient with an eGFR of 28?",
+      "category": "out_of_scope_individualised",
+      "scope": "out_of_scope",
+      "expected_source": null,
+      "expected_pages": [],
+      "expected_recommendation": null,
+      "must_contain": [],
+      "abstain_above": 0.75,
+      "why": "Individualised prescribing decision for a specific patient. The system must not answer this even though the corpus discusses metformin and eGFR thresholds."
+    },
+    {
+      "id": 106,
+      "query": "What is the recommended COVID-19 vaccination schedule for people with diabetes?",
+      "category": "out_of_scope_medical",
+      "scope": "out_of_scope",
+      "expected_source": null,
+      "expected_pages": [],
+      "expected_recommendation": null,
+      "must_contain": [],
+      "abstain_above": 0.75,
+      "why": "Diabetes-adjacent but absent from both documents; tests topical-drift rejection."
     }
-]
+  ]
+}

@@ -1,18 +1,52 @@
 import json
 import re
+import sys
 from pathlib import Path
 
 import fitz  # PyMuPDF
 
+# Extracted clinical text contains characters the default Windows
+# console codepage cannot encode (>=, <=, +/-, micro). Printing a page
+# preview containing one raises UnicodeEncodeError mid-run.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+
+from config import SOURCE_DIR, EXTRACTED_DIR as OUTPUT_DIR
+
 
 # =========================
-# Project paths
+# Source metadata
+# Each PDF file must be linked to metadata about its source, so we can
+# use it later in the chunk metadata and in the source-credibility docs.
+# The dict key must match the PDF filename exactly as it appears in
+# data/source/
 # =========================
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SOURCE_METADATA = {
+    "source1.pdf": {
+        "title": "Type 2 diabetes in adults: management (NG28)",
+        "publisher": "National Institute for Health and Care Excellence (NICE)",
+        "url": "https://www.nice.org.uk/guidance/ng28",
+        "topic": "Type 2 Diabetes",
+    },
+    "source2.pdf": {
+        "title": "HEARTS D: Diagnosis and management of type 2 diabetes",
+        "publisher": "World Health Organization (WHO)",
+        "url": "https://iris.who.int/handle/10665/331710",
+        "topic": "Type 2 Diabetes",
+    },
+}
 
-SOURCE_DIR = PROJECT_ROOT / "data" / "source"
-OUTPUT_DIR = PROJECT_ROOT / "data" / "extracted"
+# Default metadata used when a file in data/source is not registered in
+# the dict above, so the script doesn't crash — but it prints a clear
+# warning telling you to add it.
+DEFAULT_METADATA = {
+    "title": "UNKNOWN — add this file to SOURCE_METADATA",
+    "publisher": "UNKNOWN",
+    "url": "",
+    "topic": "Type 2 Diabetes",
+}
 
 
 # =========================
@@ -66,6 +100,10 @@ def extract_pdf(pdf_path: str) -> dict:
 
     {
         "source": "example.pdf",
+        "title": "...",
+        "publisher": "...",
+        "url": "...",
+        "topic": "...",
         "total_pages": 12,
         "extracted_pages": 12,
         "pages": [
@@ -103,12 +141,50 @@ def extract_pdf(pdf_path: str) -> dict:
                 "char_count": len(cleaned_text)
             })
 
+    # Look up source metadata by filename
+    metadata = SOURCE_METADATA.get(pdf_path.name, DEFAULT_METADATA)
+    if pdf_path.name not in SOURCE_METADATA:
+        print(
+            f"[warning] '{pdf_path.name}' is not registered in SOURCE_METADATA — "
+            f"add it at the top of this file so title/publisher/url are not UNKNOWN."
+        )
+
     return {
         "source": pdf_path.name,
+        "title": metadata["title"],
+        "publisher": metadata["publisher"],
+        "url": metadata["url"],
+        "topic": metadata["topic"],
         "total_pages": total_pages,
         "extracted_pages": len(pages),
         "pages": pages
     }
+
+
+# =========================
+# Sample page inspection
+# Lets us visually confirm extraction and cleaning worked correctly
+# before moving on to the chunking step.
+# =========================
+
+def inspect_sample(document: dict, n: int = 3) -> None:
+    """
+    Print a sample of the first n pages that contain real text
+    (more than 100 characters) for manual review — not every page,
+    since some are covers, blank pages, or a table of contents.
+    """
+    non_empty = [p for p in document["pages"] if p["char_count"] > 100]
+
+    print(
+        f"Pages with real text: {len(non_empty)} out of {document['total_pages']}"
+    )
+    print("-" * 50)
+
+    for page in non_empty[:n]:
+        preview = page["text"][:400].replace("\n", " ")
+        print(f"[page {page['page_number']} | {page['char_count']} chars]")
+        print(preview + ("..." if len(page["text"]) > 400 else ""))
+        print()
 
 
 # =========================
@@ -176,6 +252,9 @@ def process_directory(
         document = extract_pdf(
             pdf_path
         )
+
+        # Inspect a sample of pages right after extraction
+        inspect_sample(document, n=3)
 
         output_path = (
             output_dir /

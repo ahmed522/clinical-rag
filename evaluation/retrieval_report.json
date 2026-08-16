@@ -1,0 +1,386 @@
+{
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "max_k": 10,
+  "in_scope": [
+    {
+      "id": 1,
+      "query": "What is the first-line pharmacological treatment for adults with type 2 diabetes and no relevant comorbidity?",
+      "category": "initial_treatment",
+      "expected": "source1.pdf p[32]",
+      "page_rank": 4,
+      "answer_rank": 4,
+      "best_score": 0.5888
+    },
+    {
+      "id": 2,
+      "query": "What should be offered if metformin is contraindicated or not tolerated?",
+      "category": "initial_treatment",
+      "expected": "source1.pdf p[32]",
+      "page_rank": null,
+      "answer_rank": null,
+      "best_score": 0.6782
+    },
+    {
+      "id": 3,
+      "query": "Which medicines should be offered to adults with type 2 diabetes and heart failure?",
+      "category": "comorbidity",
+      "expected": "source1.pdf p[40]",
+      "page_rank": 7,
+      "answer_rank": 7,
+      "best_score": 0.7374
+    },
+    {
+      "id": 4,
+      "query": "What treatment is recommended for type 2 diabetes with atherosclerotic cardiovascular disease?",
+      "category": "comorbidity",
+      "expected": "source1.pdf p[45]",
+      "page_rank": 3,
+      "answer_rank": 3,
+      "best_score": 0.6786
+    },
+    {
+      "id": 5,
+      "query": "How should early onset type 2 diabetes be treated?",
+      "category": "comorbidity",
+      "expected": "source1.pdf p[51]",
+      "page_rank": null,
+      "answer_rank": null,
+      "best_score": 0.5699
+    },
+    {
+      "id": 6,
+      "query": "What medicines are recommended for adults with type 2 diabetes living with obesity?",
+      "category": "comorbidity",
+      "expected": "source1.pdf p[58]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.7287
+    },
+    {
+      "id": 7,
+      "query": "What treatment is recommended for type 2 diabetes with chronic kidney disease and reduced eGFR?",
+      "category": "comorbidity",
+      "expected": "source1.pdf p[62]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.528
+    },
+    {
+      "id": 8,
+      "query": "How should type 2 diabetes be managed in adults with frailty?",
+      "category": "comorbidity",
+      "expected": "source1.pdf p[65, 104]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.5308
+    },
+    {
+      "id": 9,
+      "query": "How often should HbA1c levels be measured in adults with type 2 diabetes?",
+      "category": "monitoring",
+      "expected": "source1.pdf p[12]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.5386
+    },
+    {
+      "id": 10,
+      "query": "How should an individual HbA1c target be agreed with a person with type 2 diabetes?",
+      "category": "targets",
+      "expected": "source1.pdf p[13]",
+      "page_rank": 1,
+      "answer_rank": null,
+      "best_score": 0.4062
+    },
+    {
+      "id": 11,
+      "query": "When should the target HbA1c level be relaxed?",
+      "category": "targets",
+      "expected": "source1.pdf p[13, 14]",
+      "page_rank": 2,
+      "answer_rank": 5,
+      "best_score": 0.8325
+    },
+    {
+      "id": 12,
+      "query": "Should self-monitoring of capillary blood glucose be offered routinely in type 2 diabetes?",
+      "category": "monitoring",
+      "expected": "source1.pdf p[14]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.3768
+    },
+    {
+      "id": 13,
+      "query": "Who should be offered continuous glucose monitoring in type 2 diabetes?",
+      "category": "monitoring",
+      "expected": "source1.pdf p[15, 16]",
+      "page_rank": 7,
+      "answer_rank": 7,
+      "best_score": 0.546
+    },
+    {
+      "id": 14,
+      "query": "What structured education should be offered to adults with type 2 diabetes?",
+      "category": "education",
+      "expected": "source1.pdf p[8, 9]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.4459
+    },
+    {
+      "id": 15,
+      "query": "What dietary and nutritional advice should be given for type 2 diabetes?",
+      "category": "lifestyle",
+      "expected": "source1.pdf p[10, 11]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.4582
+    },
+    {
+      "id": 16,
+      "query": "When should bariatric surgery be considered for type 2 diabetes?",
+      "category": "lifestyle",
+      "expected": "source1.pdf p[11]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.5354
+    },
+    {
+      "id": 17,
+      "query": "How should medicines be introduced when starting treatment for type 2 diabetes?",
+      "category": "escalation",
+      "expected": "source1.pdf p[69]",
+      "page_rank": 2,
+      "answer_rank": 2,
+      "best_score": 0.5617
+    },
+    {
+      "id": 18,
+      "query": "What should be checked before starting an SGLT-2 inhibitor to prevent diabetic ketoacidosis?",
+      "category": "safety",
+      "expected": "source1.pdf p[70]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.4444
+    },
+    {
+      "id": 19,
+      "query": "Which insulin should be offered when starting insulin therapy in type 2 diabetes?",
+      "category": "insulin",
+      "expected": "source1.pdf p[108]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.5632
+    },
+    {
+      "id": 20,
+      "query": "What support should be provided to adults with type 2 diabetes who are starting insulin?",
+      "category": "insulin",
+      "expected": "source1.pdf p[107]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.5831
+    },
+    {
+      "id": 21,
+      "query": "What should happen for people already taking standard-release metformin?",
+      "category": "review",
+      "expected": "source1.pdf p[74]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.5922
+    },
+    {
+      "id": 22,
+      "query": "When should GLP-1 receptor agonists or tirzepatide be stopped?",
+      "category": "review",
+      "expected": "source1.pdf p[77]",
+      "page_rank": 4,
+      "answer_rank": 4,
+      "best_score": 0.5522
+    },
+    {
+      "id": 23,
+      "query": "Should aspirin or antiplatelet therapy be offered to adults with type 2 diabetes?",
+      "category": "cardiovascular",
+      "expected": "source1.pdf p[119]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.6004
+    },
+    {
+      "id": 24,
+      "query": "When should someone newly diagnosed with type 2 diabetes be referred for eye screening?",
+      "category": "complications",
+      "expected": "source1.pdf p[118, 119]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.5008
+    },
+    {
+      "id": 25,
+      "query": "How should erectile dysfunction be managed in men with type 2 diabetes?",
+      "category": "complications",
+      "expected": "source1.pdf p[118]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.2935
+    },
+    {
+      "id": 26,
+      "query": "How should gastroparesis be treated in adults with type 2 diabetes?",
+      "category": "complications",
+      "expected": "source1.pdf p[116]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.6141
+    },
+    {
+      "id": 27,
+      "query": "What are the diagnostic criteria and cut-off values for diagnosing diabetes?",
+      "category": "diagnosis",
+      "expected": "source2.pdf p[13]",
+      "page_rank": 5,
+      "answer_rank": 5,
+      "best_score": 0.5251
+    },
+    {
+      "id": 28,
+      "query": "How are the different types of diabetes classified?",
+      "category": "diagnosis",
+      "expected": "source2.pdf p[11]",
+      "page_rank": 4,
+      "answer_rank": null,
+      "best_score": 0.5959
+    },
+    {
+      "id": 29,
+      "query": "When is metformin contraindicated?",
+      "category": "safety",
+      "expected": "source2.pdf p[15]",
+      "page_rank": null,
+      "answer_rank": null,
+      "best_score": 0.7393
+    },
+    {
+      "id": 30,
+      "query": "How should blood pressure and blood lipids be controlled in people with diabetes?",
+      "category": "cardiovascular",
+      "expected": "source2.pdf p[17]",
+      "page_rank": null,
+      "answer_rank": null,
+      "best_score": 0.6048
+    },
+    {
+      "id": 31,
+      "query": "How should hypoglycaemia be managed?",
+      "category": "acute_complications",
+      "expected": "source2.pdf p[19]",
+      "page_rank": 2,
+      "answer_rank": 2,
+      "best_score": 0.7147
+    },
+    {
+      "id": 32,
+      "query": "How should hyperglycaemic emergencies such as DKA and HHS be managed?",
+      "category": "acute_complications",
+      "expected": "source2.pdf p[20]",
+      "page_rank": null,
+      "answer_rank": null,
+      "best_score": 0.4591
+    },
+    {
+      "id": 33,
+      "query": "How should people with type 2 diabetes be screened for retinopathy?",
+      "category": "complications",
+      "expected": "source2.pdf p[21]",
+      "page_rank": 6,
+      "answer_rank": 6,
+      "best_score": 0.5663
+    },
+    {
+      "id": 34,
+      "query": "How should urinary albumin excretion be measured to check for kidney disease?",
+      "category": "complications",
+      "expected": "source2.pdf p[22]",
+      "page_rank": 4,
+      "answer_rank": 4,
+      "best_score": 0.6276
+    },
+    {
+      "id": 35,
+      "query": "When should a patient with diabetes be referred urgently to a higher level of care?",
+      "category": "referral",
+      "expected": "source2.pdf p[26]",
+      "page_rank": null,
+      "answer_rank": null,
+      "best_score": 0.773
+    },
+    {
+      "id": 36,
+      "query": "What is the protocol for starting insulin treatment in a primary care setting?",
+      "category": "insulin",
+      "expected": "source2.pdf p[29]",
+      "page_rank": 6,
+      "answer_rank": 6,
+      "best_score": 0.6656
+    },
+    {
+      "id": 37,
+      "query": "How should loss of protective sensation in the diabetic foot be assessed?",
+      "category": "complications",
+      "expected": "source2.pdf p[32, 33]",
+      "page_rank": 7,
+      "answer_rank": null,
+      "best_score": 0.5689
+    },
+    {
+      "id": 38,
+      "query": "What should a diabetes monitoring system measure to assess service effectiveness?",
+      "category": "monitoring",
+      "expected": "source2.pdf p[27]",
+      "page_rank": 1,
+      "answer_rank": 1,
+      "best_score": 0.801
+    }
+  ],
+  "out_of_scope": [
+    {
+      "id": 101,
+      "query": "What insulin regimen is recommended for children with type 1 diabetes?",
+      "best_score": 0.8049,
+      "abstains": true
+    },
+    {
+      "id": 102,
+      "query": "How should gestational diabetes be managed during pregnancy?",
+      "best_score": 0.7549,
+      "abstains": true
+    },
+    {
+      "id": 103,
+      "query": "What is the recommended treatment for stage 4 pancreatic cancer?",
+      "best_score": 1.0722,
+      "abstains": true
+    },
+    {
+      "id": 104,
+      "query": "How do I change the oil filter on a Toyota Corolla?",
+      "best_score": 1.8368,
+      "abstains": true
+    },
+    {
+      "id": 105,
+      "query": "What dose of metformin should I prescribe for my 62-year-old patient with an eGFR of 28?",
+      "best_score": 0.7916,
+      "abstains": true
+    },
+    {
+      "id": 106,
+      "query": "What is the recommended COVID-19 vaccination schedule for people with diabetes?",
+      "best_score": 0.9709,
+      "abstains": true
+    }
+  ]
+}

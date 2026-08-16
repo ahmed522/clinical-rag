@@ -1,5 +1,9 @@
 {
   "source": "source2.pdf",
+  "title": "HEARTS D: Diagnosis and management of type 2 diabetes",
+  "publisher": "World Health Organization (WHO)",
+  "url": "https://iris.who.int/handle/10665/331710",
+  "topic": "Type 2 Diabetes",
   "total_pages": 35,
   "extracted_pages": 35,
   "pages": [
