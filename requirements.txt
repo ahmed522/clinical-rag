@@ -1,6 +1,10 @@
 PyMuPDF
+
 langchain
 langchain-community
+langchain-core
 langchain-huggingface
+langchain-chroma
+
 chromadb
 sentence-transformers
