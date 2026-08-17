@@ -37,7 +37,7 @@ Run with:
 import json
 import re
 import sys
-import uuid
+from pathlib import Path
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
@@ -81,8 +81,16 @@ HEADING_PATTERN = re.compile(
 NUMBERED_HEADING = re.compile(r"^\d+(\.\d+)*[ \t]+")
 
 # Boilerplate patterns that repeat on every page (page numbers, copyright
-# notices, running document titles) and get falsely matched as headings.
-# Anything matching one of these is rejected as a heading candidate.
+# notices) and get falsely matched as headings. Anything matching one of
+# these is rejected as a heading candidate.
+#
+# These are all DOCUMENT-AGNOSTIC by design. This file previously also
+# matched two running titles by name ("type 2 diabetes in adults:
+# management", "hearts-d"), which only worked for the two guidelines
+# originally indexed — useless for a clinic uploading its own documents
+# from any specialty. Running titles are now removed upstream by
+# preprocessing.py, which detects them by FREQUENCY across pages and so
+# generalises to any document.
 BOILERPLATE_PATTERNS = [
     re.compile(r"^\d+$"),                                  # a lone page number, e.g. "33"
     re.compile(r"^\d+\s*(of)?\s*\d*$"),                     # "131" / "12 of 131"
@@ -90,8 +98,6 @@ BOILERPLATE_PATTERNS = [
     re.compile(r"©"),                                       # copyright lines
     re.compile(r"all rights reserved", re.IGNORECASE),
     re.compile(r"notice of rights", re.IGNORECASE),
-    re.compile(r"^type 2 diabetes in adults: management", re.IGNORECASE),  # NICE running title
-    re.compile(r"^hearts\s*[-–]\s*d", re.IGNORECASE),        # WHO running title
 ]
 
 
@@ -223,6 +229,23 @@ def split_into_sections(full_text: str) -> list[dict]:
     return sections
 
 
+def make_chunk_id(document_id, page_number: int, index: int) -> str:
+    """
+    Stable identifier for a chunk.
+
+    Must be DETERMINISTIC: it is the join key between the `chunks` table
+    (provenance, source of truth) and the vector store (embeddings), so
+    re-ingesting a document has to produce the same ids. This used to be
+    uuid4(), which changed on every run and would orphan every
+    vector_ref and leave duplicate vectors behind.
+
+    index counts chunks across the whole document rather than restarting
+    per page, so two chunks from one page can never collide.
+    """
+
+    return f"{document_id}:p{page_number}:c{index}"
+
+
 def locate_offset(haystack: str, needle: str, search_from: int) -> int:
     """
     Find where a split chunk actually starts inside its section.
@@ -249,11 +272,18 @@ def locate_offset(haystack: str, needle: str, search_from: int) -> int:
     return -1
 
 
-def chunk_document(document: dict) -> list[dict]:
+def chunk_document(document: dict, document_id=None) -> list[dict]:
     """
     Take a single document dict (same shape produced by ingest.py) and
     return the list of chunks for it.
+
+    document_id namespaces the chunk ids. The application passes the
+    `documents` row id; the CLI omits it and the source filename stem is
+    used, which keeps ids stable and readable for the local corpus.
     """
+    if document_id is None:
+        document_id = Path(document["source"]).stem
+
     pages = [
         page for page in document["pages"]
         if page.get("page_type", "content") not in SKIPPED_PAGE_TYPES
@@ -273,6 +303,7 @@ def chunk_document(document: dict) -> list[dict]:
     )
 
     chunks = []
+    index = 0
     for section in sections:
         sub_texts = splitter.split_text(section["text"])
         cursor = 0          # position within section["text"]
@@ -290,7 +321,7 @@ def chunk_document(document: dict) -> list[dict]:
 
             page_number = offset_to_page(section["start"] + relative, page_map)
             chunks.append({
-                "chunk_id": str(uuid.uuid4()),
+                "chunk_id": make_chunk_id(document_id, page_number, index),
                 "text": sub_text,
                 "section_title": section["heading"],
                 "page_number": page_number,
@@ -300,6 +331,7 @@ def chunk_document(document: dict) -> list[dict]:
                 "url": document["url"],
                 "topic": document["topic"],
             })
+            index += 1
 
     return chunks
 

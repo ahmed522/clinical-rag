@@ -18,3 +18,10 @@ dependencies = [
 dev = [
     "pytest>=8.4.2",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# The pipeline modules in src/ are imported by name (`from config import
+# ...`) because the scripts are run directly, which puts src/ on the path.
+# pytest runs from the repo root, so it needs the same entry added.
+pythonpath = ["src"]

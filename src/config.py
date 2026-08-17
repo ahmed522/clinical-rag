@@ -105,7 +105,23 @@ MIN_CHUNK_CHARS = 60
 # raising CHUNK_SIZE without changing model would silently truncate.
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
+# Collection used by the single-tenant CLI scripts. Multi-tenant callers
+# use collection_name_for(clinic_id) instead — every clinic gets its own
+# Chroma collection so one clinic's documents can never be retrieved for
+# another.
 COLLECTION_NAME = "clinical_rag_t2dm"
+
+
+def collection_name_for(clinic_id):
+    """
+    Chroma collection name for one clinic.
+
+    Hard tenant isolation: separate collections rather than a shared
+    collection with a metadata filter, so a forgotten filter cannot leak
+    another clinic's documents into a patient's answer.
+    """
+
+    return f"clinic_{clinic_id}"
 
 
 # ============================================================
@@ -114,13 +130,31 @@ COLLECTION_NAME = "clinical_rag_t2dm"
 
 # Chunks retrieved per query. Raised from 3 after measuring recall on the
 # labelled set: answers were being retrieved and then truncated away.
+#
+# Measured recall on the 38-query labelled set:
+#   k=1  47%   k=3  58%   k=4  68%   k=5  71%   k=8  84%   k=10 84%
+# k=8 is the plateau, so retrieval uses 8 and gains nothing from 10.
 TOP_K = 10
+RETRIEVAL_K = 8
 
 # Similarity distance above which a match is considered too weak.
 #
-# NOT currently safe to use as an abstention threshold on its own. On the
-# labelled set the in-scope and out-of-scope score ranges OVERLAP:
-# worst in-scope is 0.833, worst out-of-scope is 0.755. Any single
-# cut-off either admits unanswerable questions or refuses real ones.
+# NOT safe as an abstention threshold on its own. On the labelled set the
+# in-scope and out-of-scope score ranges OVERLAP: worst in-scope is
+# 0.833, worst out-of-scope is 0.755. Any single cut-off either admits
+# unanswerable questions or refuses real ones.
 # Kept here as a measured reference point, not as a safety mechanism.
 WEAK_MATCH_DISTANCE = 0.75
+
+# Loose gate used before generation: reject only questions that are
+# clearly outside the corpus entirely.
+#
+# This is deliberately permissive. Measured: clearly off-domain questions
+# score 0.97-1.84 while the worst real clinical question scores 0.833, so
+# 0.95 rejects the absurd without refusing anything real on the labelled
+# set. It does NOT catch near-domain questions (type 1 diabetes in
+# children 0.805, gestational diabetes 0.755, individualised dosing
+# 0.792) — those are caught by the LLM's grounding judgment, not here.
+# Tightening this number would start refusing real clinical questions,
+# including triage-adjacent ones.
+ABSURD_DISTANCE = 0.95

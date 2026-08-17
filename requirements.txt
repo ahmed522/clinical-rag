@@ -9,5 +9,16 @@ langchain-chroma
 chromadb
 sentence-transformers
 
+# Web application (multi-tenant SaaS layer)
+fastapi
+uvicorn
+sqlalchemy
+alembic
+python-jose[cryptography]
+python-multipart
+email-validator
+bcrypt
+
 # Development / testing
 pytest
+httpx

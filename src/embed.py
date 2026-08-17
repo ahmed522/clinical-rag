@@ -16,10 +16,9 @@ Run with:
     python src/embed_index.py
 """
 
-from pathlib import Path
 import json
-import shutil
 
+import chromadb
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
@@ -67,34 +66,71 @@ def chunks_to_documents(chunks: list[dict]) -> list[Document]:
     return documents
 
 
+def index_chunks(chunks, collection_name=COLLECTION_NAME, persist_dir=PERSIST_DIR):
+    """
+    Embed chunks and write them into ONE Chroma collection.
+
+    Tenant safety: this only ever touches `collection_name`. It must not
+    delete the persist directory — that directory holds every clinic's
+    collection, so wiping it while indexing one clinic's upload would
+    destroy every other clinic's vectors.
+
+    Re-indexing is idempotent without deleting anything, because chunk
+    ids are deterministic (see chunk.make_chunk_id) and Chroma upserts by
+    id: re-ingesting the same document overwrites its own vectors rather
+    than appending duplicates.
+
+    Returns the number of vectors in the collection afterwards.
+    """
+    documents = chunks_to_documents(chunks)
+
+    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+
+    vectorstore = Chroma(
+        collection_name=collection_name,
+        embedding_function=embeddings,
+        persist_directory=str(persist_dir),
+    )
+
+    if documents:
+        vectorstore.add_documents(
+            documents=documents,
+            ids=[c["chunk_id"] for c in chunks],
+        )
+
+    return vectorstore._collection.count()
+
+
+def delete_collection(collection_name, persist_dir=PERSIST_DIR):
+    """
+    Drop a single clinic's collection, leaving all others untouched.
+
+    Used when a document is removed or an index is rebuilt from scratch.
+    """
+    client = chromadb.PersistentClient(path=str(persist_dir))
+    try:
+        client.delete_collection(collection_name)
+    except Exception:
+        # Chroma raises if the collection does not exist; nothing to do.
+        pass
+
+
 def main():
     print("Loading chunks...")
     chunks = load_chunks()
     print(f"Number of chunks: {len(chunks)}")
 
-    documents = chunks_to_documents(chunks)
-
-    # Important: if we don't clear the old index first, running this
-    # script again will APPEND the same chunks on top of the existing
-    # ones instead of replacing them, causing duplicate vectors and
-    # duplicate (identical) results at query time.
-    if Path(PERSIST_DIR).exists():
-        print(f"Removing existing index at {PERSIST_DIR} to avoid duplicates...")
-        shutil.rmtree(PERSIST_DIR)
+    # The CLI rebuilds the single-tenant collection from scratch, so drop
+    # just that collection first. Note this replaces an earlier
+    # shutil.rmtree of the whole persist directory, which would now take
+    # every clinic's vectors with it.
+    print(f"Resetting collection '{COLLECTION_NAME}'...")
+    delete_collection(COLLECTION_NAME)
 
     print(f"Loading embedding model: {EMBEDDING_MODEL} (first run takes longer)...")
-    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
-
     print("Indexing into ChromaDB...")
-    vectorstore = Chroma.from_documents(
-        documents=documents,
-        embedding=embeddings,
-        collection_name=COLLECTION_NAME,
-        persist_directory=PERSIST_DIR,
-        ids=[c["chunk_id"] for c in chunks],
-    )
+    count = index_chunks(chunks, COLLECTION_NAME, PERSIST_DIR)
 
-    count = vectorstore._collection.count()
     print(f"Stored {count} vectors in: {PERSIST_DIR} (collection: {COLLECTION_NAME})")
     print("The index is ready — you can now use it in query.py for retrieval.")
 
