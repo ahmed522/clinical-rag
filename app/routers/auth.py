@@ -20,9 +20,21 @@ from app.schemas import ClinicRegister, LoginRequest, PatientRegister, TokenResp
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register-clinic", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register-clinic",
+    response_model=TokenResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a clinic and its admin (no auth required)",
+    responses={409: {"description": "Email already registered"}},
+)
 def register_clinic(payload: ClinicRegister, db: Session = Depends(get_db)):
-    """Create a clinic (tenant) and its first admin."""
+    """
+    Create a clinic (tenant) and its first admin.
+
+    **Start here.** This is the only registration endpoint that needs no
+    token. It returns an admin `access_token` — authorize with it to
+    upload documents and register patients.
+    """
     existing = db.query(User).filter(User.email == payload.admin_email).first()
     if existing:
         raise HTTPException(
@@ -50,7 +62,16 @@ def register_clinic(payload: ClinicRegister, db: Session = Depends(get_db)):
     )
 
 
-@router.post("/register-patient", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register-patient",
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a patient (clinic admin only)",
+    responses={
+        401: {"description": "Missing or invalid token — authorize as a clinic admin first"},
+        403: {"description": "Authenticated, but not a clinic admin"},
+        409: {"description": "Email already registered"},
+    },
+)
 def register_patient(
     payload: PatientRegister,
     db: Session = Depends(get_db),
@@ -59,8 +80,13 @@ def register_patient(
     """
     Register a patient under the caller's clinic.
 
-    The clinic comes from the admin's token, so a patient cannot be
-    created inside someone else's clinic.
+    **Requires a clinic admin token.** Register a clinic first via
+    `/auth/register-clinic`, then authorize with the `access_token` it
+    returns.
+
+    A patient must belong to a clinic, and that clinic is read from the
+    admin's token rather than the request body — otherwise anyone could
+    create a patient inside someone else's clinic.
     """
     if db.query(User).filter(User.email == payload.email).first():
         raise HTTPException(
