@@ -10,6 +10,7 @@ Interactive API docs at http://127.0.0.1:8000/docs
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 from app.db import init_db
 from app.routers import auth, chat, documents
@@ -36,6 +37,18 @@ app = FastAPI(
 app.include_router(auth.router)
 app.include_router(documents.router)
 app.include_router(chat.router)
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    """
+    Send the bare host to the API docs.
+
+    There is no frontend yet, so hitting http://127.0.0.1:8000 otherwise
+    returns a bare 404 that reads like the server is broken when it is
+    running fine.
+    """
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/health", tags=["meta"])
