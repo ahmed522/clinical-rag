@@ -8,3 +8,6 @@ langchain-chroma
 
 chromadb
 sentence-transformers
+
+# Development / testing
+pytest
