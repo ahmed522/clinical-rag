@@ -3,10 +3,18 @@ name = "clinical-rag"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.9"
 dependencies = [
-    "numpy>=2.5.2",
-    "pymupdf>=1.28.2",
-    "sentence-transformers>=5.7.0",
-    "tqdm>=4.70.0",
+    "pymupdf>=1.26.5",
+    "langchain>=0.3.30",
+    "langchain-core>=0.3.86",
+    "langchain-huggingface>=0.3.1",
+    "langchain-chroma>=0.2.6",
+    "chromadb>=1.5.9",
+    "sentence-transformers>=5.1.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
 ]
