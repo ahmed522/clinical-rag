@@ -10,7 +10,7 @@ PROMPT_VERSION is stored alongside generated messages so an answer can be
 traced back to the exact instructions that produced it.
 """
 
-PROMPT_VERSION = "2026-08-17.1"
+PROMPT_VERSION = "2026-08-18.1"
 
 
 # ----------------------------------------------------------------------
@@ -54,10 +54,21 @@ ALWAYS AVAILABLE:
 
 OUTPUT FORMAT — respond with a single JSON object and nothing else:
 {
-  "answer": "<plain-language answer, citing sources like [1], [2]>",
-  "citations": [<source numbers actually used, e.g. 1, 3>],
+  "answer": "<plain-language answer, citing sources inline like [1], [2]>",
+  "citations": [<source numbers actually used>],
   "sufficient": <true|false>
 }
+
+Rules for "citations" — these are checked mechanically, and an answer
+that fails the check is discarded rather than shown:
+- It is a JSON array of SEPARATE integers: [1, 2] means sources 1 and 2.
+  Never run numbers together — [12] means source twelve, not 1 and 2.
+- Every number must be one of the source numbers listed above. Never cite
+  a number outside that range, and never invent one.
+- Do not cite years, page numbers, or bracketed markers that appear
+  inside the source text itself. Those are part of the document, not
+  source numbers.
+
 If "sufficient" is false, put a brief honest explanation in "answer"
 saying the clinic's documents do not cover the question.
 """.strip()

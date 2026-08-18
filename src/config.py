@@ -149,12 +149,30 @@ WEAK_MATCH_DISTANCE = 0.75
 # Loose gate used before generation: reject only questions that are
 # clearly outside the corpus entirely.
 #
-# This is deliberately permissive. Measured: clearly off-domain questions
-# score 0.97-1.84 while the worst real clinical question scores 0.833, so
-# 0.95 rejects the absurd without refusing anything real on the labelled
-# set. It does NOT catch near-domain questions (type 1 diabetes in
-# children 0.805, gestational diabetes 0.755, individualised dosing
-# 0.792) — those are caught by the LLM's grounding judgment, not here.
-# Tightening this number would start refusing real clinical questions,
-# including triage-adjacent ones.
-ABSURD_DISTANCE = 0.95
+# Was 0.95, which was calibrated on the labelled evaluation set — and that
+# set is written in CLINICIAN phrasing ("What is the first-line
+# pharmacological treatment for type 2 diabetes?", scoring 0.53-0.67).
+# Patients do not talk like that, and the same questions asked in ordinary
+# words score far worse against this embedding model. Re-measured against
+# NG28 with patient phrasing:
+#
+#   in-scope, clinician wording   0.53 - 0.67
+#   in-scope, patient wording     0.87 - 1.54
+#     "How often should I check my sugar levels?"      0.868
+#     "What should I eat to manage my blood sugar?"    0.985
+#     "I forgot to take my metformin, what do I do?"   1.034
+#     "When should I see the doctor urgently?"         1.242
+#     "Is it safe for me to exercise?"                 1.543
+#   out of scope (pizza, car repair, wifi, trivia)     1.80 - 1.94
+#
+# At 0.95 the gate refused six of those eight real patient questions —
+# including "when should I see the doctor urgently?", the exact question
+# the previous version of this comment said must never be refused. The
+# gate was silently the most dangerous component in the system.
+#
+# 1.65 sits in the empty band between the worst real question (1.543) and
+# the closest off-domain one (1.803), with ~0.1 of margin on each side.
+# It stays a LOOSE gate by design: near-domain questions still pass and
+# are refused by the LLM's grounding judgment over the retrieved text,
+# which is the only check that can actually read the passage.
+ABSURD_DISTANCE = 1.65

@@ -69,8 +69,14 @@ def answer_question(
     mode: str = "general",
     patient_context: str = "",
     persist_dir=None,
+    document_ids: Optional[List[str]] = None,
 ) -> GroundedAnswer:
-    sources = retrieve(clinic_id, question, persist_dir=persist_dir)
+    """
+    document_ids restricts which documents may ground the answer. Patient
+    callers pass the clinic's verified documents only (guardrail #5); the
+    caller resolves them, so this module stays free of database access.
+    """
+    sources = retrieve(clinic_id, question, persist_dir=persist_dir, document_ids=document_ids)
 
     # Check 1 — nothing to ground an answer in. Do not call the LLM: with
     # no sources it can only draw on its own training, which is precisely

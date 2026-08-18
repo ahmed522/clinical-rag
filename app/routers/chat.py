@@ -1,122 +1,117 @@
 """
 Patient chat: grounded, cited answers from the patient's own clinic.
+
+Every query in this file runs through the patient's OWN Supabase client
+(current_patient_record's caller, forwarded from deps.py), so RLS is doing
+the tenant- and ownership-scoping — not the .eq() filters sprinkled below,
+which exist for readability and would still be redundant-but-harmless if
+ever dropped. The one exception worth naming explicitly: resolving which
+documents may ground an answer. That one-line query IS guardrail #5 —
+documents_select's RLS policy hides unverified rows from a patient
+entirely, so "documents visible to this caller" and "documents allowed to
+answer this caller" are the same query by construction.
 """
 
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 
-from app.db import get_db
-from app.deps import current_patient
-from app.models import ChatSession, MedicalRecord, Message, Patient
+from app.deps import CurrentUser, current_patient_record, require_patient
 from app.schemas import ChatReply, MessageIn, MessageOut, SessionCreate, SessionOut
 from app.services.generation import answer_question
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
-def _patient_context(db: Session, patient: Patient) -> str:
-    """
-    A short summary of the patient's own records, for consult/triage.
-
-    Scoped by both patient_id and clinic_id. Used only to judge which
-    guidance is relevant — never as a substitute for a cited source.
-    """
+def _patient_context(user: CurrentUser, patient: dict) -> str:
+    """A short summary of the patient's own records, for consult/triage."""
     records = (
-        db.query(MedicalRecord)
-        .filter(
-            MedicalRecord.patient_id == patient.id,
-            MedicalRecord.clinic_id == patient.clinic_id,
-        )
-        .order_by(MedicalRecord.created_at.desc())
+        user.db.table("medical_records")
+        .select("diagnosis, notes")
+        .eq("patient_id", patient["id"])
+        .order("created_at", desc=True)
         .limit(5)
-        .all()
+        .execute()
+        .data
     )
     return "\n".join(
-        f"- {r.diagnosis or 'note'}: {r.notes or ''}".strip() for r in records
+        f"- {r.get('diagnosis') or 'note'}: {r.get('notes') or ''}".strip() for r in records
     )
 
 
-def _get_session(db: Session, session_id: str, patient: Patient) -> ChatSession:
-    session = (
-        db.query(ChatSession)
-        .filter(
-            ChatSession.id == session_id,
-            ChatSession.patient_id == patient.id,
-            ChatSession.clinic_id == patient.clinic_id,
-        )
-        .first()
-    )
-    # Scoped by patient AND clinic: another patient's session reads as
-    # missing rather than forbidden, so its existence is not confirmed.
-    if session is None:
+def _verified_document_ids(user: CurrentUser) -> List[str]:
+    rows = user.db.table("documents").select("id").eq("verified", True).execute().data
+    return [row["id"] for row in rows]
+
+
+def _get_session(user: CurrentUser, session_id: str) -> dict:
+    result = user.db.table("chat_sessions").select("*").eq("id", session_id).execute()
+    if not result.data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
-    return session
+    return result.data[0]
 
 
 @router.post("/sessions", response_model=SessionOut, status_code=status.HTTP_201_CREATED)
 def create_session(
     payload: SessionCreate,
-    db: Session = Depends(get_db),
-    patient: Patient = Depends(current_patient),
+    user: CurrentUser = Depends(require_patient),
+    patient: dict = Depends(current_patient_record),
 ):
-    session = ChatSession(
-        patient_id=patient.id,
-        clinic_id=patient.clinic_id,
-        mode=payload.mode,
+    return (
+        user.db.table("chat_sessions")
+        .insert({"clinic_id": user.clinic_id, "patient_id": patient["id"], "mode": payload.mode})
+        .execute()
+        .data[0]
     )
-    db.add(session)
-    db.commit()
-    db.refresh(session)
-    return session
 
 
 @router.post("/{session_id}/message", response_model=ChatReply)
 def send_message(
     session_id: str,
     payload: MessageIn,
-    db: Session = Depends(get_db),
-    patient: Patient = Depends(current_patient),
+    user: CurrentUser = Depends(require_patient),
+    patient: dict = Depends(current_patient_record),
 ):
     """
-    Answer a patient's question from their clinic's documents only.
+    Answer a patient's question from their clinic's VERIFIED documents only.
 
     Retrieval is scoped to the patient's clinic via their token, so no
-    request can widen it.
+    request can widen it, and narrowed again to documents the clinic has
+    confirmed are official.
     """
-    session = _get_session(db, session_id, patient)
+    session = _get_session(user, session_id)
 
-    db.add(
-        Message(
-            session_id=session.id,
-            clinic_id=patient.clinic_id,
-            role="user",
-            content=payload.content,
-        )
-    )
+    user.db.table("messages").insert({
+        "session_id": session["id"],
+        "clinic_id": user.clinic_id,
+        "role": "user",
+        "content": payload.content,
+    }).execute()
 
     context = ""
-    if session.mode in ("consult", "triage"):
-        context = _patient_context(db, patient)
+    if session["mode"] in ("consult", "triage"):
+        context = _patient_context(user, patient)
 
     answer = answer_question(
-        clinic_id=patient.clinic_id,
+        clinic_id=user.clinic_id,
         question=payload.content,
-        mode=session.mode,
+        mode=session["mode"],
         patient_context=context,
+        document_ids=_verified_document_ids(user),
     )
 
-    reply = Message(
-        session_id=session.id,
-        clinic_id=patient.clinic_id,
-        role="assistant",
-        content=answer.text,
-        citations=answer.citations or None,
+    reply = (
+        user.db.table("messages")
+        .insert({
+            "session_id": session["id"],
+            "clinic_id": user.clinic_id,
+            "role": "assistant",
+            "content": answer.text,
+            "citations": answer.citations or None,
+        })
+        .execute()
+        .data[0]
     )
-    db.add(reply)
-    db.commit()
-    db.refresh(reply)
 
     return ChatReply(
         message=MessageOut.model_validate(reply),
@@ -128,13 +123,14 @@ def send_message(
 @router.get("/{session_id}", response_model=List[MessageOut])
 def session_history(
     session_id: str,
-    db: Session = Depends(get_db),
-    patient: Patient = Depends(current_patient),
+    user: CurrentUser = Depends(require_patient),
 ):
-    session = _get_session(db, session_id, patient)
+    session = _get_session(user, session_id)
     return (
-        db.query(Message)
-        .filter(Message.session_id == session.id)
-        .order_by(Message.created_at.asc())
-        .all()
+        user.db.table("messages")
+        .select("*")
+        .eq("session_id", session["id"])
+        .order("created_at", desc=False)
+        .execute()
+        .data
     )

@@ -53,6 +53,11 @@ def chunks_to_documents(chunks: list[dict]) -> list[Document]:
             page_content=c["text"],
             metadata={
                 "chunk_id": c["chunk_id"],
+                # Empty string when absent (an index built before this field
+                # existed). A chunk with no document_id matches no document
+                # filter, so it drops out of patient-facing retrieval rather
+                # than slipping through unfiltered — the safe direction.
+                "document_id": c.get("document_id", ""),
                 "section_title": c["section_title"],
                 "page_number": c["page_number"],
                 "source": c["source"],
@@ -66,7 +71,7 @@ def chunks_to_documents(chunks: list[dict]) -> list[Document]:
     return documents
 
 
-def index_chunks(chunks, collection_name=COLLECTION_NAME, persist_dir=PERSIST_DIR):
+def index_chunks(chunks, collection_name=COLLECTION_NAME, persist_dir=None):
     """
     Embed chunks and write them into ONE Chroma collection.
 
@@ -80,6 +85,14 @@ def index_chunks(chunks, collection_name=COLLECTION_NAME, persist_dir=PERSIST_DI
     id: re-ingesting the same document overwrites its own vectors rather
     than appending duplicates.
 
+    persist_dir=None means "use the default", same as omitting it — not
+    "no persistence". A caller passing persist_dir=None explicitly used to
+    silently write to a directory literally named "None" instead of
+    CHROMA_DIR, since `str(None)` stringifies to the word "None" rather
+    than raising: the index looked identical to a real one (correct
+    chunk_count, no error) but was completely unsearchable. `or` catches
+    the explicit-None case the same as the omitted-argument case.
+
     Returns the number of vectors in the collection afterwards.
     """
     documents = chunks_to_documents(chunks)
@@ -89,7 +102,7 @@ def index_chunks(chunks, collection_name=COLLECTION_NAME, persist_dir=PERSIST_DI
     vectorstore = Chroma(
         collection_name=collection_name,
         embedding_function=embeddings,
-        persist_directory=str(persist_dir),
+        persist_directory=str(persist_dir or PERSIST_DIR),
     )
 
     if documents:

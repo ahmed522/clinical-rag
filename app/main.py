@@ -7,23 +7,18 @@ Run with:
 Interactive API docs at http://127.0.0.1:8000/docs
 """
 
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from app.db import init_db
+from app.config import settings
 from app.routers import auth, chat, documents
 
-
-@asynccontextmanager
-async def lifespan(_app: FastAPI):
-    init_db()
-    yield
-
+# No lifespan/init_db step: the schema lives in Supabase, applied via
+# supabase/migrations/0001_schema_and_rls.sql against the project directly
+# (`psql` or the SQL editor), not created by this app at startup.
 
 app = FastAPI(
-    lifespan=lifespan,
     title="Clinical RAG",
     description=(
         "Multi-tenant clinical guideline assistant. Every clinic's documents "
@@ -32,6 +27,13 @@ app = FastAPI(
         "or honestly refused."
     ),
     version="0.1.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(auth.router)

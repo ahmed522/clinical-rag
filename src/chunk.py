@@ -322,6 +322,11 @@ def chunk_document(document: dict, document_id=None) -> list[dict]:
             page_number = offset_to_page(section["start"] + relative, page_map)
             chunks.append({
                 "chunk_id": make_chunk_id(document_id, page_number, index),
+                # Carried into the vector store as metadata so retrieval can
+                # restrict a search to specific documents — which is how
+                # unverified uploads are kept out of patient-facing answers
+                # (guardrail #5). Without it the filter has nothing to match on.
+                "document_id": str(document_id),
                 "text": sub_text,
                 "section_title": section["heading"],
                 "page_number": page_number,

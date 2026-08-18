@@ -3,24 +3,44 @@ Request dependencies: who is calling, in what role, for which clinic.
 
 Every tenant-scoped endpoint goes through here. The rule enforced in this
 file is the product's core safety property: clinic_id comes from the
-verified token and nowhere else.
+verified Supabase token and nowhere else — never from a request body, a
+query param, or anything else the caller controls.
+
+Each resolved caller carries its OWN Supabase client (built via
+client_for() with the caller's access token), so any database call a
+route makes through it is subject to RLS as that specific user. There is
+no path from a route handler back to admin_client() — that stays
+confined to app/routers/auth.py's registration flow.
 """
+
+from dataclasses import dataclass
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy.orm import Session
+from supabase import Client
 
-from app.auth import ROLE_CLINIC_ADMIN, ROLE_PATIENT, decode_access_token
-from app.db import get_db
-from app.models import Patient, User
+from app.supabase_client import client_for, verify_token
+
+ROLE_CLINIC_ADMIN = "clinic_admin"
+ROLE_PATIENT = "patient"
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
+@dataclass
+class CurrentUser:
+    """The verified caller: identity, tenant, role, and a client scoped to them."""
+
+    user_id: str
+    clinic_id: str
+    role: str
+    access_token: str
+    db: Client
+
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    db: Session = Depends(get_db),
-) -> User:
+) -> CurrentUser:
     if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -28,27 +48,38 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    claims = decode_access_token(credentials.credentials)
-    if not claims:
+    token = credentials.credentials
+    user = verify_token(token)
+    if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
         )
 
-    user = db.query(User).filter(User.id == claims.get("sub")).first()
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unknown user")
+    metadata = user.app_metadata or {}
+    clinic_id = metadata.get("clinic_id")
+    role = metadata.get("role")
 
-    # The token's tenant must still match the stored one. Without this, a
-    # token issued before a user was moved between clinics would keep
-    # working against the old tenant.
-    if claims.get("clinic_id") != user.clinic_id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Tenant mismatch")
+    # app_metadata is only writable by the service role (see
+    # app/routers/auth.py), so a real account missing either claim means
+    # registration itself went wrong — not something to paper over with a
+    # default tenant.
+    if not clinic_id or not role:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account is not fully provisioned (missing clinic or role)",
+        )
 
-    return user
+    return CurrentUser(
+        user_id=user.id,
+        clinic_id=clinic_id,
+        role=role,
+        access_token=token,
+        db=client_for(token),
+    )
 
 
-def require_clinic_admin(user: User = Depends(get_current_user)) -> User:
+def require_clinic_admin(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
     if user.role != ROLE_CLINIC_ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -57,7 +88,7 @@ def require_clinic_admin(user: User = Depends(get_current_user)) -> User:
     return user
 
 
-def require_patient(user: User = Depends(get_current_user)) -> User:
+def require_patient(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
     if user.role != ROLE_PATIENT:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -66,24 +97,20 @@ def require_patient(user: User = Depends(get_current_user)) -> User:
     return user
 
 
-def current_patient(
-    user: User = Depends(require_patient),
-    db: Session = Depends(get_db),
-) -> Patient:
+def current_patient_record(user: CurrentUser = Depends(require_patient)) -> dict:
     """
-    The Patient row for the logged-in patient user.
+    The patients row for the logged-in patient.
 
-    Scoped by clinic_id as well as auth_id so a patient can only ever
-    resolve to a patient record inside their own clinic.
+    RLS's patients_select policy already restricts a non-admin caller to
+    their own row, so this filters by auth_id only for clarity — the
+    database is the actual enforcement, not this query. A miss here means
+    registration created the auth user but never wrote the matching
+    patients row.
     """
-    patient = (
-        db.query(Patient)
-        .filter(Patient.auth_id == user.id, Patient.clinic_id == user.clinic_id)
-        .first()
-    )
-    if patient is None:
+    result = user.db.table("patients").select("*").eq("auth_id", user.user_id).execute()
+    if not result.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No patient record linked to this account",
         )
-    return patient
+    return result.data[0]

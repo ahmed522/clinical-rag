@@ -102,6 +102,45 @@ class AnthropicProvider:
         return LLMResult.from_json("".join(b.text for b in response.content if b.type == "text"))
 
 
+class GroqProvider:
+    """
+    Groq. Requires LLM_API_KEY (or GROQ_API_KEY) and the `groq` package.
+
+    Temperature is pinned low deliberately. The prompt forbids using
+    anything outside the retrieved sources, and sampling variety is exactly
+    what erodes that: the failure mode here is not a dull answer, it is a
+    plausible sentence that no source supports.
+    """
+
+    name = "groq"
+
+    # Chosen by testing the actual JSON contract against what Groq serves:
+    # qwen3.6-27b fails Groq's own json_object validation on this prompt,
+    # and the llama-3.x models are not available on the free tier. Swap via
+    # LLM_MODEL without touching this file.
+    DEFAULT_MODEL = "openai/gpt-oss-120b"
+
+    def __init__(self, model: str = "", api_key: str = ""):
+        self.model = model or self.DEFAULT_MODEL
+        self.api_key = api_key or os.getenv("GROQ_API_KEY", "")
+
+    def complete(self, system: str, sources: List[dict], question: str, context: str = "") -> LLMResult:
+        from groq import Groq
+
+        client = Groq(api_key=self.api_key)
+        response = client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": _user_message(sources, question, context)},
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.2,
+            max_tokens=1024,
+        )
+        return LLMResult.from_json(response.choices[0].message.content or "")
+
+
 class OpenAIProvider:
     """OpenAI chat completions. Requires LLM_API_KEY and the `openai` package."""
 
@@ -139,12 +178,24 @@ def _user_message(sources: List[dict], question: str, context: str = "") -> str:
     parts = ["SOURCES:", "\n\n".join(blocks) if blocks else "(none)"]
     if context:
         parts += ["", "PATIENT CONTEXT:", context]
+    if blocks:
+        # State the range explicitly. Left implicit, models cite numbers
+        # that were never offered — one ran sources 1 and 2 together as
+        # "12", which citation validation then rejected, throwing away a
+        # perfectly good grounded answer.
+        parts += [
+            "",
+            f"Valid source numbers: 1 to {len(blocks)}. "
+            f'Cite each as its own integer, e.g. "citations": [1, 2].',
+        ]
     parts += ["", f"PATIENT QUESTION: {question}"]
     return "\n".join(parts)
 
 
 def get_provider():
     provider = (settings.LLM_PROVIDER or "mock").lower()
+    if provider == "groq":
+        return GroqProvider(settings.LLM_MODEL, settings.LLM_API_KEY)
     if provider == "anthropic":
         return AnthropicProvider(settings.LLM_MODEL, settings.LLM_API_KEY)
     if provider == "openai":

@@ -12,37 +12,70 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
+# Load .env before any setting is read, so a local .env works without
+# exporting anything by hand. Real environment variables still win —
+# override=False — so a deployed environment is never overwritten by a
+# stray .env that got copied along with the code.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(PROJECT_ROOT / ".env", override=False)
+except ImportError:
+    # python-dotenv is optional: without it, configuration comes from real
+    # environment variables only, which is how deployments do it anyway.
+    pass
+
+
+def _normalize_supabase_url(raw: str) -> str:
+    """
+    The dashboard shows several URLs on the API settings page, and it is
+    easy to copy the REST endpoint (".../rest/v1") instead of the bare
+    project URL the client library actually wants — it appends "/rest/v1",
+    "/auth/v1" etc. itself. Strip a copied suffix rather than fail with a
+    confusing double path.
+    """
+    url = raw.rstrip("/")
+    for suffix in ("/rest/v1", "/auth/v1", "/storage/v1"):
+        if url.endswith(suffix):
+            return url[: -len(suffix)]
+    return url
+
 
 class Settings:
     # --------------------------------------------------------------
-    # Database
+    # Supabase — database, auth, and storage (PRD architecture decision).
     #
-    # Defaults to SQLite so the demo runs with zero setup. PostgreSQL is
-    # the production target (PRD sec.8) and needs no code change — set
-    # DATABASE_URL and run docker-compose up. The schema is identical
-    # either way because everything goes through SQLAlchemy.
+    # SUPABASE_SERVICE_ROLE_KEY bypasses Row Level Security and must never
+    # be sent to a browser or used to read/write tenant data — see
+    # app/supabase_client.py for where each key is actually used.
     # --------------------------------------------------------------
-    DATABASE_URL = os.getenv(
-        "DATABASE_URL",
-        f"sqlite:///{PROJECT_ROOT / 'data' / 'clinical_rag.db'}",
-    )
-
-    # --------------------------------------------------------------
-    # Auth
-    #
-    # The JWT carries `role` and `clinic_id`. Every tenant-scoped query
-    # takes clinic_id from the token, never from the request body, so a
-    # caller cannot ask for another clinic's data by editing a payload.
-    # --------------------------------------------------------------
-    JWT_SECRET = os.getenv("JWT_SECRET", "dev-only-secret-change-before-deploying")
-    JWT_ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "720"))
+    SUPABASE_URL = _normalize_supabase_url(os.getenv("SUPABASE_URL", ""))
+    SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
+    SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 
     # --------------------------------------------------------------
     # Storage
+    #
+    # Uploaded PDFs live in the `guidelines` Supabase Storage bucket now
+    # (per-clinic folders); this directory is only a local staging area
+    # for the file mid-upload, before the pipeline and storage calls run.
     # --------------------------------------------------------------
     UPLOAD_DIR = PROJECT_ROOT / "data" / "uploads"
     MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(50 * 1024 * 1024)))
+
+    # --------------------------------------------------------------
+    # CORS — the frontend (web/) calls this API directly from the browser
+    # for document upload and chat, so its origin must be allowed
+    # explicitly. Bearer tokens, not cookies, so credentials=True is not
+    # needed and a comma-separated allowlist stays safe without it.
+    # --------------------------------------------------------------
+    CORS_ORIGINS = [
+        origin.strip()
+        for origin in os.getenv(
+            "CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
+        ).split(",")
+        if origin.strip()
+    ]
 
     # --------------------------------------------------------------
     # LLM

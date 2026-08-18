@@ -28,7 +28,7 @@ not a number.
 
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 SRC = PROJECT_ROOT / "src"
@@ -56,15 +56,35 @@ def _get_embeddings():
     return _embeddings
 
 
-def retrieve(clinic_id: str, question: str, k: int = RETRIEVAL_K, persist_dir=None) -> List[dict]:
+def retrieve(
+    clinic_id: str,
+    question: str,
+    k: int = RETRIEVAL_K,
+    persist_dir=None,
+    document_ids: Optional[List[str]] = None,
+) -> List[dict]:
     """
     Return up to k chunks from this clinic's collection, or [] if the
     question is clearly outside the corpus.
 
     k defaults to 8 because that is where recall plateaus on the labelled
     set (47% at k=1, 68% at k=4, 84% at k=8, no gain at k=10).
+
+    document_ids restricts the search to specific documents. Patient-facing
+    callers pass the clinic's VERIFIED documents, which is how guardrail #5
+    is enforced: an uploaded guideline the clinic has not yet confirmed is
+    official cannot reach a patient's answer.
+
+    Note the empty-list case is not the same as None. None means "no
+    document restriction" (the clinic-facing/CLI path). An empty list means
+    "no documents are eligible" and must return nothing — falling through to
+    an unfiltered search there would answer from precisely the documents the
+    caller just excluded.
     """
     from langchain_chroma import Chroma
+
+    if document_ids is not None and not document_ids:
+        return []
 
     store = Chroma(
         collection_name=collection_name_for(clinic_id),
@@ -72,8 +92,18 @@ def retrieve(clinic_id: str, question: str, k: int = RETRIEVAL_K, persist_dir=No
         persist_directory=str(persist_dir or CHROMA_DIR),
     )
 
+    search_filter = None
+    if document_ids:
+        # Chroma rejects $in with a single-element list on some versions;
+        # an equality filter is the same query and is universally accepted.
+        search_filter = (
+            {"document_id": document_ids[0]}
+            if len(document_ids) == 1
+            else {"document_id": {"$in": list(document_ids)}}
+        )
+
     try:
-        hits = store.similarity_search_with_score(question, k=k)
+        hits = store.similarity_search_with_score(question, k=k, filter=search_filter)
     except Exception:
         # A clinic with no documents yet has no collection. That is not an
         # error — it is simply nothing to ground an answer in.

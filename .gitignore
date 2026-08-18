@@ -254,3 +254,7 @@ data/*.sqlite3
 # Clinic-uploaded PDFs, stored per tenant. These are other people's
 # documents; they must not enter version control.
 data/uploads/
+
+# Claude Code local tool-permission cache — machine/session-specific, not
+# project config. .claude/launch.json (preview server config) IS tracked.
+.claude/settings.local.json
