@@ -17,10 +17,14 @@ from config import SOURCE_DIR, EXTRACTED_DIR as OUTPUT_DIR
 
 # =========================
 # Source metadata
-# Each PDF file must be linked to metadata about its source, so we can
-# use it later in the chunk metadata and in the source-credibility docs.
-# The dict key must match the PDF filename exactly as it appears in
-# data/source/
+#
+# Provenance travels with every chunk, so an answer can cite the document
+# and page a clinician can check.
+#
+# In the multi-tenant application this comes from the `documents` database
+# row and is passed into extract_pdf() directly. The dict below only backs
+# the single-tenant CLI (`python src/ingest.py`) for the two guideline
+# PDFs in data/source/, keyed by exact filename.
 # =========================
 
 SOURCE_METADATA = {
@@ -41,11 +45,14 @@ SOURCE_METADATA = {
 # Default metadata used when a file in data/source is not registered in
 # the dict above, so the script doesn't crash — but it prints a clear
 # warning telling you to add it.
+# Topic is intentionally empty rather than a specialty guess: clinics
+# upload guidelines from any specialty, and a wrong topic would travel
+# into every chunk's metadata and every citation.
 DEFAULT_METADATA = {
     "title": "UNKNOWN — add this file to SOURCE_METADATA",
     "publisher": "UNKNOWN",
     "url": "",
-    "topic": "Type 2 Diabetes",
+    "topic": "",
 }
 
 
@@ -92,9 +99,13 @@ def clean_text(text: str) -> str:
 # PDF extraction
 # =========================
 
-def extract_pdf(pdf_path: str) -> dict:
+def extract_pdf(pdf_path: str, metadata: dict = None) -> dict:
     """
     Extract text from a single PDF.
+
+    metadata carries the document's provenance — title, publisher, url,
+    topic. The application passes the `documents` row here; the CLI omits
+    it and falls back to the SOURCE_METADATA table above.
 
     Output format:
 
@@ -141,20 +152,22 @@ def extract_pdf(pdf_path: str) -> dict:
                 "char_count": len(cleaned_text)
             })
 
-    # Look up source metadata by filename
-    metadata = SOURCE_METADATA.get(pdf_path.name, DEFAULT_METADATA)
-    if pdf_path.name not in SOURCE_METADATA:
-        print(
-            f"[warning] '{pdf_path.name}' is not registered in SOURCE_METADATA — "
-            f"add it at the top of this file so title/publisher/url are not UNKNOWN."
-        )
+    # Caller-supplied provenance wins. Only fall back to the filename
+    # lookup when no metadata was passed, i.e. the single-tenant CLI.
+    if metadata is None:
+        metadata = SOURCE_METADATA.get(pdf_path.name, DEFAULT_METADATA)
+        if pdf_path.name not in SOURCE_METADATA:
+            print(
+                f"[warning] '{pdf_path.name}' is not registered in SOURCE_METADATA — "
+                f"add it at the top of this file so title/publisher/url are not UNKNOWN."
+            )
 
     return {
         "source": pdf_path.name,
-        "title": metadata["title"],
-        "publisher": metadata["publisher"],
-        "url": metadata["url"],
-        "topic": metadata["topic"],
+        "title": metadata.get("title") or DEFAULT_METADATA["title"],
+        "publisher": metadata.get("publisher") or DEFAULT_METADATA["publisher"],
+        "url": metadata.get("url") or "",
+        "topic": metadata.get("topic") or "",
         "total_pages": total_pages,
         "extracted_pages": len(pages),
         "pages": pages

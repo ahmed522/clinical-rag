@@ -105,7 +105,23 @@ MIN_CHUNK_CHARS = 60
 # raising CHUNK_SIZE without changing model would silently truncate.
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
+# Collection used by the single-tenant CLI scripts. Multi-tenant callers
+# use collection_name_for(clinic_id) instead — every clinic gets its own
+# Chroma collection so one clinic's documents can never be retrieved for
+# another.
 COLLECTION_NAME = "clinical_rag_t2dm"
+
+
+def collection_name_for(clinic_id):
+    """
+    Chroma collection name for one clinic.
+
+    Hard tenant isolation: separate collections rather than a shared
+    collection with a metadata filter, so a forgotten filter cannot leak
+    another clinic's documents into a patient's answer.
+    """
+
+    return f"clinic_{clinic_id}"
 
 
 # ============================================================
@@ -114,13 +130,49 @@ COLLECTION_NAME = "clinical_rag_t2dm"
 
 # Chunks retrieved per query. Raised from 3 after measuring recall on the
 # labelled set: answers were being retrieved and then truncated away.
+#
+# Measured recall on the 38-query labelled set:
+#   k=1  47%   k=3  58%   k=4  68%   k=5  71%   k=8  84%   k=10 84%
+# k=8 is the plateau, so retrieval uses 8 and gains nothing from 10.
 TOP_K = 10
+RETRIEVAL_K = 8
 
 # Similarity distance above which a match is considered too weak.
 #
-# NOT currently safe to use as an abstention threshold on its own. On the
-# labelled set the in-scope and out-of-scope score ranges OVERLAP:
-# worst in-scope is 0.833, worst out-of-scope is 0.755. Any single
-# cut-off either admits unanswerable questions or refuses real ones.
+# NOT safe as an abstention threshold on its own. On the labelled set the
+# in-scope and out-of-scope score ranges OVERLAP: worst in-scope is
+# 0.833, worst out-of-scope is 0.755. Any single cut-off either admits
+# unanswerable questions or refuses real ones.
 # Kept here as a measured reference point, not as a safety mechanism.
 WEAK_MATCH_DISTANCE = 0.75
+
+# Loose gate used before generation: reject only questions that are
+# clearly outside the corpus entirely.
+#
+# Was 0.95, which was calibrated on the labelled evaluation set — and that
+# set is written in CLINICIAN phrasing ("What is the first-line
+# pharmacological treatment for type 2 diabetes?", scoring 0.53-0.67).
+# Patients do not talk like that, and the same questions asked in ordinary
+# words score far worse against this embedding model. Re-measured against
+# NG28 with patient phrasing:
+#
+#   in-scope, clinician wording   0.53 - 0.67
+#   in-scope, patient wording     0.87 - 1.54
+#     "How often should I check my sugar levels?"      0.868
+#     "What should I eat to manage my blood sugar?"    0.985
+#     "I forgot to take my metformin, what do I do?"   1.034
+#     "When should I see the doctor urgently?"         1.242
+#     "Is it safe for me to exercise?"                 1.543
+#   out of scope (pizza, car repair, wifi, trivia)     1.80 - 1.94
+#
+# At 0.95 the gate refused six of those eight real patient questions —
+# including "when should I see the doctor urgently?", the exact question
+# the previous version of this comment said must never be refused. The
+# gate was silently the most dangerous component in the system.
+#
+# 1.65 sits in the empty band between the worst real question (1.543) and
+# the closest off-domain one (1.803), with ~0.1 of margin on each side.
+# It stays a LOOSE gate by design: near-domain questions still pass and
+# are refused by the LLM's grounding judgment over the retrieved text,
+# which is the only check that can actually read the passage.
+ABSURD_DISTANCE = 1.65

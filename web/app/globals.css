@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Design tokens — brand-neutral placeholder.
+   ------------------------------------------------------------
+   The real brand identity has not been supplied yet. Every color and
+   font in this app reads from these variables (never a literal), so
+   swapping the brand later is a one-file edit, not a re-theme of every
+   component. --accent is the one color safe to swap for a brand primary;
+   --danger is semantic (errors, the urgent-care safety banner) and
+   should stay visually distinct from whatever --accent becomes, per the
+   brand's own rule that urgent/alert color must never double as a brand
+   accent.
+   ============================================================ */
+:root {
+  --bg: #f7f8f7;
+  --bg-raised: #ffffff;
+  --surface: #ffffff;
+  --surface-muted: #eef0ee;
+  --border: #dde1de;
+  --ink: #1c211d;
+  --ink-soft: #565f58;
+  --ink-faint: #8b948c;
+
+  --accent: #3c6e5c;
+  --accent-ink: #ffffff;
+  --accent-soft: #e4ede8;
+
+  --danger: #a3372f;
+  --danger-bg: #f7e4e1;
+  --danger-ink: #7a251f;
+
+  --ok: #3c6e5c;
+  --ok-bg: #e4ede8;
+
+  --pending: #8a6a2f;
+  --pending-bg: #f1e6cc;
+
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 10px 28px -14px rgba(28, 33, 29, 0.22);
+  --shadow-sm: 0 4px 12px -6px rgba(28, 33, 29, 0.18);
+
+  /* System stack, both scripts from one family per screen — see the
+     brand-identity note in README about a bilingual UI needing this. */
+  --font-ui: "Segoe UI", Tahoma, "Dubai", "Noto Naskh Arabic", system-ui, -apple-system, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141815;
+    --bg-raised: #1b201c;
+    --surface: #1b201c;
+    --surface-muted: #232922;
+    --border: #313a32;
+    --ink: #eef1ee;
+    --ink-soft: #aab4ac;
+    --ink-faint: #6f786f;
+
+    --accent: #7fb69e;
+    --accent-ink: #0e1512;
+    --accent-soft: #1e2d27;
+
+    --danger: #e2857b;
+    --danger-bg: #2c1f1c;
+    --danger-ink: #f3cbc5;
+
+    --ok: #7fb69e;
+    --ok-bg: #1e2d27;
+
+    --pending: #e4c77f;
+    --pending-bg: #2c2718;
+
+    --shadow: 0 10px 28px -14px rgba(0, 0, 0, 0.55);
+    --shadow-sm: 0 4px 12px -6px rgba(0, 0, 0, 0.5);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* The chat surface is deliberately excluded from RTL: patient messages,
+   assistant answers, and citations stay English/LTR regardless of the
+   interface language, per the product decision that the pipeline is
+   English-only even though the interface chrome is bilingual. */
+.chat-ltr {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate;
+}

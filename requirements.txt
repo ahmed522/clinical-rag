@@ -9,5 +9,25 @@ langchain-chroma
 chromadb
 sentence-transformers
 
+# Web application (multi-tenant SaaS layer)
+fastapi
+uvicorn
+python-multipart
+email-validator
+python-dotenv
+
+# Database, auth, and storage. Schema + RLS policies live in
+# supabase/migrations/, applied directly against the project — not by this
+# app at startup. sqlalchemy/alembic/python-jose/bcrypt are gone: Supabase
+# Auth issues and verifies tokens, and RLS is what enforces tenancy, not
+# an ORM query filter.
+supabase
+
+# LLM provider. Only the one named by LLM_PROVIDER is imported at runtime
+# (the imports live inside each provider's complete()), so the others can
+# be dropped without breaking the app.
+groq
+
 # Development / testing
 pytest
+httpx

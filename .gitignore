@@ -242,3 +242,19 @@ data/query_results.json
 
 # Editor settings — machine-specific interpreter paths
 .vscode/
+
+# ==================================================
+# SaaS application runtime state
+# ==================================================
+# Local database. Recreated on startup from the SQLAlchemy models, and it
+# holds real clinic/patient rows once the app is used — never commit it.
+data/*.db
+data/*.sqlite3
+
+# Clinic-uploaded PDFs, stored per tenant. These are other people's
+# documents; they must not enter version control.
+data/uploads/
+
+# Claude Code local tool-permission cache — machine/session-specific, not
+# project config. .claude/launch.json (preview server config) IS tracked.
+.claude/settings.local.json
