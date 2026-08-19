@@ -303,6 +303,66 @@ class OpenAIProvider:
         return VerificationResult.from_json(raw)
 
 
+class OpenRouterProvider:
+    """OpenAI-compatible endpoint over OpenRouter's free-tagged open models.
+
+    Free tier there is request-count-limited (not token-limited like Groq),
+    so this is a manual failover to switch to via LLM_PROVIDER when Groq is
+    rate-limited, not a replacement default. Verify the current free model
+    lineup at openrouter.ai before relying on the default below — free
+    model availability rotates.
+    """
+
+    name = "openrouter"
+    # Verified live on openrouter.ai on 2026-08-19: two active free
+    # providers (Google AI Studio, Darkbloom), 100% 3-day uptime, explicit
+    # "structured output support" — relevant since complete()/verify() both
+    # require response_format json_object. Free model availability rotates;
+    # re-check openrouter.ai/models?max_price=0 before trusting this later.
+    DEFAULT_MODEL = "google/gemma-4-26b-a4b-it:free"
+
+    def __init__(self, model: str = "", api_key: str = ""):
+        self.model = model or self.DEFAULT_MODEL
+        self.api_key = api_key or os.getenv("OPENROUTER_API_KEY", "")
+
+    def _client(self, timeout: float):
+        from openai import OpenAI
+
+        return OpenAI(
+            api_key=self.api_key,
+            base_url="https://openrouter.ai/api/v1",
+            timeout=timeout,
+        )
+
+    def _request(self, system: str, message: str, max_tokens: int, timeout: float) -> str:
+        response = self._client(timeout).chat.completions.create(
+            model=self.model,
+            messages=[{"role": "system", "content": system}, {"role": "user", "content": message}],
+            response_format={"type": "json_object"},
+            temperature=0.0,
+            max_tokens=max_tokens,
+        )
+        return response.choices[0].message.content or ""
+
+    def chat(self, system: str, message: str) -> str:
+        return self._request(system, message, 128, settings.LLM_TIMEOUT_SECONDS)
+
+    def complete(self, system: str, sources: List[dict], question: str, context: str = "") -> LLMResult:
+        # Headroom against truncation on free open models, matching the
+        # same lesson learned from Groq's reasoning-token truncation bug.
+        raw = self._request(system, _user_message(sources, question, context), 3000, settings.LLM_TIMEOUT_SECONDS)
+        return LLMResult.from_json(raw)
+
+    def verify(self, question: str, claims: List[dict]) -> VerificationResult:
+        raw = self._request(
+            EVIDENCE_VERIFICATION_PROMPT,
+            _verification_message(question, claims),
+            1000,
+            settings.EVIDENCE_VERIFIER_TIMEOUT_SECONDS,
+        )
+        return VerificationResult.from_json(raw)
+
+
 def _user_message(sources: List[dict], question: str, context: str = "") -> str:
     """Render retrieved text as numbered, explicitly untrusted evidence."""
     blocks = []
@@ -332,4 +392,6 @@ def get_provider():
         return AnthropicProvider(settings.LLM_MODEL, settings.LLM_API_KEY)
     if provider == "openai":
         return OpenAIProvider(settings.LLM_MODEL, settings.LLM_API_KEY)
+    if provider == "openrouter":
+        return OpenRouterProvider(settings.LLM_MODEL, settings.LLM_API_KEY)
     return MockProvider()

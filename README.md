@@ -123,6 +123,12 @@ Change them there, not in the individual scripts. This is the pipeline's own con
 separate from `app/config.py` (Supabase, LLM provider, CORS, uploads) — the app imports
 `rag.config` for the pipeline knobs it needs, never the other way around.
 
+The generation LLM is swappable via `LLM_PROVIDER` in `.env` — `mock` (default, offline,
+what the test suite runs on), `groq`, `anthropic`, `openai`, or `openrouter`. OpenRouter is
+a free-tier alternative worth keeping as a manual failover for when Groq's rate limit is
+hit mid-demo: switch `LLM_PROVIDER=openrouter`, restart, done. See `app/llm.py` and
+`.env.example` for details and the current caveats on each provider.
+
 Constants carry the measurement that justifies them. `MIN_CHUNK_CHARS = 60` is low on
 purpose: `IF SYMPTOMATIC and FPG >=15 mmol/L ... gliclazide 80 mg 1 x daily` is 85
 characters of real dosing guidance that a higher threshold would silently delete.

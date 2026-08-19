@@ -22,8 +22,10 @@ dependencies = [
     # applied directly against the project, not by this app at startup.
     "supabase>=2.31.0",
     # LLM provider (only the one named by LLM_PROVIDER is actually imported
-    # at runtime, but it must be installed to be selectable).
+    # at runtime, but it must be installed to be selectable). openai's SDK
+    # also backs "openrouter" — OpenRouter is OpenAI-compatible.
     "groq>=1.0.0",
+    "openai>=2.48.0",
     # scripts/demo.py drives the API over HTTP
     "httpx>=0.28.1",
 ]

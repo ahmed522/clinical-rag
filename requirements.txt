@@ -24,8 +24,10 @@ supabase
 
 # LLM provider. Only the one named by LLM_PROVIDER is imported at runtime
 # (the imports live inside each provider's complete()), so the others can
-# be dropped without breaking the app.
+# be dropped without breaking the app. openai's SDK also backs the
+# "openrouter" provider (OpenRouter is OpenAI-compatible), not just "openai".
 groq
+openai
 
 # Development / testing
 pytest
