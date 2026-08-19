@@ -12,6 +12,7 @@ entirely, so "documents visible to this caller" and "documents allowed to
 answer this caller" are the same query by construction.
 """
 
+from collections import Counter
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -121,6 +122,50 @@ def create_session(
         .execute()
         .data[0]
     )
+
+
+@router.get("/sessions", response_model=List[SessionOut])
+def list_sessions(
+    user: CurrentUser = Depends(require_patient),
+    patient: dict = Depends(current_patient_record),
+):
+    """
+    Past sessions the patient can switch back to.
+
+    Every mode switch in the frontend starts a fresh session (see
+    create_session above), so a patient can easily accumulate sessions
+    with zero messages in them just by clicking between tabs. Those are
+    filtered out here rather than shown — an empty entry in a history
+    list looks like a bug, not a feature.
+
+    Registered before GET /{session_id} below: Starlette matches routes
+    in registration order, so "/sessions" must come first or it would be
+    captured as session_id="sessions".
+    """
+    sessions = (
+        user.db.table("chat_sessions")
+        .select("id, mode, started_at")
+        .eq("patient_id", patient["id"])
+        .order("started_at", desc=True)
+        .execute()
+        .data
+    )
+    if not sessions:
+        return []
+
+    messages = (
+        user.db.table("messages")
+        .select("session_id")
+        .in_("session_id", [s["id"] for s in sessions])
+        .execute()
+        .data
+    )
+    counts = Counter(m["session_id"] for m in messages)
+    return [
+        {**s, "message_count": counts[s["id"]]}
+        for s in sessions
+        if counts[s["id"]] > 0
+    ]
 
 
 @router.post("/{session_id}/message", response_model=ChatReply)

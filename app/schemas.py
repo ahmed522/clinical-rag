@@ -100,6 +100,10 @@ class SessionOut(BaseModel):
     id: str
     mode: str
     started_at: datetime
+    # Not a DB column — computed only by GET /chat/sessions (list_sessions).
+    # Defaults to 0 so create_session's return (a raw insert result, which
+    # never sets this) still validates against this same response model.
+    message_count: int = 0
 
     model_config = ConfigDict(from_attributes=True)
 

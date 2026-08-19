@@ -81,6 +81,8 @@ const dict = {
   send: { ar: "إرسال", en: "Send" },
   sending: { ar: "…", en: "…" },
   newConversation: { ar: "محادثة جديدة", en: "New conversation" },
+  chatHistory: { ar: "سجل المحادثات", en: "Chat history" },
+  noSessionsYet: { ar: "لا توجد محادثات سابقة بعد.", en: "No past conversations yet." },
   source: { ar: "المصدر", en: "Source" },
   page: { ar: "صفحة", en: "page" },
 
