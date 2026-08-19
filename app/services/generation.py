@@ -169,7 +169,7 @@ def _personal_request_refusal(reason: str, mode: str) -> GroundedAnswer:
     )
 
 
-def _validate_claims(
+def validate_claims(
     result: LLMResult,
     sources: List[dict],
 ) -> Tuple[Optional[dict], List[dict], List[dict], List[str]]:
@@ -291,7 +291,7 @@ def _validate_claims(
     return package, citations, verifier_claims, errors
 
 
-def _verification_failure(verification, expected_ids: set[str]) -> Tuple[bool, List[dict]]:
+def verification_failure(verification, expected_ids: set[str]) -> Tuple[bool, List[dict]]:
     rows = [
         {
             "claim_id": row.claim_id,
@@ -433,7 +433,7 @@ def answer_question(
                 audit={**audit, "latency_ms": {"retrieval": round(retrieval_ms, 2), "generation": round(generation_ms, 2), "total": round((perf_counter() - total_started) * 1000, 2)}},
             )
 
-        package, citations, verifier_claims, validation_errors = _validate_claims(result, sources)
+        package, citations, verifier_claims, validation_errors = validate_claims(result, sources)
         if package is not None or attempt == GENERATION_MAX_ATTEMPTS - 1:
             break
 
@@ -484,7 +484,7 @@ def answer_question(
             audit={**audit, "latency_ms": {"retrieval": round(retrieval_ms, 2), "generation": round(generation_ms, 2), "total": round((perf_counter() - total_started) * 1000, 2)}},
         )
     verification_ms = (perf_counter() - verification_started) * 1000
-    failed, verification_rows = _verification_failure(
+    failed, verification_rows = verification_failure(
         verification, {claim["claim_id"] for claim in verifier_claims}
     )
     audit["verification"] = verification_rows

@@ -1,7 +1,7 @@
 import json
 
 from app.routers import evaluation
-from evaluate_rag import citation_metrics, summarize
+from scripts.evaluate_rag import citation_metrics, summarize
 
 
 def test_citation_metrics_require_expected_source_page_and_answer_text():

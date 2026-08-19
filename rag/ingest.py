@@ -14,7 +14,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
-from config import (
+from rag.config import (
     EXTRACTED_DIR as OUTPUT_DIR,
     PDF_MIN_DOCUMENT_CHARS,
     PDF_MIN_TEXT_PAGE_RATIO,
@@ -31,7 +31,7 @@ from config import (
 #
 # In the multi-tenant application this comes from the `documents` database
 # row and is passed into extract_pdf() directly. The dict below only backs
-# the single-tenant CLI (`python src/ingest.py`) for the two guideline
+# the single-tenant CLI (`python -m rag.ingest`) for the two guideline
 # PDFs in data/source/, keyed by exact filename.
 # =========================
 

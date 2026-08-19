@@ -31,7 +31,7 @@ Approach:
    }
 
 Run with:
-    python src/chunk.py
+    python -m rag.chunk
 """
 
 import json
@@ -47,7 +47,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-from config import (
+from rag.config import (
     CHUNK_OVERLAP,
     CHUNK_SIZE,
     CHUNKS_DIR,

@@ -19,7 +19,7 @@ if hasattr(sys.stdout, "reconfigure"):
 # The live chunker (chunk.py) writes CHUNKS_PATH. This used to point at
 # data/processed/chunks.json, which belonged to the older pipeline — so
 # the evaluation was reporting on data that was not in the index.
-from config import (
+from rag.config import (
     CHUNKS_PATH as CHUNKS_FILE,
     EXTRACTED_DIR,
     PREPROCESSED_DIR,

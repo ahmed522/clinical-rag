@@ -1,6 +1,6 @@
 from langchain_core.documents import Document
 
-from rerank import rerank_hits
+from rag.rerank import rerank_hits
 
 
 class FakeCrossEncoder:

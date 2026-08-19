@@ -36,7 +36,6 @@ Run with:
 """
 
 import os
-import sys
 import time
 from pathlib import Path
 
@@ -44,7 +43,6 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SOURCE_DIR = PROJECT_ROOT / "data" / "source"
-SRC = PROJECT_ROOT / "src"
 
 pytestmark = pytest.mark.skipif(
     not (SOURCE_DIR / "source1.pdf").exists(),
@@ -67,14 +65,11 @@ def client(tmp_path_factory):
     """
     os.environ.setdefault("LLM_PROVIDER", "mock")
 
-    if str(SRC) not in sys.path:
-        sys.path.insert(0, str(SRC))
-
     from _pytest.monkeypatch import MonkeyPatch
     from fastapi.testclient import TestClient
 
     import app.services.retrieval as retrieval
-    import embed
+    import rag.embed as embed
     from app.main import app
 
     chroma_dir = tmp_path_factory.mktemp("e2e_chroma")
@@ -128,7 +123,7 @@ def _cleanup_supabase_test_data():
     try:
         import chromadb
 
-        from config import collection_name_for
+        from rag.config import collection_name_for
 
         chroma_client = chromadb.PersistentClient(
             path=str(PROJECT_ROOT / "data" / "chroma_db")

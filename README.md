@@ -24,7 +24,7 @@ or replace a clinician.
 | `data/source/source2.pdf` | WHO HEARTS-D — *Diagnosis and management of type 2 diabetes* | 35 |
 
 Source metadata (title, publisher, URL, topic) is registered in `SOURCE_METADATA` at the
-top of `src/ingest.py`, **keyed by exact filename**. Adding a PDF without registering it
+top of `rag/ingest.py`, **keyed by exact filename**. Adding a PDF without registering it
 there still works, but its provenance fields will read `UNKNOWN` and the script warns.
 
 The two guidelines are written for different contexts — NICE for the UK, WHO HEARTS-D for
@@ -40,18 +40,18 @@ python -m venv .venv
 .venv/Scripts/activate          # Windows;  source .venv/bin/activate on Unix
 pip install -r requirements.txt
 
-python src/ingest.py            # PDFs        -> data/extracted/
-python src/preprocessing.py     # extracted   -> data/preprocessed/
-python src/chunk.py             # preprocessed-> data/chunks/chunks.json
-python src/embed.py             # chunks      -> data/chroma_db/
-python src/query.py             # ask the 10 built-in test questions
+python -m rag.ingest             # PDFs        -> data/extracted/
+python -m rag.preprocessing      # extracted   -> data/preprocessed/
+python -m rag.chunk              # preprocessed-> data/chunks/chunks.json
+python -m rag.embed              # chunks      -> data/chroma_db/
 ```
 
 **Run the stages in that order.** Each reads the previous stage's output from disk; there
 is no orchestrator. A full rebuild from the PDFs takes about 25 seconds.
 
-Run the scripts as `python src/<name>.py` (not `python -m src.<name>`) — that puts `src/`
-on the import path so they can find `config.py`.
+Run everything as `python -m <package>.<module>` from the repo root — `rag/`, `app/`, and
+`scripts/` are ordinary Python packages (each has an `__init__.py`), so no `sys.path`
+tricks are needed to find `rag.config` or anything else.
 
 For the multi-tenant MVP, copy `.env.example` to `.env`, apply all Supabase migrations in
 order, then run the API and frontend:
@@ -65,16 +65,17 @@ npm install
 npm run dev
 ```
 
-Migrations `0003_rag_mvp_reliability.sql` and `0004_structured_rag_evidence.sql`
-must be applied before using the updated upload and evidence-audit paths.
+Migrations `0001` through `0006` must all be applied, in order, before the app will run
+correctly — `0005_authz_fixes.sql` and `0006_remove_consult_mode.sql` are as required as
+the earlier ones, not optional follow-ups.
 
 Checks, runnable any time:
 
 ```bash
-python src/evaluate_chunks.py      # chunk quality + page-citation verification
-python src/evaluate_retrieval.py   # recall@k / MRR against the labelled query set
-python src/evaluate_rag.py         # deterministic end-to-end RAG + citation report
-python src/evaluate_rag.py --provider configured  # configured LLM; may incur cost
+python -m scripts.evaluate_chunks      # chunk quality + page-citation verification
+python -m scripts.evaluate_retrieval   # recall@k / MRR against the labelled query set
+python -m scripts.evaluate_rag         # deterministic end-to-end RAG + citation report
+python -m scripts.evaluate_rag --provider configured  # configured LLM; may incur cost
 ```
 
 ---
@@ -84,28 +85,29 @@ python src/evaluate_rag.py --provider configured  # configured LLM; may incur co
 ```
 data/source/*.pdf
    │
-   ▼ ingest.py            PyMuPDF text extraction, ligature + de-hyphenation repair,
+   ▼ rag/ingest.py        PyMuPDF text extraction, ligature + de-hyphenation repair,
    │                      source metadata attached
 data/extracted/*.json     {source,title,publisher,url,topic,total_pages,
    │                       pages:[{page_number,text,char_count}]}
    │
-   ▼ preprocessing.py     removes repeated page furniture (running titles, copyright
+   ▼ rag/preprocessing.py removes repeated page furniture (running titles, copyright
    │                      footers, page numbers) by FREQUENCY, not hardcoded regex;
    │                      labels copyright / table-of-contents pages
 data/preprocessed/*.json  same shape + page_type per page
    │
-   ▼ chunk.py             detects section headings, splits into sections, then splits
+   ▼ rag/chunk.py         detects section headings, splits into sections, then splits
    │                      long sections with overlap; maps every chunk back to the page
    │                      it starts on; skips non-content pages
 data/chunks/chunks.json   [{chunk_id,text,section_title,page_number,source,
    │                        title,publisher,url,topic}]
    │
-   ▼ embed.py             all-MiniLM-L6-v2 (384-dim); wipes and rebuilds the index
+   ▼ rag/embed.py         all-MiniLM-L6-v2 (384-dim); wipes and rebuilds the index
 data/chroma_db/           Chroma collection "clinical_rag_t2dm"
-   │
-   ▼ query.py             retrieve 30 candidates, cross-encoder rerank, report top 10
-data/query_results.json
 ```
+
+The app's own retrieval path (`app/services/retrieval.py`) reruns this same search
+against a per-clinic collection at request time — there is no separate offline "query"
+stage; `scripts/evaluate_retrieval.py` is what exercises retrieval quality standalone.
 
 The offline `embed.py` command rebuilds only the configured single-tenant collection.
 Application uploads use deterministic chunk IDs and document-level compensation, so a
@@ -115,9 +117,11 @@ failed clinic upload cannot intentionally wipe another clinic's collection.
 
 ## Configuration
 
-All paths and tunable settings live in **`src/config.py`** — chunk size, overlap, minimum
+All paths and tunable settings live in **`rag/config.py`** — chunk size, overlap, minimum
 chunk length, furniture-detection thresholds, embedding model, collection name, `TOP_K`.
-Change them there, not in the individual scripts.
+Change them there, not in the individual scripts. This is the pipeline's own config,
+separate from `app/config.py` (Supabase, LLM provider, CORS, uploads) — the app imports
+`rag.config` for the pipeline knobs it needs, never the other way around.
 
 Constants carry the measurement that justifies them. `MIN_CHUNK_CHARS = 60` is low on
 purpose: `IF SYMPTOMATIC and FPG >=15 mmol/L ... gliclazide 80 mg 1 x daily` is 85
@@ -127,7 +131,7 @@ characters of real dosing guidance that a higher threshold would silently delete
 
 ## Evaluation
 
-### Chunk quality — `src/evaluate_chunks.py`
+### Chunk quality — `scripts/evaluate_chunks.py`
 
 Size and word statistics, duplicates, required metadata, sentence boundaries, boilerplate
 contamination, and **page-citation verification**: every chunk's text must actually appear
@@ -136,7 +140,7 @@ citation in a clinical setting.
 
 Current: 294 chunks, median 958 chars, **0% boilerplate**, 293/294 citations verified.
 
-### Retrieval quality — `src/evaluate_retrieval.py`
+### Retrieval quality — `scripts/evaluate_retrieval.py`
 
 Scored against `evaluation/clinical_queries.json`: **38 in-scope + 6 out-of-scope**
 labelled queries. Every label was derived by reading the indexed documents directly — not
@@ -160,7 +164,7 @@ MRR 0.682 · out-of-scope rejection 6/6
 `recall@k` = a chunk from the right source and page appeared. `answer@k` = it also
 contained the expected text, which catches retrieving the right page but the wrong part.
 
-### Full-pipeline quality — `src/evaluate_rag.py`
+### Full-pipeline quality — `scripts/evaluate_rag.py`
 
 The deterministic mock baseline runs retrieval, reranking, structured claim generation,
 exact-excerpt validation, claim verification, citation resolution, and latency reporting
@@ -188,8 +192,8 @@ judgement and abstention behavior. That run may incur provider cost.
   (metformin contraindications, blood pressure/lipids, DKA/HHS, urgent referral).
 - **No usable abstention threshold.** In-scope and out-of-scope similarity scores overlap:
   worst in-scope 0.833, worst out-of-scope 0.755. Any single cut-off either admits
-  unanswerable questions or refuses real ones. `WEAK_MATCH_DISTANCE` in `config.py` records
-  this but must not be relied on as a safety mechanism.
+  unanswerable questions or refuses real ones. `WEAK_MATCH_DISTANCE` in `rag/config.py`
+  records this but must not be relied on as a safety mechanism.
 - **Tables and figures are lost as structure.** Extraction linearises them, so dose
   escalation tables and treatment algorithms become ambiguous token streams, and figure
   content that lives in an image is unavailable — only its caption is indexed.
@@ -227,14 +231,20 @@ human clinical adjudication of evaluation labels · Docker · CI.
 
 ```
 data/source/           input PDFs (tracked)
-data/extracted/        ingest.py output (tracked — small, reviewable)
-data/preprocessed/     preprocessing.py output (tracked)
-data/chunks/           chunk.py output (tracked)
-data/chroma_db/        vector index (gitignored — rebuilt every run)
-data/query_results.json  query.py output (gitignored)
-evaluation/            labelled query set + retrieval report
+data/extracted/        rag/ingest.py output (tracked — small, reviewable)
+data/preprocessed/     rag/preprocessing.py output (tracked)
+data/chunks/           rag/chunk.py output (tracked)
+data/chroma_db/        vector index (gitignored) — holds BOTH the single-tenant
+                        CLI collection AND every live clinic's collection from
+                        the running app; never delete this directory casually
+evaluation/            labelled query set + evaluation reports
 docs/sources.md        source provenance notes
-src/                   pipeline scripts + config.py
+rag/                   pipeline library — config, ingest, preprocessing, chunk,
+                        embed, rerank. Imports nothing from app/.
+app/                   FastAPI web app. Imports rag/, never the reverse.
+scripts/               entrypoints that use both layers: the evaluators and
+                        demo.py. Nothing imports scripts/ — these are only run
+                        directly (`python -m scripts.<name>`).
 ```
 
 Licensed under the terms in `LICENSE`. The guideline PDFs remain the copyright of NICE and

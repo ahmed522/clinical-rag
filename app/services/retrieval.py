@@ -26,16 +26,9 @@ LLM's grounding judgment instead, because deciding them needs the text,
 not a number.
 """
 
-import sys
-from pathlib import Path
 from typing import List, Optional
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-SRC = PROJECT_ROOT / "src"
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
-
-from config import (  # noqa: E402
+from rag.config import (
     ABSURD_DISTANCE,
     CHROMA_DIR,
     EMBEDDING_MODEL,
@@ -44,7 +37,7 @@ from config import (  # noqa: E402
     RETRIEVAL_K,
     collection_name_for,
 )
-from rerank import rerank_hits  # noqa: E402
+from rag.rerank import rerank_hits
 
 _embeddings = None
 

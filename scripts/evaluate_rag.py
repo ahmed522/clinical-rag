@@ -4,7 +4,6 @@ import argparse
 import json
 import math
 import re
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
@@ -13,12 +12,16 @@ from typing import List, Optional, Tuple
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 
-from config import (
+from app.config import settings
+from app.llm import MockProvider, get_provider
+from app.llm_prompts import PROMPT_VERSION, system_prompt
+from app.services.generation import validate_claims, verification_failure
+from app.services.safety import personal_clinical_request
+from rag.config import (
     ABSURD_DISTANCE,
     CHROMA_DIR,
     COLLECTION_NAME,
     EMBEDDING_MODEL,
-    PROJECT_ROOT,
     QUERIES_PATH,
     RAG_REPORT_PATH,
     RERANK_CANDIDATE_K,
@@ -26,16 +29,7 @@ from config import (
     RERANK_MODEL,
     RETRIEVAL_K,
 )
-from rerank import rerank_hits
-
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from app.config import settings  # noqa: E402
-from app.llm import MockProvider, get_provider  # noqa: E402
-from app.llm_prompts import PROMPT_VERSION, system_prompt  # noqa: E402
-from app.services.generation import _validate_claims, _verification_failure  # noqa: E402
-from app.services.safety import personal_clinical_request  # noqa: E402
+from rag.rerank import rerank_hits
 
 
 def load_queries(path: Path = QUERIES_PATH) -> List[dict]:
@@ -183,12 +177,12 @@ def evaluate_query(vectorstore: Chroma, provider, query: dict) -> dict:
         generation_ms = (perf_counter() - started) * 1000
 
     if result and result.sufficient:
-        package, citations, verifier_claims, validation_errors = _validate_claims(result, sources)
+        package, citations, verifier_claims, validation_errors = validate_claims(result, sources)
         if package and not validation_errors:
             started = perf_counter()
             try:
                 verification = provider.verify(query["query"], verifier_claims)
-                failed, verification_rows = _verification_failure(
+                failed, verification_rows = verification_failure(
                     verification, {claim["claim_id"] for claim in verifier_claims}
                 )
                 if failed:

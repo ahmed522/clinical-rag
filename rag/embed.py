@@ -1,6 +1,6 @@
 """
-embed_index.py
---------------
+rag/embed.py
+------------
 Goal: take the chunks produced by chunk.py and create embeddings
 (a numeric/vector representation of each text chunk), then store them
 in ChromaDB so we can do semantic search (search by meaning, not just
@@ -13,7 +13,7 @@ Embedding model used: sentence-transformers/all-MiniLM-L6-v2
   but it will be slower and heavier to download.
 
 Run with:
-    python src/embed_index.py
+    python -m rag.embed
 """
 
 import json
@@ -23,7 +23,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 
-from config import (
+from rag.config import (
     CHROMA_DIR,
     CHUNKS_PATH,
     COLLECTION_NAME,

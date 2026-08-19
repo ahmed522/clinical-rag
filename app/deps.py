@@ -134,14 +134,3 @@ def current_patient_record(user: CurrentUser = Depends(require_patient)) -> dict
             detail="No patient record linked to this account",
         )
     return result.data[0]
-
-
-def current_doctor_record(user: CurrentUser = Depends(require_doctor)) -> dict:
-    """The doctors row for the logged-in doctor — mirrors current_patient_record."""
-    result = user.db.table("doctors").select("*").eq("auth_id", user.user_id).execute()
-    if not result.data:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No doctor record linked to this account",
-        )
-    return result.data[0]

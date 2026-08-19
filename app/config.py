@@ -1,10 +1,10 @@
 """
 Application settings.
 
-Separate from src/config.py, which configures the RAG pipeline. This file
+Separate from rag/config.py, which configures the RAG pipeline. This file
 configures the web application: database, auth, uploads, LLM provider.
 The pipeline's own knobs (chunk size, retrieval k, distance gates) stay
-in src/config.py so there is still one home for each concern.
+in rag/config.py so there is still one home for each concern.
 """
 
 import os

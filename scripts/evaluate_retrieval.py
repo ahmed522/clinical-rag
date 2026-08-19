@@ -22,7 +22,7 @@ That number is the safety-critical one — a clinical system that always
 answers is more dangerous than one that says "not covered here".
 
 Run with:
-    python src/evaluate_retrieval.py
+    python -m scripts.evaluate_retrieval
 """
 
 import json
@@ -42,7 +42,7 @@ if hasattr(sys.stdout, "reconfigure"):
 # Paths and configuration
 # ============================================================
 
-from config import (
+from rag.config import (
     CHROMA_DIR,
     COLLECTION_NAME,
     EMBEDDING_MODEL,
@@ -52,7 +52,7 @@ from config import (
     RETRIEVAL_REPORT_PATH as RESULTS_PATH,
     TOP_K as MAX_K,
 )
-from rerank import rerank_hits
+from rag.rerank import rerank_hits
 
 PERSIST_DIR = str(CHROMA_DIR)  # Chroma wants a string, not a Path
 

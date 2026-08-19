@@ -11,19 +11,17 @@ Provenance lives in two places by design, mirrored: Supabase Postgres
 holds the `documents`/`chunks` rows (source of truth for what a citation
 points at), and the local Chroma index holds the embeddings. `vector_ref`
 is the join key between them, and it is the deterministic chunk id from
-src/chunk.py — not a fresh uuid — so re-ingesting a document overwrites
+rag/chunk.py — not a fresh uuid — so re-ingesting a document overwrites
 its own vectors instead of orphaning rows on either side.
 
 The raw PDF itself goes to the `guidelines` Supabase Storage bucket, keyed
 {clinic_id}/{document_id}.pdf; UPLOAD_DIR is only a local staging spot
-mid-request, since the extraction pipeline (src/ingest.py) reads from a
+mid-request, since the extraction pipeline (rag/ingest.py) reads from a
 filesystem path.
 """
 
 import hashlib
-import sys
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
@@ -31,17 +29,11 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from app.config import settings
 from app.deps import CurrentUser, require_doctor
 from app.schemas import DocumentOut
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-SRC = PROJECT_ROOT / "src"
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
-
-from chunk import chunk_document  # noqa: E402
-from config import CHUNKING_VERSION, EXTRACTION_VERSION, collection_name_for  # noqa: E402
-from embed import delete_document_chunks, index_chunks  # noqa: E402
-from ingest import PDFExtractionError, extract_pdf  # noqa: E402
-from preprocessing import process_document  # noqa: E402
+from rag.chunk import chunk_document
+from rag.config import CHUNKING_VERSION, EXTRACTION_VERSION, collection_name_for
+from rag.embed import delete_document_chunks, index_chunks
+from rag.ingest import PDFExtractionError, extract_pdf
+from rag.preprocessing import process_document
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 

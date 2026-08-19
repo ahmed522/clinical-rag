@@ -92,25 +92,6 @@ class LLMResult:
             missing_evidence=str(data.get("missing_evidence") or "").strip(),
         )
 
-    @property
-    def claims(self) -> List[GeneratedClaim]:
-        return [*self.recommendation_claims, *self.supporting_claims]
-
-    @property
-    def citations(self) -> List[int]:
-        """Compatibility view used by older evaluation/reporting code."""
-        seen, values = set(), []
-        for claim in self.claims:
-            for reference in claim.evidence:
-                if reference.source_id not in seen:
-                    seen.add(reference.source_id)
-                    values.append(reference.source_id)
-        return values
-
-    @property
-    def answer(self) -> str:
-        return " ".join(claim.text for claim in self.recommendation_claims).strip()
-
 
 @dataclass(frozen=True)
 class ClaimVerification:

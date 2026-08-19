@@ -48,9 +48,10 @@ def root():
     """
     Send the bare host to the API docs.
 
-    There is no frontend yet, so hitting http://127.0.0.1:8000 otherwise
-    returns a bare 404 that reads like the server is broken when it is
-    running fine.
+    The frontend runs separately on :3000 (web/); this API's own root has
+    no page of its own, so hitting http://127.0.0.1:8000 directly would
+    otherwise return a bare 404 that reads like the server is broken when
+    it is running fine.
     """
     return RedirectResponse(url="/docs")
 

@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Sequence
 
-from config import RERANK_MODEL
+from rag.config import RERANK_MODEL
 
 
 @lru_cache(maxsize=1)

@@ -3,17 +3,18 @@ config.py
 ---------
 Single source of truth for paths and tunable settings.
 
-Every script in src/ imports from here. Before this file was wired up,
+Every module in rag/ imports from here. Before this file was wired up,
 PROJECT_ROOT was redefined in 6 scripts, the embedding model name and
-collection name in 3 each, and TOP_K disagreed with itself (config said
-5, query.py said 3) — so changing the embedding model meant editing
-three files and silently getting it wrong in a fourth.
+collection name in 3 each, and TOP_K disagreed with itself across files —
+so changing the embedding model meant editing three files and silently
+getting it wrong in a fourth.
 
 Paths are absolute, derived from this file's location, so scripts behave
 the same whatever directory they are run from.
 
-Imported as `from config import ...`, which works because the scripts are
-run directly (`python src/chunk.py`), putting src/ on the import path.
+Imported as `from rag.config import ...`. rag/ is a regular Python
+package (has __init__.py, no sys.path tricks) — run its modules with
+`python -m rag.chunk` etc. from the repo root, same as the app does.
 """
 
 import os

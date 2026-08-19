@@ -7,9 +7,9 @@ import fitz
 import pytest
 from fastapi import HTTPException, UploadFile
 
-import ingest
+import rag.ingest as ingest
 from app.routers import documents as documents_router
-from embed import delete_document_chunks
+from rag.embed import delete_document_chunks
 
 
 def _write_text_pdf(path):

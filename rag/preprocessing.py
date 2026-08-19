@@ -49,7 +49,7 @@ Every removed line pattern is reported, so a human can check what was
 dropped before it reaches the index.
 
 Run with:
-    python src/preprocessing.py
+    python -m rag.preprocessing
 """
 
 import json
@@ -65,7 +65,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
-from config import (
+from rag.config import (
     EDGE_LINES,
     EXTRACTED_DIR as INPUT_DIR,
     FURNITURE_PAGE_RATIO,
@@ -518,7 +518,7 @@ def main():
         f"Corpus: {total_in:,} -> {total_out:,} characters "
         f"({100 * (total_in - total_out) / max(total_in, 1):.1f}% furniture removed)"
     )
-    print("Preprocessing completed. Next: python src/chunk.py")
+    print("Preprocessing completed. Next: python -m rag.chunk")
     print("=" * 60)
 
 
