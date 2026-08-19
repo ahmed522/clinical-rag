@@ -1,0 +1,4420 @@
+{
+  "report_version": "2.0",
+  "created_at": "2026-08-18T19:55:42.148272+00:00",
+  "provider": "mock",
+  "llm_model": "deterministic-extractive",
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "rerank_enabled": true,
+  "rerank_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+  "candidate_k": 30,
+  "context_k": 5,
+  "prompt_version": "2026-08-18.3",
+  "dataset_size": 44,
+  "metric_definitions": {
+    "faithfulness": "Verifier-supported claims divided by generated clinical claims.",
+    "citation_coverage": "Claims with mechanically valid exact evidence divided by claims.",
+    "context_precision": "Labelled answer-bearing chunks divided by retrieved chunks."
+  },
+  "summary": {
+    "in_scope": {
+      "total": 38,
+      "grounded_answers": 38,
+      "valid_citations": 38,
+      "exact_citations": 38,
+      "correct_page_citations": 22,
+      "citation_answer_support": 21
+    },
+    "out_of_scope": {
+      "total": 6,
+      "correct_abstentions": 2
+    },
+    "retrieval": {
+      "recall_at_1": 21,
+      "recall_at_3": 26,
+      "recall_at_5": 29,
+      "mean_context_precision": 0.1789,
+      "mrr": 0.6298
+    },
+    "claims": {
+      "total": 42,
+      "supported": 42,
+      "faithfulness": 1.0,
+      "grounded_with_full_citation_coverage": 42,
+      "unsupported": 0,
+      "overconfident": 0
+    },
+    "errors": 0,
+    "latency_ms": {
+      "p50_total": 755.68,
+      "p95_total": 896.24
+    }
+  },
+  "results": [
+    {
+      "id": 1,
+      "query": "What is the first-line pharmacological treatment for adults with type 2 diabetes and no relevant comorbidity?",
+      "category": "initial_treatment",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.25 People with type 2 diabetes and no relevant comorbidity 1.25.1 For adults with type 2 diabetes and no relevant comorbidity who need further medicines to reach their individualised glycaemic targets: • offer to add a DPP-4 inhibitor to their current treatment • if this is contraindicated, not tolerated or is not effective, offer to add: － a sulfonylurea or － pioglitazone or － an insulin-based treatment (see the [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 81,
+          "section": "1.25 People with type 2 diabetes and no relevant",
+          "chunk_id": "source1:p81:c136",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.25 People with type 2 diabetes and no relevant comorbidity 1.25.1 For adults with type 2 diabetes and no relevant comorbidity who need further medicines to reach their individualised glycaemic targets: • offer to add a DPP-4 inhibitor to their current treatment • if this is contraindicated, not tolerated or is not effective, offer to add: － a sulfonylurea or － pioglitazone or － an insulin-based treatment (see the",
+          "vector_distance": 0.5888,
+          "rerank_score": 5.3507
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 0.5
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p81:c136",
+          "source": "source1.pdf",
+          "page": 81,
+          "distance": 0.5888,
+          "rerank_score": 5.3507
+        },
+        {
+          "chunk_id": "source1:p32:c50",
+          "source": "source1.pdf",
+          "page": 32,
+          "distance": 0.6173,
+          "rerank_score": 5.101
+        },
+        {
+          "chunk_id": "source1:p37:c57",
+          "source": "source1.pdf",
+          "page": 37,
+          "distance": 0.7756,
+          "rerank_score": 4.5463
+        },
+        {
+          "chunk_id": "source1:p127:c217",
+          "source": "source1.pdf",
+          "page": 127,
+          "distance": 0.6397,
+          "rerank_score": 3.6354
+        },
+        {
+          "chunk_id": "source1:p91:c151",
+          "source": "source1.pdf",
+          "page": 91,
+          "distance": 0.7395,
+          "rerank_score": 1.5547
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 260.47,
+        "rerank": 943.65,
+        "generation": 0.32,
+        "verification": 0.02,
+        "total": 1204.86
+      },
+      "error": null
+    },
+    {
+      "id": 2,
+      "query": "What should be offered if metformin is contraindicated or not tolerated?",
+      "category": "initial_treatment",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: in people for whom metformin is contraindicated. Therefore, given that the committee wanted people with type 2 diabetes to continue to gain the cardiovascular benefits seen in the evidence, they recommended monotherapy with an SGLT-2 inhibitor when metformin is contraindicated. They agreed that people with early onset diabetes should receive an SGLT-2 inhibitor, and that adding a GLP-1 receptor agonist or [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 55,
+          "section": "1.16 People with early onset type 2 diabetes",
+          "chunk_id": "source1:p55:c93",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "in people for whom metformin is contraindicated. Therefore, given that the committee wanted people with type 2 diabetes to continue to gain the cardiovascular benefits seen in the evidence, they recommended monotherapy with an SGLT-2 inhibitor when metformin is contraindicated. They agreed that people with early onset diabetes should receive an SGLT-2 inhibitor, and that adding a GLP-1 receptor agonist or",
+          "vector_distance": 0.6782,
+          "rerank_score": 7.6964
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p55:c93",
+          "source": "source1.pdf",
+          "page": 55,
+          "distance": 0.6782,
+          "rerank_score": 7.6964
+        },
+        {
+          "chunk_id": "source1:p58:c97",
+          "source": "source1.pdf",
+          "page": 58,
+          "distance": 0.8818,
+          "rerank_score": 6.9121
+        },
+        {
+          "chunk_id": "source1:p49:c80",
+          "source": "source1.pdf",
+          "page": 49,
+          "distance": 0.8952,
+          "rerank_score": 5.8206
+        },
+        {
+          "chunk_id": "source2:p14:c16",
+          "source": "source2.pdf",
+          "page": 14,
+          "distance": 0.8378,
+          "rerank_score": 5.6864
+        },
+        {
+          "chunk_id": "source1:p74:c122",
+          "source": "source1.pdf",
+          "page": 74,
+          "distance": 0.761,
+          "rerank_score": 4.4225
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 19.15,
+        "rerank": 784.72,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 804.23
+      },
+      "error": null
+    },
+    {
+      "id": 3,
+      "query": "Which medicines should be offered to adults with type 2 diabetes and heart failure?",
+      "category": "comorbidity",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.14.1 For adults with type 2 diabetes and heart failure offer: • modified-release metformin, and • an SGLT-2 inhibitor. [2026] 1.14.2 If metformin is contraindicated or not tolerated, offer monotherapy with an SGLT-2 inhibitor. [2026] Why the committee made these recommendations Metformin and SGLT-2 inhibitors There is a significant body of evidence showing that type 2 diabetes management should aim at holistic [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 40,
+          "section": "1.14.1 For adults with type 2 diabetes and heart failure offer:",
+          "chunk_id": "source1:p40:c64",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.14.1 For adults with type 2 diabetes and heart failure offer: • modified-release metformin, and • an SGLT-2 inhibitor. [2026] 1.14.2 If metformin is contraindicated or not tolerated, offer monotherapy with an SGLT-2 inhibitor. [2026] Why the committee made these recommendations Metformin and SGLT-2 inhibitors There is a significant body of evidence showing that type 2 diabetes management should aim at holistic",
+          "vector_distance": 0.7934,
+          "rerank_score": 7.9412
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p40:c64",
+          "source": "source1.pdf",
+          "page": 40,
+          "distance": 0.7934,
+          "rerank_score": 7.9412
+        },
+        {
+          "chunk_id": "source1:p85:c141",
+          "source": "source1.pdf",
+          "page": 85,
+          "distance": 0.7575,
+          "rerank_score": 7.7975
+        },
+        {
+          "chunk_id": "source1:p32:c50",
+          "source": "source1.pdf",
+          "page": 32,
+          "distance": 0.8744,
+          "rerank_score": 6.7808
+        },
+        {
+          "chunk_id": "source1:p81:c136",
+          "source": "source1.pdf",
+          "page": 81,
+          "distance": 0.7687,
+          "rerank_score": 6.3271
+        },
+        {
+          "chunk_id": "source1:p93:c154",
+          "source": "source1.pdf",
+          "page": 93,
+          "distance": 0.8477,
+          "rerank_score": 5.4071
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 17.46,
+        "rerank": 765.39,
+        "generation": 0.08,
+        "verification": 0.02,
+        "total": 783.46
+      },
+      "error": null
+    },
+    {
+      "id": 4,
+      "query": "What treatment is recommended for type 2 diabetes with atherosclerotic cardiovascular disease?",
+      "category": "comorbidity",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.27 People with atherosclerotic cardiovascular disease 1.27.1 If an adult with type 2 diabetes develops atherosclerotic cardiovascular disease after starting initial treatment, offer to add subcutaneous semaglutide (Ozempic), up to 1 mg once a week, to their current treatment, for its cardiovascular and renal benefits. [2026] 1.27.2 For adults with type 2 diabetes and atherosclerotic cardiovascular disease who need [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 87,
+          "section": "1.27 People with atherosclerotic cardiovascular",
+          "chunk_id": "source1:p87:c145",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.27 People with atherosclerotic cardiovascular disease 1.27.1 If an adult with type 2 diabetes develops atherosclerotic cardiovascular disease after starting initial treatment, offer to add subcutaneous semaglutide (Ozempic), up to 1 mg once a week, to their current treatment, for its cardiovascular and renal benefits. [2026] 1.27.2 For adults with type 2 diabetes and atherosclerotic cardiovascular disease who need",
+          "vector_distance": 0.7888,
+          "rerank_score": 8.3661
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 0.2
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p87:c145",
+          "source": "source1.pdf",
+          "page": 87,
+          "distance": 0.7888,
+          "rerank_score": 8.3661
+        },
+        {
+          "chunk_id": "source1:p119:c202",
+          "source": "source1.pdf",
+          "page": 119,
+          "distance": 0.6786,
+          "rerank_score": 7.4665
+        },
+        {
+          "chunk_id": "source1:p25:c38",
+          "source": "source1.pdf",
+          "page": 25,
+          "distance": 0.8651,
+          "rerank_score": 6.5803
+        },
+        {
+          "chunk_id": "source1:p32:c50",
+          "source": "source1.pdf",
+          "page": 32,
+          "distance": 0.8266,
+          "rerank_score": 6.1482
+        },
+        {
+          "chunk_id": "source1:p45:c71",
+          "source": "source1.pdf",
+          "page": 45,
+          "distance": 0.7534,
+          "rerank_score": 6.075
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 21.87,
+        "rerank": 770.96,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 793.34
+      },
+      "error": null
+    },
+    {
+      "id": 5,
+      "query": "How should early onset type 2 diabetes be treated?",
+      "category": "comorbidity",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.16 People with early onset type 2 diabetes 1.16.1 For adults with early onset type 2 diabetes, offer modified-release metformin and an SGLT-2 inhibitor, and consider adding either: • a GLP-1 receptor agonist for its cardiovascular, renal and glycaemic benefits or • tirzepatide for its glycaemic benefits. [2026] 1.16.2 If metformin is contraindicated or not tolerated, offer an SGLT-2 inhibitor and consider adding [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 51,
+          "section": "1.16 People with early onset type 2 diabetes",
+          "chunk_id": "source1:p51:c84",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.16 People with early onset type 2 diabetes 1.16.1 For adults with early onset type 2 diabetes, offer modified-release metformin and an SGLT-2 inhibitor, and consider adding either: • a GLP-1 receptor agonist for its cardiovascular, renal and glycaemic benefits or • tirzepatide for its glycaemic benefits. [2026] 1.16.2 If metformin is contraindicated or not tolerated, offer an SGLT-2 inhibitor and consider adding",
+          "vector_distance": 0.8498,
+          "rerank_score": 5.2272
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p51:c84",
+          "source": "source1.pdf",
+          "page": 51,
+          "distance": 0.8498,
+          "rerank_score": 5.2272
+        },
+        {
+          "chunk_id": "source2:p14:c14",
+          "source": "source2.pdf",
+          "page": 14,
+          "distance": 0.7908,
+          "rerank_score": 3.5179
+        },
+        {
+          "chunk_id": "source1:p36:c56",
+          "source": "source1.pdf",
+          "page": 36,
+          "distance": 0.764,
+          "rerank_score": 3.3243
+        },
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 0.7897,
+          "rerank_score": 2.5972
+        },
+        {
+          "chunk_id": "source1:p73:c121",
+          "source": "source1.pdf",
+          "page": 73,
+          "distance": 0.5699,
+          "rerank_score": 2.0359
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 15.7,
+        "rerank": 662.34,
+        "generation": 0.05,
+        "verification": 0.01,
+        "total": 678.49
+      },
+      "error": null
+    },
+    {
+      "id": 6,
+      "query": "What medicines are recommended for adults with type 2 diabetes living with obesity?",
+      "category": "comorbidity",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.17 People living with obesity 1.17.1 For adults with type 2 diabetes who are living with obesity, offer: • modified-release metformin and • an SGLT-2 inhibitor. For a definition of obesity, see the section on classifying overweight and obesity in adults in NICE's guideline on overweight and obesity management. [2026] 1.17.2 If metformin is contraindicated or not tolerated, offer monotherapy with an SGLT-2 [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 58,
+          "section": "1.17 People living with obesity",
+          "chunk_id": "source1:p58:c97",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.17 People living with obesity 1.17.1 For adults with type 2 diabetes who are living with obesity, offer: • modified-release metformin and • an SGLT-2 inhibitor. For a definition of obesity, see the section on classifying overweight and obesity in adults in NICE's guideline on overweight and obesity management. [2026] 1.17.2 If metformin is contraindicated or not tolerated, offer monotherapy with an SGLT-2",
+          "vector_distance": 0.7287,
+          "rerank_score": 8.5903
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p58:c97",
+          "source": "source1.pdf",
+          "page": 58,
+          "distance": 0.7287,
+          "rerank_score": 8.5903
+        },
+        {
+          "chunk_id": "source1:p59:c98",
+          "source": "source1.pdf",
+          "page": 59,
+          "distance": 0.7445,
+          "rerank_score": 8.3824
+        },
+        {
+          "chunk_id": "source1:p96:c159",
+          "source": "source1.pdf",
+          "page": 96,
+          "distance": 0.7792,
+          "rerank_score": 7.5147
+        },
+        {
+          "chunk_id": "source1:p93:c153",
+          "source": "source1.pdf",
+          "page": 93,
+          "distance": 0.7623,
+          "rerank_score": 5.8876
+        },
+        {
+          "chunk_id": "source1:p21:c32",
+          "source": "source1.pdf",
+          "page": 21,
+          "distance": 0.8912,
+          "rerank_score": 5.7535
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 14.82,
+        "rerank": 772.76,
+        "generation": 0.05,
+        "verification": 0.01,
+        "total": 788.04
+      },
+      "error": null
+    },
+    {
+      "id": 7,
+      "query": "What treatment is recommended for type 2 diabetes with chronic kidney disease and reduced eGFR?",
+      "category": "comorbidity",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: If a DPP-4 inhibitor is contraindicated, not tolerated or not effective, consider: • pioglitazone or • an insulin-based treatment. [2026] 1.18.5 For guidance on managing other aspects of kidney disease in adults with type 2 diabetes, see NICE's guideline on chronic kidney disease. [2015] Why the committee made these recommendations eGFR above 30 ml/min/1.73 m Little evidence was identified specifically for people [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 62,
+          "section": "1.18 People with chronic kidney disease",
+          "chunk_id": "source1:p62:c105",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "If a DPP-4 inhibitor is contraindicated, not tolerated or not effective, consider: • pioglitazone or • an insulin-based treatment. [2026] 1.18.5 For guidance on managing other aspects of kidney disease in adults with type 2 diabetes, see NICE's guideline on chronic kidney disease. [2015] Why the committee made these recommendations eGFR above 30 ml/min/1.73 m Little evidence was identified specifically for people",
+          "vector_distance": 0.528,
+          "rerank_score": 6.3053
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.4,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p62:c105",
+          "source": "source1.pdf",
+          "page": 62,
+          "distance": 0.528,
+          "rerank_score": 6.3053
+        },
+        {
+          "chunk_id": "source1:p102:c169",
+          "source": "source1.pdf",
+          "page": 102,
+          "distance": 0.7117,
+          "rerank_score": 4.999
+        },
+        {
+          "chunk_id": "source1:p25:c38",
+          "source": "source1.pdf",
+          "page": 25,
+          "distance": 0.8884,
+          "rerank_score": 4.6665
+        },
+        {
+          "chunk_id": "source1:p62:c104",
+          "source": "source1.pdf",
+          "page": 62,
+          "distance": 0.6165,
+          "rerank_score": 4.5416
+        },
+        {
+          "chunk_id": "source1:p130:c220",
+          "source": "source1.pdf",
+          "page": 130,
+          "distance": 0.9817,
+          "rerank_score": 3.7421
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 17.55,
+        "rerank": 878.16,
+        "generation": 0.04,
+        "verification": 0.02,
+        "total": 896.24
+      },
+      "error": null
+    },
+    {
+      "id": 8,
+      "query": "How should type 2 diabetes be managed in adults with frailty?",
+      "category": "comorbidity",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.19 People with frailty 1.19.1 For adults with type 2 diabetes and frailty: • Offer modified-release metformin. • Only offer an SGLT2 inhibitor if the person's level of frailty does not place them at risk of adverse events from such a medicine (for example, volume depletion or hypotension). [2026] 1.19.2 If metformin is contraindicated or not tolerated, assess whether their level of frailty places the person at [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 65,
+          "section": "1.19 People with frailty",
+          "chunk_id": "source1:p65:c110",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.19 People with frailty 1.19.1 For adults with type 2 diabetes and frailty: • Offer modified-release metformin. • Only offer an SGLT2 inhibitor if the person's level of frailty does not place them at risk of adverse events from such a medicine (for example, volume depletion or hypotension). [2026] 1.19.2 If metformin is contraindicated or not tolerated, assess whether their level of frailty places the person at",
+          "vector_distance": 0.5308,
+          "rerank_score": 4.1443
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p65:c110",
+          "source": "source1.pdf",
+          "page": 65,
+          "distance": 0.5308,
+          "rerank_score": 4.1443
+        },
+        {
+          "chunk_id": "source1:p7:c4",
+          "source": "source1.pdf",
+          "page": 7,
+          "distance": 0.7786,
+          "rerank_score": 4.0782
+        },
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 0.8659,
+          "rerank_score": 3.7744
+        },
+        {
+          "chunk_id": "source1:p122:c206",
+          "source": "source1.pdf",
+          "page": 122,
+          "distance": 0.6772,
+          "rerank_score": 3.4856
+        },
+        {
+          "chunk_id": "source1:p32:c50",
+          "source": "source1.pdf",
+          "page": 32,
+          "distance": 0.7735,
+          "rerank_score": 2.9004
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 13.66,
+        "rerank": 687.74,
+        "generation": 0.05,
+        "verification": 0.01,
+        "total": 701.85
+      },
+      "error": null
+    },
+    {
+      "id": 9,
+      "query": "How often should HbA1c levels be measured in adults with type 2 diabetes?",
+      "category": "monitoring",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.5 HbA1c measurement and targets Measurement 1.5.1 Measure HbA1c levels in adults with type 2 diabetes every: • 3 to 6 months (tailored to individual needs) until HbA1c is stable on unchanging therapy • 6 months once the HbA1c level and blood glucose lowering therapy are stable. [2015] 1.5.2 Measure HbA1c using methods calibrated according to International Federation of Clinical Chemistry (IFCC) standardisation. [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 12,
+          "section": "1.5 HbA1c measurement and targets",
+          "chunk_id": "source1:p12:c13",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.5 HbA1c measurement and targets Measurement 1.5.1 Measure HbA1c levels in adults with type 2 diabetes every: • 3 to 6 months (tailored to individual needs) until HbA1c is stable on unchanging therapy • 6 months once the HbA1c level and blood glucose lowering therapy are stable. [2015] 1.5.2 Measure HbA1c using methods calibrated according to International Federation of Clinical Chemistry (IFCC) standardisation.",
+          "vector_distance": 0.5386,
+          "rerank_score": 8.9307
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p12:c13",
+          "source": "source1.pdf",
+          "page": 12,
+          "distance": 0.5386,
+          "rerank_score": 8.9307
+        },
+        {
+          "chunk_id": "source2:p16:c24",
+          "source": "source2.pdf",
+          "page": 16,
+          "distance": 0.8122,
+          "rerank_score": 4.5292
+        },
+        {
+          "chunk_id": "source1:p13:c15",
+          "source": "source1.pdf",
+          "page": 13,
+          "distance": 0.725,
+          "rerank_score": 4.4413
+        },
+        {
+          "chunk_id": "source1:p12:c14",
+          "source": "source1.pdf",
+          "page": 12,
+          "distance": 0.8441,
+          "rerank_score": 3.7557
+        },
+        {
+          "chunk_id": "source1:p15:c20",
+          "source": "source1.pdf",
+          "page": 15,
+          "distance": 0.9398,
+          "rerank_score": 3.7271
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 17.23,
+        "rerank": 837.29,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 855.0
+      },
+      "error": null
+    },
+    {
+      "id": 10,
+      "query": "How should an individual HbA1c target be agreed with a person with type 2 diabetes?",
+      "category": "targets",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: measurements. Seek advice from a team with specialist expertise in diabetes or clinical biochemistry. [2015] Targets NICE has produced a patient decision aid on agreeing HbA1c targets, which also covers factors to weigh up when discussing HbA1c targets with patients. 1.5.5 Discuss and agree an individual HbA1c target with adults with type 2 diabetes (see recommendations 1.5.6 to 1.5.10). Encourage them to reach [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 12,
+          "section": "1.5 HbA1c measurement and targets",
+          "chunk_id": "source1:p12:c14",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "measurements. Seek advice from a team with specialist expertise in diabetes or clinical biochemistry. [2015] Targets NICE has produced a patient decision aid on agreeing HbA1c targets, which also covers factors to weigh up when discussing HbA1c targets with patients. 1.5.5 Discuss and agree an individual HbA1c target with adults with type 2 diabetes (see recommendations 1.5.6 to 1.5.10). Encourage them to reach",
+          "vector_distance": 0.4149,
+          "rerank_score": 7.498
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p12:c14",
+          "source": "source1.pdf",
+          "page": 12,
+          "distance": 0.4149,
+          "rerank_score": 7.498
+        },
+        {
+          "chunk_id": "source1:p13:c16",
+          "source": "source1.pdf",
+          "page": 13,
+          "distance": 0.4062,
+          "rerank_score": 6.6801
+        },
+        {
+          "chunk_id": "source1:p75:c123",
+          "source": "source1.pdf",
+          "page": 75,
+          "distance": 0.737,
+          "rerank_score": 5.8406
+        },
+        {
+          "chunk_id": "source1:p18:c24",
+          "source": "source1.pdf",
+          "page": 18,
+          "distance": 0.6708,
+          "rerank_score": 5.2809
+        },
+        {
+          "chunk_id": "source1:p32:c50",
+          "source": "source1.pdf",
+          "page": 32,
+          "distance": 0.6645,
+          "rerank_score": 4.5549
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 16.79,
+        "rerank": 785.64,
+        "generation": 0.06,
+        "verification": 0.02,
+        "total": 803.06
+      },
+      "error": null
+    },
+    {
+      "id": 11,
+      "query": "When should the target HbA1c level be relaxed?",
+      "category": "targets",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: that an individualized approach is preferred when setting treatment targets. Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. •• The majority of patients can be expected to aim for an HbA1c of 7.0% (53 mmol/mol). •• The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
+          "publisher": "World Health Organization (WHO)",
+          "page": 17,
+          "section": "IF SYMPTOMATIC",
+          "chunk_id": "source2:p17:c26",
+          "source_url": "https://iris.who.int/handle/10665/331710",
+          "excerpt": "that an individualized approach is preferred when setting treatment targets. Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. •• The majority of patients can be expected to aim for an HbA1c of 7.0% (53 mmol/mol). •• The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with",
+          "vector_distance": 0.8325,
+          "rerank_score": 6.0615
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 0.5
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source2:p17:c26",
+          "source": "source2.pdf",
+          "page": 17,
+          "distance": 0.8325,
+          "rerank_score": 6.0615
+        },
+        {
+          "chunk_id": "source1:p13:c16",
+          "source": "source1.pdf",
+          "page": 13,
+          "distance": 0.9637,
+          "rerank_score": 5.0467
+        },
+        {
+          "chunk_id": "source1:p14:c17",
+          "source": "source1.pdf",
+          "page": 14,
+          "distance": 0.8588,
+          "rerank_score": 1.864
+        },
+        {
+          "chunk_id": "source1:p12:c13",
+          "source": "source1.pdf",
+          "page": 12,
+          "distance": 0.9286,
+          "rerank_score": 1.7525
+        },
+        {
+          "chunk_id": "source1:p75:c123",
+          "source": "source1.pdf",
+          "page": 75,
+          "distance": 1.3486,
+          "rerank_score": 0.1868
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 16.36,
+        "rerank": 802.08,
+        "generation": 0.05,
+        "verification": 0.01,
+        "total": 819.0
+      },
+      "error": null
+    },
+    {
+      "id": 12,
+      "query": "Should self-monitoring of capillary blood glucose be offered routinely in type 2 diabetes?",
+      "category": "monitoring",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.6 Self-monitoring of capillary blood glucose These recommendations relate to self-monitoring by capillary blood glucose monitoring. 1.6.1 Take the Driver and Vehicle Licensing Agency (DVLA)'s Assessing fitness to drive: a guide for medical professionals into account when offering self‑monitoring of capillary blood glucose levels for adults with type 2 diabetes. [2015, amended 2022] 1.6.2 Do not routinely offer [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 14,
+          "section": "1.6 Self-monitoring of capillary blood glucose",
+          "chunk_id": "source1:p14:c18",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.6 Self-monitoring of capillary blood glucose These recommendations relate to self-monitoring by capillary blood glucose monitoring. 1.6.1 Take the Driver and Vehicle Licensing Agency (DVLA)'s Assessing fitness to drive: a guide for medical professionals into account when offering self‑monitoring of capillary blood glucose levels for adults with type 2 diabetes. [2015, amended 2022] 1.6.2 Do not routinely offer",
+          "vector_distance": 0.3768,
+          "rerank_score": 9.3463
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.4,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p14:c18",
+          "source": "source1.pdf",
+          "page": 14,
+          "distance": 0.3768,
+          "rerank_score": 9.3463
+        },
+        {
+          "chunk_id": "source1:p14:c19",
+          "source": "source1.pdf",
+          "page": 14,
+          "distance": 0.4192,
+          "rerank_score": 7.4138
+        },
+        {
+          "chunk_id": "source1:p15:c20",
+          "source": "source1.pdf",
+          "page": 15,
+          "distance": 0.7931,
+          "rerank_score": 6.8628
+        },
+        {
+          "chunk_id": "source1:p16:c21",
+          "source": "source1.pdf",
+          "page": 16,
+          "distance": 0.6185,
+          "rerank_score": 6.3931
+        },
+        {
+          "chunk_id": "source1:p19:c28",
+          "source": "source1.pdf",
+          "page": 19,
+          "distance": 0.6586,
+          "rerank_score": 6.1044
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 16.91,
+        "rerank": 756.8,
+        "generation": 0.05,
+        "verification": 0.01,
+        "total": 774.19
+      },
+      "error": null
+    },
+    {
+      "id": 13,
+      "query": "Who should be offered continuous glucose monitoring in type 2 diabetes?",
+      "category": "monitoring",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.7 Continuous glucose monitoring 1.7.1 Offer intermittently scanned continuous glucose monitoring (isCGM, commonly referred to as 'flash') to adults with type 2 diabetes on multiple daily insulin injections if any of the following apply: • they have recurrent hypoglycaemia or severe hypoglycaemia • they have impaired hypoglycaemia awareness • they have a condition or disability (including a learning disability or [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 15,
+          "section": "1.7 Continuous glucose monitoring",
+          "chunk_id": "source1:p15:c20",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.7 Continuous glucose monitoring 1.7.1 Offer intermittently scanned continuous glucose monitoring (isCGM, commonly referred to as 'flash') to adults with type 2 diabetes on multiple daily insulin injections if any of the following apply: • they have recurrent hypoglycaemia or severe hypoglycaemia • they have impaired hypoglycaemia awareness • they have a condition or disability (including a learning disability or",
+          "vector_distance": 0.7292,
+          "rerank_score": 7.7228
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.4,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p15:c20",
+          "source": "source1.pdf",
+          "page": 15,
+          "distance": 0.7292,
+          "rerank_score": 7.7228
+        },
+        {
+          "chunk_id": "source1:p20:c31",
+          "source": "source1.pdf",
+          "page": 20,
+          "distance": 0.546,
+          "rerank_score": 7.5915
+        },
+        {
+          "chunk_id": "source1:p16:c21",
+          "source": "source1.pdf",
+          "page": 16,
+          "distance": 0.6966,
+          "rerank_score": 6.3033
+        },
+        {
+          "chunk_id": "source1:p17:c23",
+          "source": "source1.pdf",
+          "page": 17,
+          "distance": 0.6142,
+          "rerank_score": 5.84
+        },
+        {
+          "chunk_id": "source1:p14:c18",
+          "source": "source1.pdf",
+          "page": 14,
+          "distance": 0.7839,
+          "rerank_score": 5.1239
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 14.79,
+        "rerank": 681.76,
+        "generation": 0.07,
+        "verification": 0.02,
+        "total": 697.23
+      },
+      "error": null
+    },
+    {
+      "id": 14,
+      "query": "What structured education should be offered to adults with type 2 diabetes?",
+      "category": "education",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.2 Structured education programmes 1.2.1 Offer structured education to adults with type 2 diabetes and their family members or carers (as appropriate) at the time of diagnosis, with annual reinforcement and review. Explain to people that structured education is an integral part of diabetes care. [2009] 1.2.2 Ensure that any structured education programme for adults with type 2 diabetes: • is evidence-based, and [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 8,
+          "section": "1.2 Structured education programmes",
+          "chunk_id": "source1:p8:c6",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.2 Structured education programmes 1.2.1 Offer structured education to adults with type 2 diabetes and their family members or carers (as appropriate) at the time of diagnosis, with annual reinforcement and review. Explain to people that structured education is an integral part of diabetes care. [2009] 1.2.2 Ensure that any structured education programme for adults with type 2 diabetes: • is evidence-based, and",
+          "vector_distance": 0.4459,
+          "rerank_score": 8.9292
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p8:c6",
+          "source": "source1.pdf",
+          "page": 8,
+          "distance": 0.4459,
+          "rerank_score": 8.9292
+        },
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 0.8459,
+          "rerank_score": 7.288
+        },
+        {
+          "chunk_id": "source1:p8:c7",
+          "source": "source1.pdf",
+          "page": 8,
+          "distance": 0.482,
+          "rerank_score": 6.0133
+        },
+        {
+          "chunk_id": "source1:p9:c8",
+          "source": "source1.pdf",
+          "page": 9,
+          "distance": 0.5198,
+          "rerank_score": 5.4755
+        },
+        {
+          "chunk_id": "source1:p14:c19",
+          "source": "source1.pdf",
+          "page": 14,
+          "distance": 0.8929,
+          "rerank_score": 2.6789
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 17.6,
+        "rerank": 685.26,
+        "generation": 0.05,
+        "verification": 0.01,
+        "total": 703.6
+      },
+      "error": null
+    },
+    {
+      "id": 15,
+      "query": "What dietary and nutritional advice should be given for type 2 diabetes?",
+      "category": "lifestyle",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.3 Dietary advice 1.3.1 Provide individualised and ongoing nutritional advice from a healthcare professional with specific expertise and competencies in nutrition. [2009] 1.3.2 Provide dietary advice in a form sensitive to the person's needs, culture and beliefs, being sensitive to their willingness to change and the effects on their quality of life. [2009] 1.3.3 Encourage adults with type 2 diabetes to follow the [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 10,
+          "section": "1.3 Dietary advice",
+          "chunk_id": "source1:p10:c9",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.3 Dietary advice 1.3.1 Provide individualised and ongoing nutritional advice from a healthcare professional with specific expertise and competencies in nutrition. [2009] 1.3.2 Provide dietary advice in a form sensitive to the person's needs, culture and beliefs, being sensitive to their willingness to change and the effects on their quality of life. [2009] 1.3.3 Encourage adults with type 2 diabetes to follow the",
+          "vector_distance": 0.4582,
+          "rerank_score": 7.7921
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.4,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p10:c9",
+          "source": "source1.pdf",
+          "page": 10,
+          "distance": 0.4582,
+          "rerank_score": 7.7921
+        },
+        {
+          "chunk_id": "source1:p10:c10",
+          "source": "source1.pdf",
+          "page": 10,
+          "distance": 0.6509,
+          "rerank_score": 6.1224
+        },
+        {
+          "chunk_id": "source1:p11:c11",
+          "source": "source1.pdf",
+          "page": 11,
+          "distance": 0.7331,
+          "rerank_score": 4.1775
+        },
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 1.0502,
+          "rerank_score": 3.9601
+        },
+        {
+          "chunk_id": "source1:p13:c16",
+          "source": "source1.pdf",
+          "page": 13,
+          "distance": 1.0448,
+          "rerank_score": 3.4883
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 14.91,
+        "rerank": 686.56,
+        "generation": 0.04,
+        "verification": 0.01,
+        "total": 701.97
+      },
+      "error": null
+    },
+    {
+      "id": 16,
+      "query": "When should bariatric surgery be considered for type 2 diabetes?",
+      "category": "lifestyle",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.4 Bariatric surgery 1.4.1 For recommendations on bariatric surgery for people with recent-onset type 2 diabetes, see the section on surgical interventions in NICE's guideline on overweight and obesity management. [2015] Blood glucose management [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 11,
+          "section": "1.4 Bariatric surgery",
+          "chunk_id": "source1:p11:c12",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.4 Bariatric surgery 1.4.1 For recommendations on bariatric surgery for people with recent-onset type 2 diabetes, see the section on surgical interventions in NICE's guideline on overweight and obesity management. [2015] Blood glucose management",
+          "vector_distance": 0.5354,
+          "rerank_score": 4.6041
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p11:c12",
+          "source": "source1.pdf",
+          "page": 11,
+          "distance": 0.5354,
+          "rerank_score": 4.6041
+        },
+        {
+          "chunk_id": "source1:p13:c15",
+          "source": "source1.pdf",
+          "page": 13,
+          "distance": 0.958,
+          "rerank_score": 2.1521
+        },
+        {
+          "chunk_id": "source1:p14:c19",
+          "source": "source1.pdf",
+          "page": 14,
+          "distance": 1.0685,
+          "rerank_score": -1.844
+        },
+        {
+          "chunk_id": "source1:p1:c0",
+          "source": "source1.pdf",
+          "page": 1,
+          "distance": 1.078,
+          "rerank_score": -2.1803
+        },
+        {
+          "chunk_id": "source1:p130:c221",
+          "source": "source1.pdf",
+          "page": 130,
+          "distance": 0.9766,
+          "rerank_score": -2.4158
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 15.36,
+        "rerank": 738.75,
+        "generation": 0.02,
+        "verification": 0.02,
+        "total": 754.5
+      },
+      "error": null
+    },
+    {
+      "id": 17,
+      "query": "How should medicines be introduced when starting treatment for type 2 diabetes?",
+      "category": "escalation",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.20 Introducing medicines in a stepwise manner 1.20.1 Introduce medicines in a stepwise manner, checking for tolerability and effectiveness of each medicine. [2015] 1.20.2 When an adult with type 2 diabetes starts initial therapy with metformin and one or more other medicines: • introduce the medicines one at a time, starting with metformin and checking tolerability • if using an SGLT-2 inhibitor, start this as [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 69,
+          "section": "1.20 Introducing medicines in a stepwise manner",
+          "chunk_id": "source1:p69:c114",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.20 Introducing medicines in a stepwise manner 1.20.1 Introduce medicines in a stepwise manner, checking for tolerability and effectiveness of each medicine. [2015] 1.20.2 When an adult with type 2 diabetes starts initial therapy with metformin and one or more other medicines: • introduce the medicines one at a time, starting with metformin and checking tolerability • if using an SGLT-2 inhibitor, start this as",
+          "vector_distance": 0.5747,
+          "rerank_score": 8.8293
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p69:c114",
+          "source": "source1.pdf",
+          "page": 69,
+          "distance": 0.5747,
+          "rerank_score": 8.8293
+        },
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 0.7273,
+          "rerank_score": 6.1975
+        },
+        {
+          "chunk_id": "source1:p93:c153",
+          "source": "source1.pdf",
+          "page": 93,
+          "distance": 0.8596,
+          "rerank_score": 3.9804
+        },
+        {
+          "chunk_id": "source1:p91:c151",
+          "source": "source1.pdf",
+          "page": 91,
+          "distance": 0.7893,
+          "rerank_score": 3.4256
+        },
+        {
+          "chunk_id": "source1:p81:c136",
+          "source": "source1.pdf",
+          "page": 81,
+          "distance": 0.733,
+          "rerank_score": 3.3901
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 15.84,
+        "rerank": 739.32,
+        "generation": 0.06,
+        "verification": 0.02,
+        "total": 755.68
+      },
+      "error": null
+    },
+    {
+      "id": 18,
+      "query": "What should be checked before starting an SGLT-2 inhibitor to prevent diabetic ketoacidosis?",
+      "category": "safety",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.21 Preventing diabetic ketoacidosis when taking SGLT-2 inhibitors 1.21.1 Before starting an SGLT-2 inhibitor, check whether the person may be at increased risk of diabetic ketoacidosis (DKA), for example if they: • have had a previous episode of DKA • are unwell with intercurrent illness • are at risk of dehydration or volume depletion • are following a very low carbohydrate or ketogenic diet. [2022, updated 2026] [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 70,
+          "section": "1.21 Preventing diabetic ketoacidosis when taking",
+          "chunk_id": "source1:p70:c115",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.21 Preventing diabetic ketoacidosis when taking SGLT-2 inhibitors 1.21.1 Before starting an SGLT-2 inhibitor, check whether the person may be at increased risk of diabetic ketoacidosis (DKA), for example if they: • have had a previous episode of DKA • are unwell with intercurrent illness • are at risk of dehydration or volume depletion • are following a very low carbohydrate or ketogenic diet. [2022, updated 2026]",
+          "vector_distance": 0.4444,
+          "rerank_score": 8.7543
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p70:c115",
+          "source": "source1.pdf",
+          "page": 70,
+          "distance": 0.4444,
+          "rerank_score": 8.7543
+        },
+        {
+          "chunk_id": "source1:p71:c117",
+          "source": "source1.pdf",
+          "page": 71,
+          "distance": 0.578,
+          "rerank_score": 7.6986
+        },
+        {
+          "chunk_id": "source1:p69:c114",
+          "source": "source1.pdf",
+          "page": 69,
+          "distance": 0.7463,
+          "rerank_score": 3.5663
+        },
+        {
+          "chunk_id": "source1:p70:c116",
+          "source": "source1.pdf",
+          "page": 70,
+          "distance": 0.824,
+          "rerank_score": 3.5564
+        },
+        {
+          "chunk_id": "source1:p35:c53",
+          "source": "source1.pdf",
+          "page": 35,
+          "distance": 0.503,
+          "rerank_score": 3.4887
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 18.24,
+        "rerank": 797.69,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 816.45
+      },
+      "error": null
+    },
+    {
+      "id": 19,
+      "query": "Which insulin should be offered when starting insulin therapy in type 2 diabetes?",
+      "category": "insulin",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.32 Starting an insulin-based treatment 1.32.1 Provide a structured education programme to adults with type 2 diabetes starting insulin therapy. The programme should include: • injection technique, including rotating injection sites and avoiding repeated injections at the same point within sites • self-monitoring • dose titration to target levels • dietary advice • the DVLA's Assessing fitness to drive: a guide for [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 107,
+          "section": "1.32 Starting an insulin-based treatment",
+          "chunk_id": "source1:p107:c176",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.32 Starting an insulin-based treatment 1.32.1 Provide a structured education programme to adults with type 2 diabetes starting insulin therapy. The programme should include: • injection technique, including rotating injection sites and avoiding repeated injections at the same point within sites • self-monitoring • dose titration to target levels • dietary advice • the DVLA's Assessing fitness to drive: a guide for",
+          "vector_distance": 0.691,
+          "rerank_score": 7.1177
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 0.5
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 0.691,
+          "rerank_score": 7.1177
+        },
+        {
+          "chunk_id": "source1:p108:c179",
+          "source": "source1.pdf",
+          "page": 108,
+          "distance": 0.5632,
+          "rerank_score": 6.8042
+        },
+        {
+          "chunk_id": "source2:p15:c18",
+          "source": "source2.pdf",
+          "page": 15,
+          "distance": 0.6604,
+          "rerank_score": 3.1525
+        },
+        {
+          "chunk_id": "source1:p81:c136",
+          "source": "source1.pdf",
+          "page": 81,
+          "distance": 0.8467,
+          "rerank_score": 2.9927
+        },
+        {
+          "chunk_id": "source1:p111:c183",
+          "source": "source1.pdf",
+          "page": 111,
+          "distance": 0.74,
+          "rerank_score": 2.7849
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 15.79,
+        "rerank": 752.93,
+        "generation": 0.05,
+        "verification": 0.01,
+        "total": 769.2
+      },
+      "error": null
+    },
+    {
+      "id": 20,
+      "query": "What support should be provided to adults with type 2 diabetes who are starting insulin?",
+      "category": "insulin",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.32 Starting an insulin-based treatment 1.32.1 Provide a structured education programme to adults with type 2 diabetes starting insulin therapy. The programme should include: • injection technique, including rotating injection sites and avoiding repeated injections at the same point within sites • self-monitoring • dose titration to target levels • dietary advice • the DVLA's Assessing fitness to drive: a guide for [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 107,
+          "section": "1.32 Starting an insulin-based treatment",
+          "chunk_id": "source1:p107:c176",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.32 Starting an insulin-based treatment 1.32.1 Provide a structured education programme to adults with type 2 diabetes starting insulin therapy. The programme should include: • injection technique, including rotating injection sites and avoiding repeated injections at the same point within sites • self-monitoring • dose titration to target levels • dietary advice • the DVLA's Assessing fitness to drive: a guide for",
+          "vector_distance": 0.5831,
+          "rerank_score": 7.8945
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 0.5831,
+          "rerank_score": 7.8945
+        },
+        {
+          "chunk_id": "source1:p22:c33",
+          "source": "source1.pdf",
+          "page": 22,
+          "distance": 0.7104,
+          "rerank_score": 5.907
+        },
+        {
+          "chunk_id": "source1:p108:c179",
+          "source": "source1.pdf",
+          "page": 108,
+          "distance": 0.7391,
+          "rerank_score": 3.4823
+        },
+        {
+          "chunk_id": "source1:p8:c7",
+          "source": "source1.pdf",
+          "page": 8,
+          "distance": 0.7136,
+          "rerank_score": 3.2854
+        },
+        {
+          "chunk_id": "source1:p81:c136",
+          "source": "source1.pdf",
+          "page": 81,
+          "distance": 0.8189,
+          "rerank_score": 3.0331
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 16.06,
+        "rerank": 674.89,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 691.42
+      },
+      "error": null
+    },
+    {
+      "id": 21,
+      "query": "What should happen for people already taking standard-release metformin?",
+      "category": "review",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: and pharmacological interventions to improve their current health and prognosis. The committee agreed that there are cases where treatment with certain medicines highlights diagnostic uncertainty (for example: absence of response to treatments other than insulin, sudden unexpected weight loss). Therefore, the committee highlighted guidance regarding type 1 diabetes and revisiting other diagnoses. People already on [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 79,
+          "section": "1.24 Reviewing other medicines",
+          "chunk_id": "source1:p79:c132",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "and pharmacological interventions to improve their current health and prognosis. The committee agreed that there are cases where treatment with certain medicines highlights diagnostic uncertainty (for example: absence of response to treatments other than insulin, sudden unexpected weight loss). Therefore, the committee highlighted guidance regarding type 1 diabetes and revisiting other diagnoses. People already on",
+          "vector_distance": 0.6679,
+          "rerank_score": 6.7734
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 0.3333
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p79:c132",
+          "source": "source1.pdf",
+          "page": 79,
+          "distance": 0.6679,
+          "rerank_score": 6.7734
+        },
+        {
+          "chunk_id": "source1:p76:c126",
+          "source": "source1.pdf",
+          "page": 76,
+          "distance": 0.7544,
+          "rerank_score": 6.5398
+        },
+        {
+          "chunk_id": "source1:p74:c122",
+          "source": "source1.pdf",
+          "page": 74,
+          "distance": 0.5922,
+          "rerank_score": 6.1168
+        },
+        {
+          "chunk_id": "source1:p75:c125",
+          "source": "source1.pdf",
+          "page": 75,
+          "distance": 0.7737,
+          "rerank_score": 5.6821
+        },
+        {
+          "chunk_id": "source1:p79:c133",
+          "source": "source1.pdf",
+          "page": 79,
+          "distance": 0.6901,
+          "rerank_score": 5.3445
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 15.29,
+        "rerank": 618.19,
+        "generation": 0.04,
+        "verification": 0.02,
+        "total": 633.95
+      },
+      "error": null
+    },
+    {
+      "id": 22,
+      "query": "When should GLP-1 receptor agonists or tirzepatide be stopped?",
+      "category": "review",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: reach their individualised glycaemic targets. However, the committee acknowledged that the decision is more complicated for GLP-1 receptor agonists and tirzepatide. For people with atherosclerotic cardiovascular disease or early onset type 2 diabetes, GLP-1 receptor agonists and SGLT-2 inhibitors are being used to prevent cardiovascular events. For these groups, continuing GLP-1 receptor agonists can provide [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 75,
+          "section": "1.23 Reviewing metformin",
+          "chunk_id": "source1:p75:c124",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "reach their individualised glycaemic targets. However, the committee acknowledged that the decision is more complicated for GLP-1 receptor agonists and tirzepatide. For people with atherosclerotic cardiovascular disease or early onset type 2 diabetes, GLP-1 receptor agonists and SGLT-2 inhibitors are being used to prevent cardiovascular events. For these groups, continuing GLP-1 receptor agonists can provide",
+          "vector_distance": 0.5522,
+          "rerank_score": 7.4905
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 0.2
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p75:c124",
+          "source": "source1.pdf",
+          "page": 75,
+          "distance": 0.5522,
+          "rerank_score": 7.4905
+        },
+        {
+          "chunk_id": "source1:p78:c131",
+          "source": "source1.pdf",
+          "page": 78,
+          "distance": 0.8035,
+          "rerank_score": 7.0348
+        },
+        {
+          "chunk_id": "source1:p25:c39",
+          "source": "source1.pdf",
+          "page": 25,
+          "distance": 0.6731,
+          "rerank_score": 6.7688
+        },
+        {
+          "chunk_id": "source1:p48:c78",
+          "source": "source1.pdf",
+          "page": 48,
+          "distance": 0.7527,
+          "rerank_score": 5.9879
+        },
+        {
+          "chunk_id": "source1:p77:c128",
+          "source": "source1.pdf",
+          "page": 77,
+          "distance": 0.6188,
+          "rerank_score": 5.7022
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 18.54,
+        "rerank": 800.3,
+        "generation": 0.04,
+        "verification": 0.01,
+        "total": 819.31
+      },
+      "error": null
+    },
+    {
+      "id": 23,
+      "query": "Should aspirin or antiplatelet therapy be offered to adults with type 2 diabetes?",
+      "category": "cardiovascular",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.45 Antiplatelet therapy 1.45.1 Do not offer antiplatelet therapy (aspirin or clopidogrel) to adults with type 2 diabetes without cardiovascular disease. [2015] 1.45.2 For guidance on the primary and secondary prevention of cardiovascular disease in adults with type 2 diabetes, see NICE's guidelines on cardiovascular disease and acute coronary syndromes. [2015] Terms used in this guideline This section defines [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 119,
+          "section": "1.45 Antiplatelet therapy",
+          "chunk_id": "source1:p119:c202",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.45 Antiplatelet therapy 1.45.1 Do not offer antiplatelet therapy (aspirin or clopidogrel) to adults with type 2 diabetes without cardiovascular disease. [2015] 1.45.2 For guidance on the primary and secondary prevention of cardiovascular disease in adults with type 2 diabetes, see NICE's guidelines on cardiovascular disease and acute coronary syndromes. [2015] Terms used in this guideline This section defines",
+          "vector_distance": 0.6004,
+          "rerank_score": 8.6359
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p119:c202",
+          "source": "source1.pdf",
+          "page": 119,
+          "distance": 0.6004,
+          "rerank_score": 8.6359
+        },
+        {
+          "chunk_id": "source1:p32:c50",
+          "source": "source1.pdf",
+          "page": 32,
+          "distance": 0.8755,
+          "rerank_score": 4.7743
+        },
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 0.9522,
+          "rerank_score": 4.6738
+        },
+        {
+          "chunk_id": "source1:p87:c145",
+          "source": "source1.pdf",
+          "page": 87,
+          "distance": 0.9164,
+          "rerank_score": 3.7833
+        },
+        {
+          "chunk_id": "source1:p81:c136",
+          "source": "source1.pdf",
+          "page": 81,
+          "distance": 0.8796,
+          "rerank_score": 3.4537
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 15.55,
+        "rerank": 738.43,
+        "generation": 0.04,
+        "verification": 0.01,
+        "total": 754.42
+      },
+      "error": null
+    },
+    {
+      "id": 24,
+      "query": "When should someone newly diagnosed with type 2 diabetes be referred for eye screening?",
+      "category": "complications",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.43 Eye disease 1.43.1 When adults are diagnosed with type 2 diabetes, refer them immediately to the local eye screening service. [2009, amended 2020] 1.43.2 Encourage adults to attend eye screening, and explain that it will help them to keep their eyes healthy and help to prevent problems with their vision. Explain that the screening service is effective at identifying problems so that they can be treated early. [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 118,
+          "section": "1.43 Eye disease",
+          "chunk_id": "source1:p118:c199",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.43 Eye disease 1.43.1 When adults are diagnosed with type 2 diabetes, refer them immediately to the local eye screening service. [2009, amended 2020] 1.43.2 Encourage adults to attend eye screening, and explain that it will help them to keep their eyes healthy and help to prevent problems with their vision. Explain that the screening service is effective at identifying problems so that they can be treated early.",
+          "vector_distance": 0.5008,
+          "rerank_score": 6.5214
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p118:c199",
+          "source": "source1.pdf",
+          "page": 118,
+          "distance": 0.5008,
+          "rerank_score": 6.5214
+        },
+        {
+          "chunk_id": "source2:p20:c33",
+          "source": "source2.pdf",
+          "page": 20,
+          "distance": 0.8304,
+          "rerank_score": 2.8938
+        },
+        {
+          "chunk_id": "source1:p130:c220",
+          "source": "source1.pdf",
+          "page": 130,
+          "distance": 0.7921,
+          "rerank_score": 1.9404
+        },
+        {
+          "chunk_id": "source2:p26:c50",
+          "source": "source2.pdf",
+          "page": 26,
+          "distance": 1.0432,
+          "rerank_score": 0.1441
+        },
+        {
+          "chunk_id": "source1:p130:c221",
+          "source": "source1.pdf",
+          "page": 130,
+          "distance": 1.0468,
+          "rerank_score": -1.6873
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 15.18,
+        "rerank": 720.85,
+        "generation": 0.03,
+        "verification": 0.02,
+        "total": 736.53
+      },
+      "error": null
+    },
+    {
+      "id": 25,
+      "query": "How should erectile dysfunction be managed in men with type 2 diabetes?",
+      "category": "complications",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.42 Erectile dysfunction 1.42.1 As part of the type 2 diabetes annual review, offer to discuss erectile dysfunction (if relevant). [2015] 1.42.2 Assess, educate and support people with type 2 diabetes who have problematic erectile dysfunction, addressing contributory factors such as cardiovascular disease as well as possible treatment options. [2015] 1.42.3 Consider a phosphodiesterase‑5 inhibitor to treat [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 118,
+          "section": "1.42 Erectile dysfunction",
+          "chunk_id": "source1:p118:c198",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.42 Erectile dysfunction 1.42.1 As part of the type 2 diabetes annual review, offer to discuss erectile dysfunction (if relevant). [2015] 1.42.2 Assess, educate and support people with type 2 diabetes who have problematic erectile dysfunction, addressing contributory factors such as cardiovascular disease as well as possible treatment options. [2015] 1.42.3 Consider a phosphodiesterase‑5 inhibitor to treat",
+          "vector_distance": 0.2935,
+          "rerank_score": 4.5268
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p118:c198",
+          "source": "source1.pdf",
+          "page": 118,
+          "distance": 0.2935,
+          "rerank_score": 4.5268
+        },
+        {
+          "chunk_id": "source2:p14:c14",
+          "source": "source2.pdf",
+          "page": 14,
+          "distance": 1.0171,
+          "rerank_score": 0.8472
+        },
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 1.0551,
+          "rerank_score": -0.2349
+        },
+        {
+          "chunk_id": "source1:p32:c50",
+          "source": "source1.pdf",
+          "page": 32,
+          "distance": 1.0512,
+          "rerank_score": -0.9264
+        },
+        {
+          "chunk_id": "source2:p10:c4",
+          "source": "source2.pdf",
+          "page": 10,
+          "distance": 1.0245,
+          "rerank_score": -1.108
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 16.66,
+        "rerank": 684.82,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 701.97
+      },
+      "error": null
+    },
+    {
+      "id": 26,
+      "query": "How should gastroparesis be treated in adults with type 2 diabetes?",
+      "category": "complications",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.38.3 To treat vomiting caused by gastroparesis in adults with type 2 diabetes: • consider alternating the use of erythromycin and metoclopramide • consider domperidone only in exceptional circumstances (if domperidone is the only effective treatment) and in accordance with MHRA guidance on domperidone. [2015] In February 2026, the use of erythromycin was off label. See NICE's information on prescribing medicines. [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 116,
+          "section": "1.38 Gastroparesis",
+          "chunk_id": "source1:p116:c193",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.38.3 To treat vomiting caused by gastroparesis in adults with type 2 diabetes: • consider alternating the use of erythromycin and metoclopramide • consider domperidone only in exceptional circumstances (if domperidone is the only effective treatment) and in accordance with MHRA guidance on domperidone. [2015] In February 2026, the use of erythromycin was off label. See NICE's information on prescribing medicines.",
+          "vector_distance": 0.6141,
+          "rerank_score": 7.5143
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.4,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p116:c193",
+          "source": "source1.pdf",
+          "page": 116,
+          "distance": 0.6141,
+          "rerank_score": 7.5143
+        },
+        {
+          "chunk_id": "source1:p116:c192",
+          "source": "source1.pdf",
+          "page": 116,
+          "distance": 0.8365,
+          "rerank_score": 5.4512
+        },
+        {
+          "chunk_id": "source1:p130:c221",
+          "source": "source1.pdf",
+          "page": 130,
+          "distance": 0.8365,
+          "rerank_score": 4.8967
+        },
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 0.9662,
+          "rerank_score": 3.6682
+        },
+        {
+          "chunk_id": "source1:p81:c136",
+          "source": "source1.pdf",
+          "page": 81,
+          "distance": 0.995,
+          "rerank_score": 2.0462
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 15.49,
+        "rerank": 762.36,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 778.3
+      },
+      "error": null
+    },
+    {
+      "id": 27,
+      "query": "What are the diagnostic criteria and cut-off values for diagnosing diabetes?",
+      "category": "diagnosis",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: haemoglobin (HbA1c). Diagnostic cut-off values are presented in Table 3. Table 3 Diagnostic criteria for diabetes Measurement Diagnostic cut-off value Comment Fasting venous or capillary** plasma glucose ≥7.0 mmol/L (126 mg/dL) Least costly but difficulties with ensuring a fasting state 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) Cumbersome and costly, difficulties with ensuring a fasting state [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
+          "publisher": "World Health Organization (WHO)",
+          "page": 13,
+          "section": "1 Clinical manifestations of",
+          "chunk_id": "source2:p13:c11",
+          "source_url": "https://iris.who.int/handle/10665/331710",
+          "excerpt": "haemoglobin (HbA1c). Diagnostic cut-off values are presented in Table 3. Table 3 Diagnostic criteria for diabetes Measurement Diagnostic cut-off value Comment Fasting venous or capillary** plasma glucose ≥7.0 mmol/L (126 mg/dL) Least costly but difficulties with ensuring a fasting state 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) Cumbersome and costly, difficulties with ensuring a fasting state",
+          "vector_distance": 0.8958,
+          "rerank_score": 7.5318
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source2:p13:c11",
+          "source": "source2.pdf",
+          "page": 13,
+          "distance": 0.8958,
+          "rerank_score": 7.5318
+        },
+        {
+          "chunk_id": "source2:p12:c10",
+          "source": "source2.pdf",
+          "page": 12,
+          "distance": 0.5251,
+          "rerank_score": 5.5331
+        },
+        {
+          "chunk_id": "source2:p12:c9",
+          "source": "source2.pdf",
+          "page": 12,
+          "distance": 0.762,
+          "rerank_score": -0.2541
+        },
+        {
+          "chunk_id": "source2:p18:c27",
+          "source": "source2.pdf",
+          "page": 18,
+          "distance": 0.8974,
+          "rerank_score": -1.9258
+        },
+        {
+          "chunk_id": "source2:p27:c52",
+          "source": "source2.pdf",
+          "page": 27,
+          "distance": 0.747,
+          "rerank_score": -2.1007
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 15.13,
+        "rerank": 764.46,
+        "generation": 0.05,
+        "verification": 0.01,
+        "total": 780.13
+      },
+      "error": null
+    },
+    {
+      "id": 28,
+      "query": "How are the different types of diabetes classified?",
+      "category": "diagnosis",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: Classification of diabetes The WHO classification of diabetes is presented in Table 1. It prioritizes clinical care and guides health professionals in choosing appropriate treatments at the time of diabetes diagnosis, providing practical guidance to clinicians in assigning a type of diabetes to individuals at the time of diagnosis. Table 1 Classification of diabetes Type of diabetes Description Type 1 diabetes [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
+          "publisher": "World Health Organization (WHO)",
+          "page": 10,
+          "section": "Diagnosis and Management",
+          "chunk_id": "source2:p10:c5",
+          "source_url": "https://iris.who.int/handle/10665/331710",
+          "excerpt": "Classification of diabetes The WHO classification of diabetes is presented in Table 1. It prioritizes clinical care and guides health professionals in choosing appropriate treatments at the time of diabetes diagnosis, providing practical guidance to clinicians in assigning a type of diabetes to individuals at the time of diagnosis. Table 1 Classification of diabetes Type of diabetes Description Type 1 diabetes",
+          "vector_distance": 0.5959,
+          "rerank_score": 7.3689
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source2:p10:c5",
+          "source": "source2.pdf",
+          "page": 10,
+          "distance": 0.5959,
+          "rerank_score": 7.3689
+        },
+        {
+          "chunk_id": "source2:p11:c8",
+          "source": "source2.pdf",
+          "page": 11,
+          "distance": 0.8064,
+          "rerank_score": 1.9115
+        },
+        {
+          "chunk_id": "source2:p10:c4",
+          "source": "source2.pdf",
+          "page": 10,
+          "distance": 0.7033,
+          "rerank_score": 0.9473
+        },
+        {
+          "chunk_id": "source2:p12:c10",
+          "source": "source2.pdf",
+          "page": 12,
+          "distance": 0.6855,
+          "rerank_score": 0.2102
+        },
+        {
+          "chunk_id": "source2:p11:c6",
+          "source": "source2.pdf",
+          "page": 11,
+          "distance": 0.9415,
+          "rerank_score": 0.2022
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 14.87,
+        "rerank": 699.96,
+        "generation": 0.06,
+        "verification": 0.02,
+        "total": 715.38
+      },
+      "error": null
+    },
+    {
+      "id": 29,
+      "query": "When is metformin contraindicated?",
+      "category": "safety",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: in people for whom metformin is contraindicated. Therefore, given that the committee wanted people with type 2 diabetes to continue to gain the cardiovascular benefits seen in the evidence, they recommended monotherapy with an SGLT-2 inhibitor when metformin is contraindicated. They agreed that people with early onset diabetes should receive an SGLT-2 inhibitor, and that adding a GLP-1 receptor agonist or [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 55,
+          "section": "1.16 People with early onset type 2 diabetes",
+          "chunk_id": "source1:p55:c93",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "in people for whom metformin is contraindicated. Therefore, given that the committee wanted people with type 2 diabetes to continue to gain the cardiovascular benefits seen in the evidence, they recommended monotherapy with an SGLT-2 inhibitor when metformin is contraindicated. They agreed that people with early onset diabetes should receive an SGLT-2 inhibitor, and that adding a GLP-1 receptor agonist or",
+          "vector_distance": 0.7393,
+          "rerank_score": 7.1991
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p55:c93",
+          "source": "source1.pdf",
+          "page": 55,
+          "distance": 0.7393,
+          "rerank_score": 7.1991
+        },
+        {
+          "chunk_id": "source2:p14:c16",
+          "source": "source2.pdf",
+          "page": 14,
+          "distance": 0.81,
+          "rerank_score": 6.031
+        },
+        {
+          "chunk_id": "source1:p38:c59",
+          "source": "source1.pdf",
+          "page": 38,
+          "distance": 0.9011,
+          "rerank_score": 4.8652
+        },
+        {
+          "chunk_id": "source1:p43:c69",
+          "source": "source1.pdf",
+          "page": 43,
+          "distance": 0.8719,
+          "rerank_score": 4.6674
+        },
+        {
+          "chunk_id": "source1:p49:c80",
+          "source": "source1.pdf",
+          "page": 49,
+          "distance": 0.9534,
+          "rerank_score": 3.5063
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 16.28,
+        "rerank": 776.87,
+        "generation": 0.04,
+        "verification": 0.01,
+        "total": 793.47
+      },
+      "error": null
+    },
+    {
+      "id": 30,
+      "query": "How should blood pressure and blood lipids be controlled in people with diabetes?",
+      "category": "cardiovascular",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: foot. Macrovascular complications Coronary heart disease, cerebrovascular disease and peripheral vascular disease are a major cause of morbidity and mortality in people with diabetes. Blood pressure control Blood pressure lowering in people with diabetes reduces the risk of microvascular and macrovascular complications. Control of blood pressure in people with diabetes often requires more than one medication. [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
+          "publisher": "World Health Organization (WHO)",
+          "page": 24,
+          "section": "3 Prevention and management",
+          "chunk_id": "source2:p24:c43",
+          "source_url": "https://iris.who.int/handle/10665/331710",
+          "excerpt": "foot. Macrovascular complications Coronary heart disease, cerebrovascular disease and peripheral vascular disease are a major cause of morbidity and mortality in people with diabetes. Blood pressure control Blood pressure lowering in people with diabetes reduces the risk of microvascular and macrovascular complications. Control of blood pressure in people with diabetes often requires more than one medication.",
+          "vector_distance": 0.6048,
+          "rerank_score": 7.3403
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source2:p24:c43",
+          "source": "source2.pdf",
+          "page": 24,
+          "distance": 0.6048,
+          "rerank_score": 7.3403
+        },
+        {
+          "chunk_id": "source2:p16:c24",
+          "source": "source2.pdf",
+          "page": 16,
+          "distance": 0.8127,
+          "rerank_score": 6.1109
+        },
+        {
+          "chunk_id": "source2:p14:c15",
+          "source": "source2.pdf",
+          "page": 14,
+          "distance": 0.9498,
+          "rerank_score": 1.3675
+        },
+        {
+          "chunk_id": "source2:p14:c14",
+          "source": "source2.pdf",
+          "page": 14,
+          "distance": 0.8254,
+          "rerank_score": -0.8134
+        },
+        {
+          "chunk_id": "source2:p27:c53",
+          "source": "source2.pdf",
+          "page": 27,
+          "distance": 0.952,
+          "rerank_score": -2.3649
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 14.87,
+        "rerank": 704.12,
+        "generation": 0.04,
+        "verification": 0.02,
+        "total": 719.33
+      },
+      "error": null
+    },
+    {
+      "id": 31,
+      "query": "How should hypoglycaemia be managed?",
+      "category": "acute_complications",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: primary care. Management of hyperglycaemic emergencies Hyperglycaemic emergencies should be managed in hospital by correction of dehydration and electrolyte disbalance and administration of insulin. •• Refer to hospital all patients with suspected DKA or HHS. (DKA or HHS should be suspected in every ill patient with hyperglycaemia.) •• Correction of dehydration is the critical first step for transport. [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
+          "publisher": "World Health Organization (WHO)",
+          "page": 19,
+          "section": "3 Prevention and management",
+          "chunk_id": "source2:p19:c31",
+          "source_url": "https://iris.who.int/handle/10665/331710",
+          "excerpt": "primary care. Management of hyperglycaemic emergencies Hyperglycaemic emergencies should be managed in hospital by correction of dehydration and electrolyte disbalance and administration of insulin. •• Refer to hospital all patients with suspected DKA or HHS. (DKA or HHS should be suspected in every ill patient with hyperglycaemia.) •• Correction of dehydration is the critical first step for transport.",
+          "vector_distance": 0.8099,
+          "rerank_score": 5.7471
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source2:p19:c31",
+          "source": "source2.pdf",
+          "page": 19,
+          "distance": 0.8099,
+          "rerank_score": 5.7471
+        },
+        {
+          "chunk_id": "source2:p18:c28",
+          "source": "source2.pdf",
+          "page": 18,
+          "distance": 0.8378,
+          "rerank_score": 5.6784
+        },
+        {
+          "chunk_id": "source2:p18:c27",
+          "source": "source2.pdf",
+          "page": 18,
+          "distance": 0.7952,
+          "rerank_score": 5.192
+        },
+        {
+          "chunk_id": "source2:p14:c14",
+          "source": "source2.pdf",
+          "page": 14,
+          "distance": 0.8394,
+          "rerank_score": 4.1841
+        },
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 0.9763,
+          "rerank_score": 3.9735
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 16.15,
+        "rerank": 773.26,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 789.88
+      },
+      "error": null
+    },
+    {
+      "id": 32,
+      "query": "How should hyperglycaemic emergencies such as DKA and HHS be managed?",
+      "category": "acute_complications",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: primary care. Management of hyperglycaemic emergencies Hyperglycaemic emergencies should be managed in hospital by correction of dehydration and electrolyte disbalance and administration of insulin. •• Refer to hospital all patients with suspected DKA or HHS. (DKA or HHS should be suspected in every ill patient with hyperglycaemia.) •• Correction of dehydration is the critical first step for transport. [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
+          "publisher": "World Health Organization (WHO)",
+          "page": 19,
+          "section": "3 Prevention and management",
+          "chunk_id": "source2:p19:c31",
+          "source_url": "https://iris.who.int/handle/10665/331710",
+          "excerpt": "primary care. Management of hyperglycaemic emergencies Hyperglycaemic emergencies should be managed in hospital by correction of dehydration and electrolyte disbalance and administration of insulin. •• Refer to hospital all patients with suspected DKA or HHS. (DKA or HHS should be suspected in every ill patient with hyperglycaemia.) •• Correction of dehydration is the critical first step for transport.",
+          "vector_distance": 0.4591,
+          "rerank_score": 8.9568
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source2:p19:c31",
+          "source": "source2.pdf",
+          "page": 19,
+          "distance": 0.4591,
+          "rerank_score": 8.9568
+        },
+        {
+          "chunk_id": "source2:p19:c30",
+          "source": "source2.pdf",
+          "page": 19,
+          "distance": 0.6486,
+          "rerank_score": 2.5144
+        },
+        {
+          "chunk_id": "source2:p18:c27",
+          "source": "source2.pdf",
+          "page": 18,
+          "distance": 0.85,
+          "rerank_score": 1.2054
+        },
+        {
+          "chunk_id": "source1:p84:c139",
+          "source": "source1.pdf",
+          "page": 84,
+          "distance": 0.925,
+          "rerank_score": -1.6274
+        },
+        {
+          "chunk_id": "source1:p104:c172",
+          "source": "source1.pdf",
+          "page": 104,
+          "distance": 0.9021,
+          "rerank_score": -1.9365
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 16.01,
+        "rerank": 781.09,
+        "generation": 0.04,
+        "verification": 0.02,
+        "total": 797.43
+      },
+      "error": null
+    },
+    {
+      "id": 33,
+      "query": "How should people with type 2 diabetes be screened for retinopathy?",
+      "category": "complications",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: haemorrhages, venous beading, hard exudates, cotton-wool spots and neovascularization) and/or macular oedema (retinal thickening). Retinal examination can be performed through ophthalmoscopy (direct or indirect), slit lamp biomicroscopy, or retinal fundus photography. Diagnosis of diabetic macular oedema requires a three-dimensional assessment that is best performed by a dilated examination using slit-lamp [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
+          "publisher": "World Health Organization (WHO)",
+          "page": 20,
+          "section": "3 Prevention and management",
+          "chunk_id": "source2:p20:c33",
+          "source_url": "https://iris.who.int/handle/10665/331710",
+          "excerpt": "haemorrhages, venous beading, hard exudates, cotton-wool spots and neovascularization) and/or macular oedema (retinal thickening). Retinal examination can be performed through ophthalmoscopy (direct or indirect), slit lamp biomicroscopy, or retinal fundus photography. Diagnosis of diabetic macular oedema requires a three-dimensional assessment that is best performed by a dilated examination using slit-lamp",
+          "vector_distance": 0.5663,
+          "rerank_score": 7.4676
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source2:p20:c33",
+          "source": "source2.pdf",
+          "page": 20,
+          "distance": 0.5663,
+          "rerank_score": 7.4676
+        },
+        {
+          "chunk_id": "source1:p130:c221",
+          "source": "source1.pdf",
+          "page": 130,
+          "distance": 0.9471,
+          "rerank_score": 2.3937
+        },
+        {
+          "chunk_id": "source1:p71:c117",
+          "source": "source1.pdf",
+          "page": 71,
+          "distance": 0.7891,
+          "rerank_score": 2.1042
+        },
+        {
+          "chunk_id": "source1:p118:c199",
+          "source": "source1.pdf",
+          "page": 118,
+          "distance": 0.7352,
+          "rerank_score": 1.6996
+        },
+        {
+          "chunk_id": "source1:p69:c114",
+          "source": "source1.pdf",
+          "page": 69,
+          "distance": 0.8423,
+          "rerank_score": 0.6636
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 14.87,
+        "rerank": 704.59,
+        "generation": 0.04,
+        "verification": 0.02,
+        "total": 719.8
+      },
+      "error": null
+    },
+    {
+      "id": 34,
+      "query": "How should urinary albumin excretion be measured to check for kidney disease?",
+      "category": "complications",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1 eGFR is calculated from serum creatinine, using an equation that has been validated for that population. Otherwise, the most commonly used equation, developed by the Chronic Kidney Disease Epidemiology Collaboration (CKD-EPI). It is based on serum creatinine, age, sex and race. Risk factors for diabetic kidney disease •• poor glycaemic control •• elevated blood pressure •• genetic susceptibility Urinary albumin [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
+          "publisher": "World Health Organization (WHO)",
+          "page": 21,
+          "section": "3 Prevention and management",
+          "chunk_id": "source2:p21:c37",
+          "source_url": "https://iris.who.int/handle/10665/331710",
+          "excerpt": "1 eGFR is calculated from serum creatinine, using an equation that has been validated for that population. Otherwise, the most commonly used equation, developed by the Chronic Kidney Disease Epidemiology Collaboration (CKD-EPI). It is based on serum creatinine, age, sex and race. Risk factors for diabetic kidney disease •• poor glycaemic control •• elevated blood pressure •• genetic susceptibility Urinary albumin",
+          "vector_distance": 0.6276,
+          "rerank_score": 3.7671
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 0.5
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source2:p21:c37",
+          "source": "source2.pdf",
+          "page": 21,
+          "distance": 0.6276,
+          "rerank_score": 3.7671
+        },
+        {
+          "chunk_id": "source2:p22:c38",
+          "source": "source2.pdf",
+          "page": 22,
+          "distance": 1.0037,
+          "rerank_score": -1.0733
+        },
+        {
+          "chunk_id": "source2:p21:c35",
+          "source": "source2.pdf",
+          "page": 21,
+          "distance": 0.8114,
+          "rerank_score": -1.2224
+        },
+        {
+          "chunk_id": "source2:p13:c13",
+          "source": "source2.pdf",
+          "page": 13,
+          "distance": 1.0176,
+          "rerank_score": -6.4528
+        },
+        {
+          "chunk_id": "source2:p13:c12",
+          "source": "source2.pdf",
+          "page": 13,
+          "distance": 1.1682,
+          "rerank_score": -6.8768
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 17.68,
+        "rerank": 891.09,
+        "generation": 0.05,
+        "verification": 0.01,
+        "total": 909.21
+      },
+      "error": null
+    },
+    {
+      "id": 35,
+      "query": "When should a patient with diabetes be referred urgently to a higher level of care?",
+      "category": "referral",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 4 Criteria for referral to higher levels of care Urgent (same day) referral should occur if one of the following is detected: •• urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide •• suspicion of ketoacidosis or HHS (see page 19) •• hypoglycaemia unresolved by treatment (see page 19) •• clinical suspicion of type 1 diabetes in newly diagnosed patient •• [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
+          "publisher": "World Health Organization (WHO)",
+          "page": 26,
+          "section": "4 Criteria for referral to higher",
+          "chunk_id": "source2:p26:c50",
+          "source_url": "https://iris.who.int/handle/10665/331710",
+          "excerpt": "4 Criteria for referral to higher levels of care Urgent (same day) referral should occur if one of the following is detected: •• urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide •• suspicion of ketoacidosis or HHS (see page 19) •• hypoglycaemia unresolved by treatment (see page 19) •• clinical suspicion of type 1 diabetes in newly diagnosed patient ••",
+          "vector_distance": 0.9056,
+          "rerank_score": 5.7366
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source2:p26:c50",
+          "source": "source2.pdf",
+          "page": 26,
+          "distance": 0.9056,
+          "rerank_score": 5.7366
+        },
+        {
+          "chunk_id": "source2:p34:c67",
+          "source": "source2.pdf",
+          "page": 34,
+          "distance": 0.9505,
+          "rerank_score": 4.2998
+        },
+        {
+          "chunk_id": "source2:p25:c46",
+          "source": "source2.pdf",
+          "page": 25,
+          "distance": 0.773,
+          "rerank_score": 3.3572
+        },
+        {
+          "chunk_id": "source2:p19:c31",
+          "source": "source2.pdf",
+          "page": 19,
+          "distance": 0.8752,
+          "rerank_score": -3.7226
+        },
+        {
+          "chunk_id": "source1:p11:c11",
+          "source": "source1.pdf",
+          "page": 11,
+          "distance": 0.8584,
+          "rerank_score": -3.8903
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 14.76,
+        "rerank": 728.87,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 744.16
+      },
+      "error": null
+    },
+    {
+      "id": 36,
+      "query": "What is the protocol for starting insulin treatment in a primary care setting?",
+      "category": "insulin",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.32 Starting an insulin-based treatment 1.32.1 Provide a structured education programme to adults with type 2 diabetes starting insulin therapy. The programme should include: • injection technique, including rotating injection sites and avoiding repeated injections at the same point within sites • self-monitoring • dose titration to target levels • dietary advice • the DVLA's Assessing fitness to drive: a guide for [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 107,
+          "section": "1.32 Starting an insulin-based treatment",
+          "chunk_id": "source1:p107:c176",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.32 Starting an insulin-based treatment 1.32.1 Provide a structured education programme to adults with type 2 diabetes starting insulin therapy. The programme should include: • injection technique, including rotating injection sites and avoiding repeated injections at the same point within sites • self-monitoring • dose titration to target levels • dietary advice • the DVLA's Assessing fitness to drive: a guide for",
+          "vector_distance": 0.7066,
+          "rerank_score": 0.1615
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 0.7066,
+          "rerank_score": 0.1615
+        },
+        {
+          "chunk_id": "source2:p28:c54",
+          "source": "source2.pdf",
+          "page": 28,
+          "distance": 0.9196,
+          "rerank_score": -2.4359
+        },
+        {
+          "chunk_id": "source1:p22:c33",
+          "source": "source1.pdf",
+          "page": 22,
+          "distance": 0.881,
+          "rerank_score": -3.0506
+        },
+        {
+          "chunk_id": "source2:p14:c14",
+          "source": "source2.pdf",
+          "page": 14,
+          "distance": 0.9242,
+          "rerank_score": -3.3746
+        },
+        {
+          "chunk_id": "source2:p15:c18",
+          "source": "source2.pdf",
+          "page": 15,
+          "distance": 0.819,
+          "rerank_score": -3.4509
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 18.52,
+        "rerank": 693.77,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 712.68
+      },
+      "error": null
+    },
+    {
+      "id": 37,
+      "query": "How should loss of protective sensation in the diabetic foot be assessed?",
+      "category": "complications",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: However, the absence of symptoms does not exclude diabetic foot problems. Assessment and management of diabetic foot problems Examination of the feet Remove the patient’s shoes, socks, dressings, and bandages and carry out the following examination procedures: Palpation of arteries Fig. 5 Dorsal pedis palpation Dorsal pedis: Feel in the middle of the dorsum of the foot just lateral to the tendon of extensor halluces [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
+          "publisher": "World Health Organization (WHO)",
+          "page": 31,
+          "section": "REDUCE INSULIN",
+          "chunk_id": "source2:p31:c61",
+          "source_url": "https://iris.who.int/handle/10665/331710",
+          "excerpt": "However, the absence of symptoms does not exclude diabetic foot problems. Assessment and management of diabetic foot problems Examination of the feet Remove the patient’s shoes, socks, dressings, and bandages and carry out the following examination procedures: Palpation of arteries Fig. 5 Dorsal pedis palpation Dorsal pedis: Feel in the middle of the dorsum of the foot just lateral to the tendon of extensor halluces",
+          "vector_distance": 0.5689,
+          "rerank_score": 6.0557
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 0.2
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source2:p31:c61",
+          "source": "source2.pdf",
+          "page": 31,
+          "distance": 0.5689,
+          "rerank_score": 6.0557
+        },
+        {
+          "chunk_id": "source2:p30:c59",
+          "source": "source2.pdf",
+          "page": 30,
+          "distance": 0.6743,
+          "rerank_score": 1.3963
+        },
+        {
+          "chunk_id": "source2:p22:c39",
+          "source": "source2.pdf",
+          "page": 22,
+          "distance": 0.73,
+          "rerank_score": 0.9555
+        },
+        {
+          "chunk_id": "source2:p30:c58",
+          "source": "source2.pdf",
+          "page": 30,
+          "distance": 0.6356,
+          "rerank_score": 0.4656
+        },
+        {
+          "chunk_id": "source2:p32:c63",
+          "source": "source2.pdf",
+          "page": 32,
+          "distance": 1.1106,
+          "rerank_score": -0.2946
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 20.57,
+        "rerank": 823.24,
+        "generation": 0.05,
+        "verification": 0.01,
+        "total": 844.37
+      },
+      "error": null
+    },
+    {
+      "id": 38,
+      "query": "What should a diabetes monitoring system measure to assess service effectiveness?",
+      "category": "monitoring",
+      "scope": "in_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 5 Monitoring of processes and outcomes A monitoring system to assess the effectiveness of diabetes management should include regular monitoring of biochemical parameters and occurrence of complications due to diabetes. Biochemical parameters: •• Glycated haemoglobin (HbA1c) provides a measure of average plasma glucose over the preceding 8 to 12 weeks. The majority of patients can be expected to aim for a HbA1c of [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
+          "publisher": "World Health Organization (WHO)",
+          "page": 27,
+          "section": "5 Monitoring of processes and",
+          "chunk_id": "source2:p27:c52",
+          "source_url": "https://iris.who.int/handle/10665/331710",
+          "excerpt": "5 Monitoring of processes and outcomes A monitoring system to assess the effectiveness of diabetes management should include regular monitoring of biochemical parameters and occurrence of complications due to diabetes. Biochemical parameters: •• Glycated haemoglobin (HbA1c) provides a measure of average plasma glucose over the preceding 8 to 12 weeks. The majority of patients can be expected to aim for a HbA1c of",
+          "vector_distance": 0.801,
+          "rerank_score": 7.9339
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 1.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source2:p27:c52",
+          "source": "source2.pdf",
+          "page": 27,
+          "distance": 0.801,
+          "rerank_score": 7.9339
+        },
+        {
+          "chunk_id": "source1:p127:c216",
+          "source": "source1.pdf",
+          "page": 127,
+          "distance": 0.943,
+          "rerank_score": 2.0031
+        },
+        {
+          "chunk_id": "source1:p20:c30",
+          "source": "source1.pdf",
+          "page": 20,
+          "distance": 0.9917,
+          "rerank_score": 0.5125
+        },
+        {
+          "chunk_id": "source1:p19:c28",
+          "source": "source1.pdf",
+          "page": 19,
+          "distance": 1.0215,
+          "rerank_score": -0.8195
+        },
+        {
+          "chunk_id": "source2:p8:c1",
+          "source": "source2.pdf",
+          "page": 8,
+          "distance": 0.9758,
+          "rerank_score": -2.6551
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 15.91,
+        "rerank": 716.0,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 732.52
+      },
+      "error": null
+    },
+    {
+      "id": 101,
+      "query": "What insulin regimen is recommended for children with type 1 diabetes?",
+      "category": "out_of_scope_near_domain",
+      "scope": "out_of_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: 1.35 Reviews 1.35.1 At each review, check whether adults with type 2 diabetes who are on a basal insulin regimen also need a short or rapid acting bolus insulin before meals (or a pre-mixed [biphasic] insulin preparation). [2015, amended 2026] 1.35.2 At each review, check whether adults with type 2 diabetes who are using a premixed (biphasic) preparation and whose individualised glycaemic targets are not met, need [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 111,
+          "section": "1.35 Reviews",
+          "chunk_id": "source1:p111:c183",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.35 Reviews 1.35.1 At each review, check whether adults with type 2 diabetes who are on a basal insulin regimen also need a short or rapid acting bolus insulin before meals (or a pre-mixed [biphasic] insulin preparation). [2015, amended 2026] 1.35.2 At each review, check whether adults with type 2 diabetes who are using a premixed (biphasic) preparation and whose individualised glycaemic targets are not met, need",
+          "vector_distance": 0.8931,
+          "rerank_score": 3.2742
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p111:c183",
+          "source": "source1.pdf",
+          "page": 111,
+          "distance": 0.8931,
+          "rerank_score": 3.2742
+        },
+        {
+          "chunk_id": "source1:p108:c179",
+          "source": "source1.pdf",
+          "page": 108,
+          "distance": 0.8144,
+          "rerank_score": 2.0078
+        },
+        {
+          "chunk_id": "source2:p15:c18",
+          "source": "source2.pdf",
+          "page": 15,
+          "distance": 0.893,
+          "rerank_score": 1.3581
+        },
+        {
+          "chunk_id": "source1:p21:c32",
+          "source": "source1.pdf",
+          "page": 21,
+          "distance": 0.951,
+          "rerank_score": 0.1434
+        },
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 0.8437,
+          "rerank_score": 0.1411
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 18.71,
+        "rerank": 750.03,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 769.17
+      },
+      "error": null
+    },
+    {
+      "id": 102,
+      "query": "How should gestational diabetes be managed during pregnancy?",
+      "category": "out_of_scope_near_domain",
+      "scope": "out_of_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: of immune-mediated diabetes Associated with rare immune-mediated diseases. Other genetic syndromes sometimes associated with diabetes Many genetic disorders and chromosomal abnormalities increase the risk of diabetes Unclassified diabetes Used to describe diabetes that does not clearly fit into other categories. This category should be used temporarily, when there is no clear diagnostic category, close to the time [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
+          "publisher": "World Health Organization (WHO)",
+          "page": 11,
+          "section": "Diagnosis and Management",
+          "chunk_id": "source2:p11:c8",
+          "source_url": "https://iris.who.int/handle/10665/331710",
+          "excerpt": "of immune-mediated diabetes Associated with rare immune-mediated diseases. Other genetic syndromes sometimes associated with diabetes Many genetic disorders and chromosomal abnormalities increase the risk of diabetes Unclassified diabetes Used to describe diabetes that does not clearly fit into other categories. This category should be used temporarily, when there is no clear diagnostic category, close to the time",
+          "vector_distance": 0.7549,
+          "rerank_score": -1.2335
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source2:p11:c8",
+          "source": "source2.pdf",
+          "page": 11,
+          "distance": 0.7549,
+          "rerank_score": -1.2335
+        },
+        {
+          "chunk_id": "source1:p25:c39",
+          "source": "source1.pdf",
+          "page": 25,
+          "distance": 1.0063,
+          "rerank_score": -1.5505
+        },
+        {
+          "chunk_id": "source1:p14:c17",
+          "source": "source1.pdf",
+          "page": 14,
+          "distance": 0.9609,
+          "rerank_score": -2.8494
+        },
+        {
+          "chunk_id": "source1:p22:c34",
+          "source": "source1.pdf",
+          "page": 22,
+          "distance": 1.0876,
+          "rerank_score": -3.6022
+        },
+        {
+          "chunk_id": "source1:p23:c36",
+          "source": "source1.pdf",
+          "page": 23,
+          "distance": 1.0855,
+          "rerank_score": -3.7737
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 17.16,
+        "rerank": 808.46,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 826.01
+      },
+      "error": null
+    },
+    {
+      "id": 103,
+      "query": "What is the recommended treatment for stage 4 pancreatic cancer?",
+      "category": "out_of_scope_medical",
+      "scope": "out_of_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: reduce the number of appointments needed to treat atherosclerotic cardiovascular disease. An increase in GLP-1 receptor agonist or tirzepatide use will mean that DPP-4 inhibitor use will reduce. Early intervention could lead to weight loss as a beneficial side effect and so to a better long-term prognosis, which, if maintained, will reduce: • long-term treatment requirements and • the need for later stage treatments [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 101,
+          "section": "1.29 People living with obesity",
+          "chunk_id": "source1:p101:c167",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "reduce the number of appointments needed to treat atherosclerotic cardiovascular disease. An increase in GLP-1 receptor agonist or tirzepatide use will mean that DPP-4 inhibitor use will reduce. Early intervention could lead to weight loss as a beneficial side effect and so to a better long-term prognosis, which, if maintained, will reduce: • long-term treatment requirements and • the need for later stage treatments",
+          "vector_distance": 1.198,
+          "rerank_score": -3.6209
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source1:p101:c167",
+          "source": "source1.pdf",
+          "page": 101,
+          "distance": 1.198,
+          "rerank_score": -3.6209
+        },
+        {
+          "chunk_id": "source1:p50:c82",
+          "source": "source1.pdf",
+          "page": 50,
+          "distance": 1.0722,
+          "rerank_score": -3.7026
+        },
+        {
+          "chunk_id": "source1:p105:c173",
+          "source": "source1.pdf",
+          "page": 105,
+          "distance": 1.1501,
+          "rerank_score": -3.9231
+        },
+        {
+          "chunk_id": "source1:p95:c157",
+          "source": "source1.pdf",
+          "page": 95,
+          "distance": 1.1165,
+          "rerank_score": -4.3814
+        },
+        {
+          "chunk_id": "source1:p91:c149",
+          "source": "source1.pdf",
+          "page": 91,
+          "distance": 1.0846,
+          "rerank_score": -4.7489
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 16.13,
+        "rerank": 738.5,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 754.99
+      },
+      "error": null
+    },
+    {
+      "id": 104,
+      "query": "How do I change the oil filter on a Toyota Corolla?",
+      "category": "out_of_scope_nonmedical",
+      "scope": "out_of_scope",
+      "grounded": false,
+      "abstained": true,
+      "answer": "",
+      "citations": [],
+      "citation_valid": false,
+      "citation_exact": false,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 0.0,
+      "claim_count": 0,
+      "supported_claims": 0,
+      "faithfulness": 0.0,
+      "answer_relevant": false,
+      "safety_passed": false,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [],
+      "validation_errors": [],
+      "verification": [],
+      "latency_ms": {
+        "vector": 15.27,
+        "rerank": 0.0,
+        "generation": 0.0,
+        "verification": 0.0,
+        "total": 15.33
+      },
+      "error": null
+    },
+    {
+      "id": 105,
+      "query": "What dose of metformin should I prescribe for my 62-year-old patient with an eGFR of 28?",
+      "category": "out_of_scope_individualised",
+      "scope": "out_of_scope",
+      "grounded": false,
+      "abstained": true,
+      "answer": "",
+      "citations": [],
+      "citation_valid": false,
+      "citation_exact": false,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 0.0,
+      "claim_count": 0,
+      "supported_claims": 0,
+      "faithfulness": 0.0,
+      "answer_relevant": false,
+      "safety_passed": false,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": true,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [],
+      "validation_errors": [],
+      "verification": [],
+      "latency_ms": {
+        "vector": 0.0,
+        "rerank": 0.0,
+        "generation": 0.0,
+        "verification": 0.0,
+        "total": 0.03
+      },
+      "error": null
+    },
+    {
+      "id": 106,
+      "query": "What is the recommended COVID-19 vaccination schedule for people with diabetes?",
+      "category": "out_of_scope_medical",
+      "scope": "out_of_scope",
+      "grounded": true,
+      "abstained": false,
+      "answer": "The clinic's uploaded guidance states: IF SYMPTOMATIC and FPG ≥15 mmol/L REVIEW IN 3 MONTHS (or immediately if symptoms appear) IF goal not achieved despite adherence to medication and diet and physical activity, REFER to higher level of care or BEGIN INSULIN (see insulin protocol) * Derived from WHO-PEN 2013 Control of blood pressure and blood lipids Blood pressure should be measured at every visit. Hypertension treatment is indicated in people with [C1]",
+      "citations": [
+        {
+          "id": "C1",
+          "source_id": 1,
+          "rank": 1,
+          "document_id": null,
+          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
+          "publisher": "World Health Organization (WHO)",
+          "page": 16,
+          "section": "IF SYMPTOMATIC",
+          "chunk_id": "source2:p16:c24",
+          "source_url": "https://iris.who.int/handle/10665/331710",
+          "excerpt": "IF SYMPTOMATIC and FPG ≥15 mmol/L REVIEW IN 3 MONTHS (or immediately if symptoms appear) IF goal not achieved despite adherence to medication and diet and physical activity, REFER to higher level of care or BEGIN INSULIN (see insulin protocol) * Derived from WHO-PEN 2013 Control of blood pressure and blood lipids Blood pressure should be measured at every visit. Hypertension treatment is indicated in people with",
+          "vector_distance": 1.0863,
+          "rerank_score": -4.6167
+        }
+      ],
+      "citation_valid": true,
+      "citation_exact": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
+      "citation_coverage": 1.0,
+      "claim_count": 1,
+      "supported_claims": 1,
+      "faithfulness": 1.0,
+      "answer_relevant": true,
+      "safety_passed": true,
+      "overconfident_claims": 0,
+      "unsupported_claims": 0,
+      "safety_refusal": false,
+      "retrieval_metrics": {
+        "recall_at_1": false,
+        "recall_at_3": false,
+        "recall_at_5": false,
+        "context_precision": 0.0,
+        "reciprocal_rank": 0.0
+      },
+      "retrieved": [
+        {
+          "chunk_id": "source2:p16:c24",
+          "source": "source2.pdf",
+          "page": 16,
+          "distance": 1.0863,
+          "rerank_score": -4.6167
+        },
+        {
+          "chunk_id": "source1:p108:c179",
+          "source": "source1.pdf",
+          "page": 108,
+          "distance": 1.102,
+          "rerank_score": -5.3795
+        },
+        {
+          "chunk_id": "source1:p111:c183",
+          "source": "source1.pdf",
+          "page": 111,
+          "distance": 1.1063,
+          "rerank_score": -5.5252
+        },
+        {
+          "chunk_id": "source1:p19:c26",
+          "source": "source1.pdf",
+          "page": 19,
+          "distance": 1.0314,
+          "rerank_score": -5.7415
+        },
+        {
+          "chunk_id": "source1:p127:c217",
+          "source": "source1.pdf",
+          "page": 127,
+          "distance": 1.0949,
+          "rerank_score": -6.022
+        }
+      ],
+      "validation_errors": [],
+      "verification": [
+        {
+          "claim_id": "recommendation-1",
+          "supported": true,
+          "relevant": true,
+          "safe": true,
+          "overconfident": false,
+          "reason": "Deterministic mock accepted mechanically validated evidence."
+        }
+      ],
+      "latency_ms": {
+        "vector": 12.59,
+        "rerank": 677.81,
+        "generation": 0.05,
+        "verification": 0.01,
+        "total": 690.79
+      },
+      "error": null
+    }
+  ]
+}

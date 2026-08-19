@@ -128,6 +128,34 @@ def delete_collection(collection_name, persist_dir=PERSIST_DIR):
         pass
 
 
+def delete_document_chunks(document_id, collection_name=COLLECTION_NAME, persist_dir=None):
+    """
+    Delete only one document's vectors from one collection.
+
+    This is the compensation primitive used by application uploads. A
+    document may fail after vectors were written but before its database
+    rows or Storage object were finalized; leaving those vectors behind
+    would make a partial document searchable after a later metadata error.
+
+    Returns the number of vectors remaining in the collection. A missing
+    collection is already clean and returns zero.
+    """
+
+    client = chromadb.PersistentClient(path=str(persist_dir or PERSIST_DIR))
+    try:
+        collection = client.get_collection(collection_name)
+    except Exception as exc:
+        # Chroma versions use different exception classes for a missing
+        # collection. Only suppress that expected state; surface genuine
+        # storage/corruption failures so callers can record incomplete cleanup.
+        if "does not exist" in str(exc).lower() or "not found" in str(exc).lower():
+            return 0
+        raise
+
+    collection.delete(where={"document_id": str(document_id)})
+    return collection.count()
+
+
 def main():
     print("Loading chunks...")
     chunks = load_chunks()

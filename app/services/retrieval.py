@@ -39,11 +39,18 @@ from config import (  # noqa: E402
     ABSURD_DISTANCE,
     CHROMA_DIR,
     EMBEDDING_MODEL,
+    RERANK_CANDIDATE_K,
+    RERANK_ENABLED,
     RETRIEVAL_K,
     collection_name_for,
 )
+from rerank import rerank_hits  # noqa: E402
 
 _embeddings = None
+
+
+class RetrievalUnavailableError(RuntimeError):
+    """The vector or reranking dependency failed; this is not a valid abstention."""
 
 
 def _get_embeddings():
@@ -67,8 +74,9 @@ def retrieve(
     Return up to k chunks from this clinic's collection, or [] if the
     question is clearly outside the corpus.
 
-    k defaults to 8 because that is where recall plateaus on the labelled
-    set (47% at k=1, 68% at k=4, 84% at k=8, no gain at k=10).
+    k defaults to 5: Chroma first retrieves a broad candidate set, the
+    cross-encoder reranks it, and only the five strongest passages are sent
+    to generation. The offline evaluator keeps reporting through k=10.
 
     document_ids restricts the search to specific documents. Patient-facing
     callers pass the clinic's VERIFIED documents, which is how guardrail #5
@@ -86,11 +94,14 @@ def retrieve(
     if document_ids is not None and not document_ids:
         return []
 
-    store = Chroma(
-        collection_name=collection_name_for(clinic_id),
-        embedding_function=_get_embeddings(),
-        persist_directory=str(persist_dir or CHROMA_DIR),
-    )
+    try:
+        store = Chroma(
+            collection_name=collection_name_for(clinic_id),
+            embedding_function=_get_embeddings(),
+            persist_directory=str(persist_dir or CHROMA_DIR),
+        )
+    except Exception as exc:
+        raise RetrievalUnavailableError("Vector retrieval is temporarily unavailable") from exc
 
     search_filter = None
     if document_ids:
@@ -103,11 +114,12 @@ def retrieve(
         )
 
     try:
-        hits = store.similarity_search_with_score(question, k=k, filter=search_filter)
-    except Exception:
-        # A clinic with no documents yet has no collection. That is not an
-        # error — it is simply nothing to ground an answer in.
-        return []
+        candidate_k = max(k, RERANK_CANDIDATE_K) if RERANK_ENABLED else k
+        hits = store.similarity_search_with_score(
+            question, k=candidate_k, filter=search_filter
+        )
+    except Exception as exc:
+        raise RetrievalUnavailableError("Vector retrieval is temporarily unavailable") from exc
 
     if not hits:
         return []
@@ -116,15 +128,29 @@ def retrieve(
     if hits[0][1] > ABSURD_DISTANCE:
         return []
 
+    if RERANK_ENABLED:
+        try:
+            ranked_hits = rerank_hits(question, hits, k=k)
+        except Exception as exc:
+            raise RetrievalUnavailableError("Reranking is temporarily unavailable") from exc
+    else:
+        ranked_hits = [(doc, float(score), None) for doc, score in hits[:k]]
+
     return [
         {
+            "rank": rank,
             "text": doc.page_content,
             "title": doc.metadata.get("title") or doc.metadata.get("source", "Unknown document"),
             "source": doc.metadata.get("source"),
+            "document_id": doc.metadata.get("document_id"),
+            "publisher": doc.metadata.get("publisher"),
+            "source_url": doc.metadata.get("url"),
+            "topic": doc.metadata.get("topic"),
             "page_number": doc.metadata.get("page_number"),
             "section_title": doc.metadata.get("section_title"),
             "chunk_id": doc.metadata.get("chunk_id"),
             "distance": round(float(score), 4),
+            "rerank_score": round(float(rerank_score), 4) if rerank_score is not None else None,
         }
-        for doc, score in hits
+        for rank, (doc, score, rerank_score) in enumerate(ranked_hits, start=1)
     ]

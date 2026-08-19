@@ -1,5 +1,6 @@
 """
-End-to-end API tests covering the demo success criteria (PRD sec.13).
+End-to-end API tests covering the demo success criteria (PRD sec.13) and
+the three-role model's backend-route boundaries.
 
 Exercises the real stack — FastAPI, Supabase Postgres/Auth/Storage (RLS as
 the tenant boundary), the ingestion pipeline, local Chroma, and the
@@ -7,6 +8,16 @@ generation layer — against the actual Supabase project configured in
 .env. There is no mocked database: registration, upload, and chat all hit
 the real API, and RLS itself is what proves isolation, not an application
 filter standing in for it.
+
+Scope note: this file only exercises requests that actually go through a
+FastAPI route (registration, upload/verify, chat). Direct-table RLS for
+routes the frontend calls straight from supabase-js with no backend route
+at all (patients_select doctor-ownership, doctor_availability, medical
+records, appointments) has no HTTP surface for a TestClient to hit — that
+was verified live, against the real Supabase project, during development
+(see the session's manual RLS-probe testing), not here. A dedicated suite
+using app.supabase_client.client_for() directly, the same way the
+frontend does, would be the right place to automate that — not this file.
 
 Because this hits real infrastructure, every clinic/user/document/storage
 object created by these tests is tracked and deleted in a module-scoped
@@ -26,6 +37,7 @@ Run with:
 
 import os
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -79,9 +91,9 @@ def client(tmp_path_factory):
 @pytest.fixture(scope="module", autouse=True)
 def _cleanup_supabase_test_data():
     """
-    Deletes every clinic (and, via cascade, its documents/chunks/patients/
-    appointments/etc.), its auth users, and its storage objects — the
-    real-infrastructure cost of this suite hitting the real project.
+    Deletes every clinic (and, via cascade, its doctors/documents/chunks/
+    patients/appointments/etc.), its auth users, and its storage objects —
+    the real-infrastructure cost of this suite hitting the real project.
 
     Runs regardless of test outcome. Deleting a clinic that never got
     created (a failed setup) is a no-op, not an error.
@@ -133,6 +145,10 @@ def _cleanup_supabase_test_data():
         pass
 
 
+def _auth(token):
+    return {"Authorization": f"Bearer {token}"}
+
+
 def _register_clinic(client, name, email):
     response = client.post(
         "/auth/register-clinic",
@@ -149,15 +165,39 @@ def _register_clinic(client, name, email):
     return body
 
 
-def _auth(token):
-    return {"Authorization": f"Bearer {token}"}
+def _login(client, email, password="demo-password-123"):
+    response = client.post("/auth/login", json={"email": email, "password": password})
+    assert response.status_code == 200, response.text
+    return response.json()["access_token"]
 
 
-def _upload(client, token, pdf_name, title):
+def _register_doctor(client, admin_token, name, email):
+    """Admin-only. Registration itself returns no token — login separately."""
+    response = client.post(
+        "/auth/register-doctor",
+        headers=_auth(admin_token),
+        json={"name": name, "email": email, "password": "demo-password-123", "specialty": "General"},
+    )
+    assert response.status_code == 201, response.text
+    return _login(client, email)
+
+
+def _register_patient(client, doctor_token, name, email):
+    """Doctor-only — this is what moved off the admin role."""
+    response = client.post(
+        "/auth/register-patient",
+        headers=_auth(doctor_token),
+        json={"name": name, "email": email, "password": "demo-password-123"},
+    )
+    assert response.status_code == 201, response.text
+    return _login(client, email)
+
+
+def _upload(client, doctor_token, pdf_name, title):
     with open(SOURCE_DIR / pdf_name, "rb") as handle:
         response = client.post(
             "/documents/upload",
-            headers=_auth(token),
+            headers=_auth(doctor_token),
             files={"file": (pdf_name, handle, "application/pdf")},
             data={"title": title, "publisher": "Test Publisher"},
         )
@@ -165,31 +205,16 @@ def _upload(client, token, pdf_name, title):
     return response.json()
 
 
-def _verify(client, token, document_id):
+def _verify(client, doctor_token, document_id):
     """Mark a document official, so patients may be answered from it."""
     response = client.patch(
         f"/documents/{document_id}/verify",
-        headers=_auth(token),
+        headers=_auth(doctor_token),
         params={"verified": True},
     )
     assert response.status_code == 200, response.text
     assert response.json()["verified"] is True
     return response.json()
-
-
-def _patient_token(client, admin_token, name, email):
-    response = client.post(
-        "/auth/register-patient",
-        headers=_auth(admin_token),
-        json={"name": name, "email": email, "password": "patient-password-123"},
-    )
-    assert response.status_code == 201, response.text
-
-    login = client.post(
-        "/auth/login", json={"email": email, "password": "patient-password-123"}
-    )
-    assert login.status_code == 200, login.text
-    return login.json()["access_token"]
 
 
 def _ask(client, token, question, mode="general"):
@@ -212,33 +237,37 @@ def two_clinics(client):
     """
     Clinic A holds the NICE guideline, clinic B holds the WHO one.
 
-    Both documents are verified, which is the normal state for a document
-    in use: uploads arrive unverified and a clinic admin confirms them
-    before patients are answered from them. The unverified case is covered
-    separately by test_unverified_document_is_never_used_in_answers.
+    Per the three-role model: the admin registers only the clinic and its
+    doctor; the doctor uploads/verifies the document and registers the
+    patient. Both documents are verified, which is the normal state for a
+    document in use — the unverified case is covered separately by
+    test_unverified_document_is_never_used_in_answers.
 
     Emails are unique per test run (not just per module) — Supabase Auth
     treats them as globally unique, and a prior interrupted run's teardown
     failing would otherwise break every subsequent run.
     """
-    import time
-
     suffix = str(int(time.time() * 1000))
 
     a = _register_clinic(client, "Test Clinic A", f"admin-a-{suffix}@example.com")
     b = _register_clinic(client, "Test Clinic B", f"admin-b-{suffix}@example.com")
 
-    doc_a = _upload(client, a["access_token"], "source1.pdf", "NICE NG28 Type 2 Diabetes")
-    doc_b = _upload(client, b["access_token"], "source2.pdf", "WHO HEARTS-D Diabetes")
+    doctor_a = _register_doctor(client, a["access_token"], "Dr. A", f"doctor-a-{suffix}@example.com")
+    doctor_b = _register_doctor(client, b["access_token"], "Dr. B", f"doctor-b-{suffix}@example.com")
 
-    _verify(client, a["access_token"], doc_a["id"])
-    _verify(client, b["access_token"], doc_b["id"])
+    doc_a = _upload(client, doctor_a, "source1.pdf", "NICE NG28 Type 2 Diabetes")
+    doc_b = _upload(client, doctor_b, "source2.pdf", "WHO HEARTS-D Diabetes")
+
+    _verify(client, doctor_a, doc_a["id"])
+    _verify(client, doctor_b, doc_b["id"])
 
     return {
         "a": a,
         "b": b,
-        "patient_a": _patient_token(client, a["access_token"], "Alice", f"alice-{suffix}@example.com"),
-        "patient_b": _patient_token(client, b["access_token"], "Bob", f"bob-{suffix}@example.com"),
+        "doctor_a": doctor_a,
+        "doctor_b": doctor_b,
+        "patient_a": _register_patient(client, doctor_a, "Alice", f"alice-{suffix}@example.com"),
+        "patient_b": _register_patient(client, doctor_b, "Bob", f"bob-{suffix}@example.com"),
     }
 
 
@@ -247,7 +276,7 @@ def two_clinics(client):
 # ----------------------------------------------------------------------
 
 def test_upload_ingests_and_scopes_to_clinic(client, two_clinics):
-    response = client.get("/documents", headers=_auth(two_clinics["a"]["access_token"]))
+    response = client.get("/documents", headers=_auth(two_clinics["doctor_a"]))
     assert response.status_code == 200
 
     documents = response.json()
@@ -265,8 +294,8 @@ def test_clinic_cannot_see_another_clinics_documents(client, two_clinics):
     RLS's documents_select policy, exercised through the real API — not a
     mocked filter standing in for it.
     """
-    a_docs = client.get("/documents", headers=_auth(two_clinics["a"]["access_token"])).json()
-    b_docs = client.get("/documents", headers=_auth(two_clinics["b"]["access_token"])).json()
+    a_docs = client.get("/documents", headers=_auth(two_clinics["doctor_a"])).json()
+    b_docs = client.get("/documents", headers=_auth(two_clinics["doctor_b"])).json()
 
     assert {d["title"] for d in a_docs}.isdisjoint({d["title"] for d in b_docs})
 
@@ -365,7 +394,7 @@ def test_triage_fallback_still_directs_to_care(client, two_clinics):
 
 def test_unverified_document_is_never_used_in_answers(client):
     """
-    A clinic uploads a guideline but has not yet confirmed it is official.
+    A doctor uploads a guideline but has not yet confirmed it is official.
     Until it does, patients must get the honest fallback rather than an
     answer grounded in an unconfirmed source — then the same question must
     succeed once the document is verified.
@@ -380,15 +409,14 @@ def test_unverified_document_is_never_used_in_answers(client):
     documents in the tenant, a grounded answer can only have come from
     this one.
     """
-    import time
-
     suffix = str(int(time.time() * 1000))
     clinic = _register_clinic(client, "Test Clinic C", f"admin-c-{suffix}@example.com")
-    token = clinic["access_token"]
-    document = _upload(client, token, "source2.pdf", "WHO HEARTS-D Diabetes")
+    doctor = _register_doctor(client, clinic["access_token"], "Dr. C", f"doctor-c-{suffix}@example.com")
+
+    document = _upload(client, doctor, "source2.pdf", "WHO HEARTS-D Diabetes")
     assert document["verified"] is False, "uploads must arrive unverified"
 
-    patient = _patient_token(client, token, "Carol", f"carol-{suffix}@example.com")
+    patient = _register_patient(client, doctor, "Carol", f"carol-{suffix}@example.com")
     question = "How is type 2 diabetes diagnosed?"
 
     before = _ask(client, patient, question)
@@ -398,7 +426,7 @@ def test_unverified_document_is_never_used_in_answers(client):
     )
     assert not before["message"]["citations"]
 
-    _verify(client, token, document["id"])
+    _verify(client, doctor, document["id"])
 
     after = _ask(client, patient, question)
     assert after["grounded"] is True, ("verifying should make it usable", after)
@@ -406,7 +434,7 @@ def test_unverified_document_is_never_used_in_answers(client):
 
 
 # ----------------------------------------------------------------------
-# Auth boundaries
+# Role boundaries — three roles, not two
 # ----------------------------------------------------------------------
 
 def test_patient_cannot_upload_documents(client, two_clinics):
@@ -420,6 +448,66 @@ def test_patient_cannot_upload_documents(client, two_clinics):
     assert response.status_code == 403
 
 
+def test_admin_cannot_upload_documents(client, two_clinics):
+    """
+    The core scope change: admin is administrative only, not medical.
+    Uploading (and, by the same authority, verifying) moved to the doctor
+    role entirely — this is the FastAPI-level guard; RLS's
+    documents_doctor_write policy is the independent real enforcement,
+    verified live during development against the actual project.
+    """
+    with open(SOURCE_DIR / "source1.pdf", "rb") as handle:
+        response = client.post(
+            "/documents/upload",
+            headers=_auth(two_clinics["a"]["access_token"]),
+            files={"file": ("source1.pdf", handle, "application/pdf")},
+            data={"title": "Should not work"},
+        )
+    assert response.status_code == 403
+
+
+def test_admin_cannot_register_patients(client, two_clinics):
+    """Patient registration moved from admin to doctor — admin no longer holds this route at all."""
+    response = client.post(
+        "/auth/register-patient",
+        headers=_auth(two_clinics["a"]["access_token"]),
+        json={"name": "Should not work", "email": "shouldnotwork@example.com", "password": "demo-password-123"},
+    )
+    assert response.status_code == 403
+
+
+def test_doctor_cannot_register_doctors(client, two_clinics):
+    """register-doctor stays admin-only — a doctor cannot mint peer accounts."""
+    response = client.post(
+        "/auth/register-doctor",
+        headers=_auth(two_clinics["doctor_a"]),
+        json={"name": "Should not work", "email": "shouldnotwork2@example.com", "password": "demo-password-123", "specialty": "General"},
+    )
+    assert response.status_code == 403
+
+
 def test_unauthenticated_requests_are_rejected(client):
     assert client.get("/documents").status_code == 401
     assert client.post("/chat/sessions", json={"mode": "general"}).status_code == 401
+
+
+def test_clinic_slug_is_publicly_resolvable(client, two_clinics):
+    """
+    The one deliberately public read (app/routers/clinics.py) — the
+    /clinic/{slug} frontend page needs this before the visitor has
+    authenticated at all, so this call carries no Authorization header,
+    unlike every other request in this file.
+    """
+    admin_a = two_clinics["a"]
+
+    from app.supabase_client import admin_client
+
+    clinic_row = (
+        admin_client().table("clinics").select("slug").eq("id", admin_a["clinic_id"]).single().execute().data
+    )
+
+    response = client.get(f"/clinics/by-slug/{clinic_row['slug']}")
+    assert response.status_code == 200
+    assert response.json()["id"] == admin_a["clinic_id"]
+
+    assert client.get("/clinics/by-slug/no-such-clinic-slug").status_code == 404

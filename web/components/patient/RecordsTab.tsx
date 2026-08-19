@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Card } from "@/components/ui";
+import { Card, EmptyState, PageHeader, Skeleton } from "@/components/ui";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 
@@ -33,11 +33,10 @@ export function RecordsTab() {
     })();
   }, []);
 
-  if (loading) return <p className="text-[var(--ink-soft)] text-sm">{t("loading")}</p>;
-  if (records.length === 0) return <p className="text-[var(--ink-soft)] text-sm">{t("noRecordsYet")}</p>;
-
   return (
-    <div className="flex flex-col gap-2">
+    <div>
+      <PageHeader eyebrow={t("rolePatient")} title={t("myRecords")} description={t("fromClinicRecord")} />
+      {loading ? <div className="space-y-3"><Skeleton className="h-28" /><Skeleton className="h-28" /></div> : records.length === 0 ? <EmptyState icon="file" title={t("noRecordsYet")} description={t("fromClinicRecord")} /> : <div className="grid gap-3 lg:grid-cols-2">
       {records.map((record) => (
         <Card key={record.id}>
           <p className="font-bold text-sm">{record.diagnosis || "—"}</p>
@@ -47,6 +46,7 @@ export function RecordsTab() {
           </p>
         </Card>
       ))}
+      </div>}
     </div>
   );
 }

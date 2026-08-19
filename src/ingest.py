@@ -1,7 +1,9 @@
 import json
+import math
 import re
 import sys
 from pathlib import Path
+from typing import Optional
 
 import fitz  # PyMuPDF
 
@@ -12,7 +14,13 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 
-from config import SOURCE_DIR, EXTRACTED_DIR as OUTPUT_DIR
+from config import (
+    EXTRACTED_DIR as OUTPUT_DIR,
+    PDF_MIN_DOCUMENT_CHARS,
+    PDF_MIN_TEXT_PAGE_RATIO,
+    PDF_NATIVE_TEXT_MIN_CHARS,
+    SOURCE_DIR,
+)
 
 
 # =========================
@@ -99,6 +107,104 @@ def clean_text(text: str) -> str:
 # PDF extraction
 # =========================
 
+
+class PDFExtractionError(ValueError):
+    """A valid-looking upload could not produce a safe searchable document."""
+
+    def __init__(self, message: str, *, code: str, report: Optional[dict] = None):
+        super().__init__(message)
+        self.code = code
+        self.report = report or {}
+
+
+def extraction_quality_report(document: dict) -> dict:
+    """Return page-level extraction diagnostics suitable for persistence."""
+
+    pages = document.get("pages", [])
+    total_pages = int(document.get("total_pages", len(pages)) or 0)
+    text_pages = [
+        page for page in pages
+        if int(page.get("char_count", 0) or 0) >= PDF_NATIVE_TEXT_MIN_CHARS
+    ]
+    empty_pages = [
+        page["page_number"] for page in pages
+        if int(page.get("char_count", 0) or 0) == 0
+    ]
+    suspected_scanned_pages = [
+        page["page_number"] for page in pages
+        if page.get("suspected_scanned")
+    ]
+    total_characters = sum(int(page.get("char_count", 0) or 0) for page in pages)
+    text_page_ratio = len(text_pages) / total_pages if total_pages else 0.0
+
+    minimum_text_pages = max(1, math.ceil(total_pages * PDF_MIN_TEXT_PAGE_RATIO))
+    usable = (
+        total_pages > 0
+        and total_characters >= PDF_MIN_DOCUMENT_CHARS
+        and len(text_pages) >= minimum_text_pages
+    )
+
+    warnings = []
+    if suspected_scanned_pages:
+        warnings.append(
+            f"{len(suspected_scanned_pages)} page(s) appear image-only with no extractable text"
+        )
+    if usable and text_page_ratio < 0.5:
+        warnings.append("Less than half of the PDF pages contain searchable text")
+
+    return {
+        "usable": usable,
+        "total_pages": total_pages,
+        "text_pages": len(text_pages),
+        "empty_pages": empty_pages,
+        "suspected_scanned_pages": suspected_scanned_pages,
+        "total_characters": total_characters,
+        "text_page_ratio": round(text_page_ratio, 4),
+        "warnings": warnings,
+    }
+
+
+def validate_extraction(document: dict) -> dict:
+    """Reject PDFs that would otherwise create an empty or misleading index."""
+
+    report = extraction_quality_report(document)
+    if report["usable"]:
+        return report
+
+    if report["suspected_scanned_pages"]:
+        raise PDFExtractionError(
+            "This PDF appears to contain scanned, image-only pages with no extractable "
+            "text. Upload a searchable PDF instead.",
+            code="insufficient_text",
+            report=report,
+        )
+
+    raise PDFExtractionError(
+        "The PDF did not contain enough searchable text to build a reliable index.",
+        code="insufficient_text",
+        report=report,
+    )
+
+
+def _extract_page(page) -> dict:
+    """Extract one page's native text."""
+
+    raw_text = page.get_text("text", sort=True)
+    cleaned_text = clean_text(raw_text)
+    native_char_count = len(cleaned_text)
+    image_count = len(page.get_images(full=True))
+
+    suspected_scanned = image_count > 0 and native_char_count < PDF_NATIVE_TEXT_MIN_CHARS
+
+    return {
+        "text": cleaned_text,
+        "char_count": len(cleaned_text),
+        "native_char_count": native_char_count,
+        "image_count": image_count,
+        "extraction_method": "native",
+        "suspected_scanned": suspected_scanned,
+    }
+
 def extract_pdf(pdf_path: str, metadata: dict = None) -> dict:
     """
     Extract text from a single PDF.
@@ -136,21 +242,34 @@ def extract_pdf(pdf_path: str, metadata: dict = None) -> dict:
 
     pages = []
 
-    with fitz.open(pdf_path) as doc:
+    try:
+        with fitz.open(pdf_path) as doc:
+            if doc.needs_pass:
+                raise PDFExtractionError(
+                    "Password-protected PDFs are not supported.",
+                    code="encrypted_pdf",
+                )
 
-        total_pages = doc.page_count
+            total_pages = doc.page_count
+            if total_pages == 0:
+                raise PDFExtractionError(
+                    "The PDF contains no pages.",
+                    code="empty_pdf",
+                )
 
-        for page_index, page in enumerate(doc):
-
-            raw_text = page.get_text("text")
-
-            cleaned_text = clean_text(raw_text)
-
-            pages.append({
-                "page_number": page_index + 1,
-                "text": cleaned_text,
-                "char_count": len(cleaned_text)
-            })
+            for page_index, page in enumerate(doc):
+                page_result = _extract_page(page)
+                pages.append({
+                    "page_number": page_index + 1,
+                    **page_result,
+                })
+    except PDFExtractionError:
+        raise
+    except Exception as exc:
+        raise PDFExtractionError(
+            f"The uploaded file could not be parsed as a PDF: {exc}",
+            code="invalid_pdf",
+        ) from exc
 
     # Caller-supplied provenance wins. Only fall back to the filename
     # lookup when no metadata was passed, i.e. the single-tenant CLI.
@@ -162,7 +281,7 @@ def extract_pdf(pdf_path: str, metadata: dict = None) -> dict:
                 f"add it at the top of this file so title/publisher/url are not UNKNOWN."
             )
 
-    return {
+    document = {
         "source": pdf_path.name,
         "title": metadata.get("title") or DEFAULT_METADATA["title"],
         "publisher": metadata.get("publisher") or DEFAULT_METADATA["publisher"],
@@ -170,8 +289,11 @@ def extract_pdf(pdf_path: str, metadata: dict = None) -> dict:
         "topic": metadata.get("topic") or "",
         "total_pages": total_pages,
         "extracted_pages": len(pages),
-        "pages": pages
+        "pages": pages,
     }
+
+    document["extraction_report"] = validate_extraction(document)
+    return document
 
 
 # =========================

@@ -17,6 +17,8 @@ export default function Home() {
       router.replace("/login");
     } else if (role === "clinic_admin") {
       router.replace("/clinic");
+    } else if (role === "doctor") {
+      router.replace("/doctor");
     } else if (role === "patient") {
       router.replace("/patient");
     } else {

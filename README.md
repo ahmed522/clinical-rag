@@ -1,16 +1,18 @@
-# Clinical RAG — Type 2 Diabetes
+# Clinical RAG — Trusted Clinic Knowledge
 
-A retrieval system over trusted clinical guidelines for type 2 diabetes. It ingests
-guideline PDFs, splits them into section-aware chunks that keep their source and page
-number, embeds them, and retrieves the passages relevant to a clinical question.
+A multi-tenant clinic SaaS and grounded RAG assistant over doctor-approved medical PDFs.
+Doctors upload and verify sources; patients receive answers only from successfully
+processed, verified documents belonging to their own clinic. Every displayed
+clinical claim is mapped to an exact retrieved excerpt and passes a second
+evidence-support and safety verification stage.
 
-**Status: retrieval prototype.** The pipeline runs end to end from PDF to ranked
-passages, and retrieval quality is measured against a labelled evaluation set. There is
-**no answer generation yet** — no LLM stage, no citation rendering, no abstention. See
-[Not implemented](#not-implemented) before assuming otherwise.
+**Status: hackathon MVP.** The active path includes PDF quality validation, section-aware
+chunking with page provenance, embeddings, Chroma retrieval, cross-encoder reranking,
+grounded LLM generation, citation validation, abstention, FastAPI, Supabase/RLS, and a
+Next.js UI. Retrieval and full-pipeline evaluation commands are included.
 
-This is an information-retrieval aid over two specific documents. It is not a clinical
-decision tool and does not give medical advice.
+This is an information aid over clinic-provided sources. It does not diagnose patients
+or replace a clinician.
 
 ---
 
@@ -51,11 +53,28 @@ is no orchestrator. A full rebuild from the PDFs takes about 25 seconds.
 Run the scripts as `python src/<name>.py` (not `python -m src.<name>`) — that puts `src/`
 on the import path so they can find `config.py`.
 
+For the multi-tenant MVP, copy `.env.example` to `.env`, apply all Supabase migrations in
+order, then run the API and frontend:
+
+```bash
+uvicorn app.main:app --reload
+
+cd web
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+Migrations `0003_rag_mvp_reliability.sql` and `0004_structured_rag_evidence.sql`
+must be applied before using the updated upload and evidence-audit paths.
+
 Checks, runnable any time:
 
 ```bash
 python src/evaluate_chunks.py      # chunk quality + page-citation verification
 python src/evaluate_retrieval.py   # recall@k / MRR against the labelled query set
+python src/evaluate_rag.py         # deterministic end-to-end RAG + citation report
+python src/evaluate_rag.py --provider configured  # configured LLM; may incur cost
 ```
 
 ---
@@ -84,13 +103,13 @@ data/chunks/chunks.json   [{chunk_id,text,section_title,page_number,source,
    ▼ embed.py             all-MiniLM-L6-v2 (384-dim); wipes and rebuilds the index
 data/chroma_db/           Chroma collection "clinical_rag_t2dm"
    │
-   ▼ query.py             similarity search, top 10, results + provenance
+   ▼ query.py             retrieve 30 candidates, cross-encoder rerank, report top 10
 data/query_results.json
 ```
 
-`embed.py` **deletes `data/chroma_db/` and rebuilds it** on every run. That is deliberate —
-without it, re-running appends duplicate vectors — but it means a hand-curated index would
-be lost.
+The offline `embed.py` command rebuilds only the configured single-tenant collection.
+Application uploads use deterministic chunk IDs and document-level compensation, so a
+failed clinic upload cannot intentionally wipe another clinic's collection.
 
 ---
 
@@ -127,19 +146,39 @@ That distinction matters. NG28's 2026 update changed first-line therapy to
 **modified-release metformin plus an SGLT-2 inhibitor**; labels written from memory of an
 earlier edition would be wrong, and labels taken from the retriever would bake in its bias.
 
-Current baseline (all-MiniLM-L6-v2, `TOP_K=10`):
+Current reranked baseline (all-MiniLM-L6-v2, 30 candidates, `TOP_K=10`):
 
 | k | recall@k | answer@k |
 |---|---|---|
-| 1 | 18/38 | 17/38 |
-| 3 | 22/38 | 20/38 |
-| 5 | 27/38 | 25/38 |
-| 10 | **32/38** | 29/38 |
+| 1 | 22/38 | 21/38 |
+| 3 | 29/38 | 26/38 |
+| 5 | **32/38** | 29/38 |
+| 10 | **32/38** | 30/38 |
 
-MRR 0.574 · out-of-scope rejection 6/6
+MRR 0.682 · out-of-scope rejection 6/6
 
 `recall@k` = a chunk from the right source and page appeared. `answer@k` = it also
 contained the expected text, which catches retrieving the right page but the wrong part.
+
+### Full-pipeline quality — `src/evaluate_rag.py`
+
+The deterministic mock baseline runs retrieval, reranking, structured claim generation,
+exact-excerpt validation, claim verification, citation resolution, and latency reporting
+over the same 44 questions:
+
+- Grounded in-scope responses: 38/38
+- Valid and exact citations: 38/38
+- Correct-page citations: 22/38
+- Citations containing labelled answer evidence: 21/38
+- Mechanically covered claims: 42/42
+- Verifier-supported claims: 42/42
+- Correct out-of-scope abstentions: 2/6
+- Total latency: p50 756 ms, p95 896 ms on the review machine
+
+The mock intentionally quotes and cites the first retrieved source, so these results expose
+top-1 citation quality and show why a real generation provider must be evaluated separately.
+Run `--provider configured` before the demo to measure the configured model's sufficiency
+judgement and abstention behavior. That run may incur provider cost.
 
 ---
 
@@ -156,36 +195,31 @@ contained the expected text, which catches retrieving the right page but the wro
   content that lives in an image is unavailable — only its caption is indexed.
 - **~56% of chunks start mid-sentence, ~68% end mid-sentence.** A cut can strand a negation
   or qualifier ("do not offer", "only if"), which inverts clinical meaning.
-- **`chunk_id` is a fresh UUID on every run**, so incremental indexing is impossible and
-  chunk files cannot be diffed directly.
 - **One known bad citation** — the WHO cover-page chunk; page 2 is dropped as empty, making
   pages 1 and 3 adjacent in the concatenated text.
 - **No document versioning.** `SOURCE_METADATA` has no publication or retrieval date, so
   nothing detects a superseded guideline.
-- **No automated tests.** pytest is installed; no suite written yet.
+- **Scanned/image-only PDFs are rejected, not OCR'd.** The ingestion quality gate detects
+  an unreadable scan and rejects it instead of creating an empty index; upload a
+  searchable PDF.
 
 ---
 
 ## Not implemented
 
-Reranking · LLM answer generation · grounded citation rendering · abstention on
-insufficient evidence · source prioritisation between NICE and WHO · API or UI ·
-Docker · CI.
+Source precedence between conflicting guidelines · durable background ingestion ·
+human clinical adjudication of evaluation labels · Docker · CI.
 
 ---
 
 ## Suggested next steps
 
-1. **Add a reranker.** 32/38 answers already reach the top 10 but are poorly ordered
-   (MRR 0.574) — exactly the gap a cross-encoder closes. `evaluate_retrieval.py` measures
-   whether it worked.
-2. **Investigate the 6 misses**, concentrated in WHO content. No reranker can reorder a
-   candidate that was never retrieved.
-3. **Try a clinical-domain embedding model** and re-measure.
-4. **Only then add generation** — with mandatory inline citations, an explicit
-   "not covered by these guidelines" path, and post-generation validation that every cited
-   page was actually retrieved. Answering confidently with no ability to abstain is the
-   riskiest possible configuration for a clinical system.
+1. **Run both evaluators** before and after every RAG change; keep the JSON reports.
+2. **Investigate the 6 candidate misses.** A reranker cannot reorder evidence that dense
+   retrieval never returned.
+3. **Add a small diverse PDF suite** covering scans, columns, tables, and mixed layouts.
+4. **Try clinical or multilingual embeddings only in shadow**, and replace the current
+   model only when retrieval and full-pipeline metrics improve.
 
 ---
 

@@ -88,6 +88,27 @@ class Settings:
     LLM_PROVIDER = os.getenv("LLM_PROVIDER", "mock")
     LLM_MODEL = os.getenv("LLM_MODEL", "")
     LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+    # Reasoning models (Groq's gpt-oss family) bill hidden reasoning tokens
+    # against the completion budget. The original bug was not the effort level
+    # but max_tokens=1600: ~880 reasoning tokens left too little room, the JSON
+    # was truncated, and Groq rejected the body with a 400 that surfaced to
+    # patients as "knowledge system unavailable". With max_tokens at 3000
+    # (app/llm.py) there is headroom, so effort is free to optimise for answer
+    # quality instead: "medium" pairs claims to excerpts more carefully, and a
+    # claim whose excerpt does not fully support it is rejected by the evidence
+    # auditor. Observed: the insulin-therapy question grounds at "medium" and
+    # fails at "low". Costs latency (~18s vs ~3s), hence the timeout below.
+    # Set empty to omit the parameter for models that don't accept it.
+    LLM_REASONING_EFFORT = os.getenv("LLM_REASONING_EFFORT", "medium")
+    # Generous enough for a "medium"-effort generation (~18s observed, and the
+    # retry in generation.py can double that) without hanging a patient forever.
+    LLM_TIMEOUT_SECONDS = float(os.getenv("LLM_TIMEOUT_SECONDS", "45"))
+    EVIDENCE_VERIFIER_ENABLED = os.getenv(
+        "EVIDENCE_VERIFIER_ENABLED", "true"
+    ).lower() in {"1", "true", "yes", "on"}
+    EVIDENCE_VERIFIER_TIMEOUT_SECONDS = float(
+        os.getenv("EVIDENCE_VERIFIER_TIMEOUT_SECONDS", "15")
+    )
 
 
 settings = Settings()

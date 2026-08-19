@@ -1,0 +1,18 @@
+"use client";
+
+import { Icon } from "@/components/Icon";
+import { Logo } from "@/components/ui";
+import { useLang } from "@/lib/i18n";
+
+export function AuthShell({ title, subtitle, children, clinicName }: { title: string; subtitle: string; children: React.ReactNode; clinicName?: string }) {
+  const { lang, setLang, t } = useLang();
+  return <main className="clinical-grid min-h-screen bg-[var(--bg)] p-3 sm:p-5">
+    <div className="mx-auto grid min-h-[calc(100vh-1.5rem)] max-w-6xl overflow-hidden rounded-[28px] border border-[var(--border)] bg-white shadow-[var(--shadow)] sm:min-h-[calc(100vh-2.5rem)] lg:grid-cols-[1.05fr_.95fr]">
+      <section className="relative hidden overflow-hidden bg-[#0e3b3b] p-10 text-white lg:flex lg:flex-col lg:justify-between"><div className="absolute -end-24 -top-24 h-80 w-80 rounded-full bg-[#1b8d7f]/30 blur-2xl" /><div className="relative"><Logo size="lg" inverted /><PillLight>{t("verifiedKnowledge")}</PillLight></div><div className="relative max-w-lg"><h2 className="text-4xl font-extrabold leading-tight">{t("evidenceFirstTitle")}</h2><p className="mt-4 max-w-md text-sm leading-7 text-[#b8d6d2]">{t("evidenceFirstHint")}</p><div className="mt-8 grid gap-3"><Feature icon="file" title={t("supportingEvidence")} text={t("exactExcerpt")} /><Feature icon="shield" title={t("safetyAndLimits")} text={t("verificationPassed")} /><Feature icon="chart" title={t("ragQuality")} text={t("evaluationSubtitle")} /></div></div><p className="relative text-xs leading-5 text-[#86aaa6]">{t("supportDisclaimer")}</p></section>
+      <section className="flex flex-col p-5 sm:p-8 lg:p-12"><div className="flex items-center justify-between lg:justify-end"><div className="lg:hidden"><Logo /></div><div role="group" aria-label="Language" className="inline-flex items-center rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] p-1 text-xs font-extrabold"><Icon name="globe" size={15} className="mx-2 text-[var(--ink-soft)]" /><button type="button" lang="en" aria-pressed={lang === "en"} onClick={() => setLang("en")} className={`rounded-lg px-3 py-1.5 transition ${lang === "en" ? "bg-white text-[var(--accent)] shadow-sm" : "text-[var(--ink-soft)]"}`}>English</button><button type="button" lang="ar" aria-pressed={lang === "ar"} onClick={() => setLang("ar")} className={`rounded-lg px-3 py-1.5 transition ${lang === "ar" ? "bg-white text-[var(--accent)] shadow-sm" : "text-[var(--ink-soft)]"}`}>العربية</button></div></div><div className="my-auto mx-auto w-full max-w-md py-10"><div className="mb-7">{clinicName && <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.18em] text-[var(--accent)]">{clinicName}</p>}<h1 className="text-3xl font-extrabold tracking-tight">{title}</h1><p className="mt-2 text-sm leading-6 text-[var(--ink-soft)]">{subtitle}</p></div>{children}</div></section>
+    </div>
+  </main>;
+}
+
+function PillLight({ children }: { children: React.ReactNode }) { return <span className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-[#c8e7e2]"><Icon name="shield" size={14} />{children}</span>; }
+function Feature({ icon, title, text }: { icon: "file" | "shield" | "chart"; title: string; text: string }) { return <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-3.5"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1f766c] text-white"><Icon name={icon} size={18} /></span><div><p className="text-sm font-extrabold">{title}</p><p className="mt-0.5 text-xs text-[#9fc1bd]">{text}</p></div></div>; }

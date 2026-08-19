@@ -12,11 +12,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from app.config import settings
-from app.routers import auth, chat, documents
+from app.routers import auth, chat, clinics, documents, evaluation
 
-# No lifespan/init_db step: the schema lives in Supabase, applied via
-# supabase/migrations/0001_schema_and_rls.sql against the project directly
-# (`psql` or the SQL editor), not created by this app at startup.
+# No lifespan/init_db step: the schema lives in Supabase, applied via the
+# migrations in supabase/migrations/ against the project directly (`psql`
+# or the SQL editor), not created by this app at startup.
 
 app = FastAPI(
     title="Clinical RAG",
@@ -37,8 +37,10 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(clinics.router)
 app.include_router(documents.router)
 app.include_router(chat.router)
+app.include_router(evaluation.router)
 
 
 @app.get("/", include_in_schema=False)

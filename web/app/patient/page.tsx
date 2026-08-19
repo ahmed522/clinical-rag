@@ -16,9 +16,9 @@ export default function PatientApp() {
   const [tab, setTab] = useState<TabKey>("chat");
 
   const tabs = [
-    { key: "chat", label: t("chat") },
-    { key: "appointments", label: t("appointments") },
-    { key: "records", label: t("myRecords") },
+    { key: "chat", label: t("chat"), icon: "chat" as const },
+    { key: "appointments", label: t("appointments"), icon: "calendar" as const },
+    { key: "records", label: t("myRecords"), icon: "file" as const },
   ];
 
   return (

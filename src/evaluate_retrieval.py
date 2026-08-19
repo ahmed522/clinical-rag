@@ -47,9 +47,12 @@ from config import (
     COLLECTION_NAME,
     EMBEDDING_MODEL,
     QUERIES_PATH,
+    RERANK_CANDIDATE_K,
+    RERANK_ENABLED,
     RETRIEVAL_REPORT_PATH as RESULTS_PATH,
     TOP_K as MAX_K,
 )
+from rerank import rerank_hits
 
 PERSIST_DIR = str(CHROMA_DIR)  # Chroma wants a string, not a Path
 
@@ -133,12 +136,16 @@ def evaluate_in_scope(vectorstore, queries):
 
     for query_spec in queries:
 
+        candidate_k = max(MAX_K, RERANK_CANDIDATE_K) if RERANK_ENABLED else MAX_K
         hits = vectorstore.similarity_search_with_score(
             query_spec["query"],
-            k=MAX_K
+            k=candidate_k
         )
-
-        documents = [document for document, _ in hits]
+        if RERANK_ENABLED:
+            ranked = rerank_hits(query_spec["query"], hits, k=MAX_K)
+            documents = [document for document, _, _ in ranked]
+        else:
+            documents = [document for document, _ in hits[:MAX_K]]
         scores = [score for _, score in hits]
 
         results.append({

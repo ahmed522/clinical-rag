@@ -6,8 +6,8 @@ import { LangProvider } from "@/lib/i18n";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "طبيبك — Tabibak",
-  description: "Clinic guideline assistant — grounded, cited answers for your patients.",
+  title: "Tabibak — Clinical evidence you can trace",
+  description: "Verified clinic guidance with claim-level evidence, citations, and safety checks.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

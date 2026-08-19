@@ -16,6 +16,7 @@ Imported as `from config import ...`, which works because the scripts are
 run directly (`python src/chunk.py`), putting src/ on the import path.
 """
 
+import os
 from pathlib import Path
 
 
@@ -40,6 +41,24 @@ QUERY_RESULTS_PATH = DATA_DIR / "query_results.json"   # query.py
 # Labelled evaluation set and the report evaluate_retrieval.py writes.
 QUERIES_PATH = EVALUATION_DIR / "clinical_queries.json"
 RETRIEVAL_REPORT_PATH = EVALUATION_DIR / "retrieval_report.json"
+RAG_REPORT_PATH = EVALUATION_DIR / "rag_report.json"
+
+
+# ============================================================
+# PDF extraction
+# ============================================================
+
+# Quality gates. They are intentionally conservative: covers and blank
+# separator pages are normal, but a document with no meaningful text must
+# never be accepted and indexed as if ingestion had succeeded.
+PDF_NATIVE_TEXT_MIN_CHARS = 40
+PDF_MIN_DOCUMENT_CHARS = 100
+PDF_MIN_TEXT_PAGE_RATIO = 0.05
+
+# Stored with every uploaded document so an answer can be traced back to
+# the extraction and chunking behavior that produced its index.
+EXTRACTION_VERSION = "2026-08-18.1"
+CHUNKING_VERSION = "2026-08-18.1"
 
 
 # ============================================================
@@ -135,7 +154,17 @@ def collection_name_for(clinic_id):
 #   k=1  47%   k=3  58%   k=4  68%   k=5  71%   k=8  84%   k=10 84%
 # k=8 is the plateau, so retrieval uses 8 and gains nothing from 10.
 TOP_K = 10
-RETRIEVAL_K = 8
+# Patient-facing generation receives only the five strongest reranked
+# passages. The wider TOP_K remains available to the offline evaluator so
+# answer@3, answer@5, and answer@10 can still be compared.
+RETRIEVAL_K = 5
+
+# Two-stage retrieval: Chroma cheaply finds a broad candidate set, then a
+# cross-encoder reads each (question, chunk) pair and produces the final
+# ordering.  Candidate count must stay above the number ultimately returned.
+RERANK_ENABLED = True
+RERANK_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+RERANK_CANDIDATE_K = 30
 
 # Similarity distance above which a match is considered too weak.
 #

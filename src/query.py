@@ -29,8 +29,11 @@ from config import (
     COLLECTION_NAME,
     EMBEDDING_MODEL,
     QUERY_RESULTS_PATH as RESULTS_PATH,
+    RERANK_CANDIDATE_K,
+    RERANK_ENABLED,
     TOP_K,
 )
+from rerank import rerank_hits
 
 PERSIST_DIR = str(CHROMA_DIR)  # Chroma wants a string, not a Path
 
@@ -71,12 +74,18 @@ def run_query(vectorstore: Chroma, query: str, k: int = TOP_K) -> list[dict]:
     Note: Chroma's similarity_search_with_score returns a distance
     score (lower = more similar) for the default embedding function.
     """
-    results = vectorstore.similarity_search_with_score(query, k=k)
+    candidate_k = max(k, RERANK_CANDIDATE_K) if RERANK_ENABLED else k
+    results = vectorstore.similarity_search_with_score(query, k=candidate_k)
+    if RERANK_ENABLED:
+        ranked = rerank_hits(query, results, k=k)
+    else:
+        ranked = [(doc, float(score), None) for doc, score in results[:k]]
 
     formatted = []
-    for doc, score in results:
+    for doc, score, rerank_score in ranked:
         formatted.append({
             "score": round(float(score), 4),
+            "rerank_score": round(float(rerank_score), 4) if rerank_score is not None else None,
             "text": doc.page_content,
             "section_title": doc.metadata.get("section_title"),
             "page_number": doc.metadata.get("page_number"),
