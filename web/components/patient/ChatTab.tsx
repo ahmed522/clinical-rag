@@ -1,19 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Icon } from "@/components/Icon";
-import { Card, EmptyState, PageHeader, Pill, SecondaryButton, Skeleton } from "@/components/ui";
+import { Card, CuraAvatar, EmptyState, PageHeader, Pill, SecondaryButton, Skeleton } from "@/components/ui";
+import { authenticatedFetch, AuthSessionUnavailableError } from "@/lib/auth-api";
 import { useAuth } from "@/lib/auth-context";
 import { useLang } from "@/lib/i18n";
 import { API_BASE_URL } from "@/lib/supabase";
+import { AppointmentChatAction } from "./AppointmentChatAction";
 
-type Mode = "general" | "triage";
 type Strength = "high" | "medium" | "low" | "insufficient";
 
 interface SessionSummary {
   id: string;
-  mode: Mode;
+  mode: string;
   started_at: string;
   message_count: number;
 }
@@ -92,11 +94,11 @@ function EvidenceAnswer({ message }: { message: Message }) {
   const strengthLabel = evidence.evidence_strength === "high" ? t("highEvidence") : evidence.evidence_strength === "medium" ? t("mediumEvidence") : evidence.evidence_strength === "low" ? t("lowEvidence") : t("insufficientEvidence");
   const insufficient = evidence.evidence_strength === "insufficient";
 
-  return <article className={`msg-in flex w-full shrink-0 overflow-hidden rounded-[22px] border bg-white shadow-[var(--shadow)] ${insufficient ? "border-[#efc5c1]" : "border-[var(--border)]"}`}>
+  return <article className={`msg-in flex w-full shrink-0 overflow-hidden rounded-[22px] border bg-white shadow-[var(--shadow)] ${insufficient ? "border-[#efc5c1]" : "border-[#ddd6ee]"}`}>
     <span aria-hidden="true" className="w-1.5 shrink-0" style={{ background: strengthRailColor(evidence.evidence_strength) }} />
     <div className="min-w-0 flex-1">
-      <header className={`flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4 ${insufficient ? "border-[#f2cfcc] bg-[var(--danger-bg)]" : "border-[var(--border)] bg-[var(--surface-subtle)]"}`}>
-        <div className="flex items-center gap-2"><span className={`flex h-8 w-8 items-center justify-center rounded-xl ${insufficient ? "bg-white text-[var(--danger)]" : "bg-[var(--accent-soft)] text-[var(--accent)]"}`}><Icon name={insufficient ? "shield" : "activity"} size={17} /></span><div><p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--ink-faint)]">{t("evidenceStrength")}</p><Pill tone={strengthTone(evidence.evidence_strength)} className="mt-1">{strengthLabel}</Pill></div></div>
+      <header className={`flex flex-wrap items-center justify-between gap-3 border-b px-5 py-4 ${insufficient ? "border-[#f2cfcc] bg-[var(--danger-bg)]" : "border-[#ddd6ee] bg-[var(--cura-soft)]"}`}>
+        <div className="flex items-center gap-2">{insufficient ? <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-[var(--danger)]"><Icon name="shield" size={17} /></span> : <CuraAvatar size={34} />}<div><p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--ink-faint)]">{t("evidenceStrength")}</p><Pill tone={strengthTone(evidence.evidence_strength)} className="mt-1">{strengthLabel}</Pill></div></div>
         {!insufficient && evidence.checks.verifier_passed && <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--ok)]"><Icon name="check" size={15} />{t("verificationPassed")}</span>}
       </header>
 
@@ -118,9 +120,9 @@ function EvidenceAnswer({ message }: { message: Message }) {
 }
 
 export function ChatTab() {
+  const router = useRouter();
   const { t, lang } = useLang();
   const { session } = useAuth();
-  const [mode, setMode] = useState<Mode>("general");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -128,98 +130,105 @@ export function ChatTab() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionError, setSessionError] = useState(false);
+  const [appointmentAction, setAppointmentAction] = useState<"book" | "cancel" | "reschedule" | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  // Set right before resumeSession calls setMode(), so the mode-change
-  // effect below skips its own startSession() call once — otherwise it
-  // would immediately overwrite the session just resumed with a new one.
-  const resumingRef = useRef(false);
-  // A ref, not a dependency: the access token rotates on Supabase's silent
-  // refresh (~hourly, and on tab refocus). Reading it fresh at call time
-  // means that rotation never re-triggers the session-start effect below —
-  // which previously wiped the conversation and opened a new backend
-  // session on every token refresh.
-  const accessTokenRef = useRef(session?.access_token);
-  accessTokenRef.current = session?.access_token;
-  const hasSession = !!session?.access_token;
+  const hasSession = !!session;
   // A live-value ref, checked after each async gap. Comparing against the
   // `sessionId` variable captured in handleSend's own closure would always
   // read as equal to itself — this is what actually detects "the session
   // changed while the request was in flight".
   const sessionIdRef = useRef(sessionId);
-  sessionIdRef.current = sessionId;
 
-  const startSession = useCallback(async (nextMode: Mode, isCurrent: () => boolean) => {
-    const token = accessTokenRef.current;
-    if (!token) return;
+  useEffect(() => { sessionIdRef.current = sessionId; }, [sessionId]);
+
+  const startSession = useCallback(async (isCurrent: () => boolean) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/chat/sessions`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ mode: nextMode }) });
-      if (!response.ok || !isCurrent()) return;
+      const response = await authenticatedFetch(`${API_BASE_URL}/chat/sessions`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "general" }) });
+      if (!response.ok || !isCurrent()) return null;
       const data = await response.json();
-      if (!isCurrent()) return;
+      if (!isCurrent()) return null;
+      // Keep the live ref in sync immediately. React applies setState on the
+      // next render, but an on-demand session can send its first message now.
+      sessionIdRef.current = data.id;
       setSessionId(data.id);
       setMessages([]);
-    } catch {
-      if (isCurrent()) setSessionId(null);
+      setSessionError(false);
+      return data.id as string;
+    } catch (cause) {
+      if (cause instanceof AuthSessionUnavailableError) {
+        router.replace("/login");
+        return null;
+      }
+      if (isCurrent()) {
+        setSessionId(null);
+        setSessionError(true);
+      }
+      return null;
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (!hasSession) return;
-    if (resumingRef.current) { resumingRef.current = false; return; }
     let cancelled = false;
-    const timer = window.setTimeout(() => void startSession(mode, () => !cancelled), 0);
+    const timer = window.setTimeout(() => void startSession(() => !cancelled), 0);
     return () => { cancelled = true; window.clearTimeout(timer); };
-    // Deliberately excludes accessTokenRef's value — token rotation must
-    // not restart the session. Only an actual mode switch should.
-  }, [hasSession, mode, startSession]);
+  }, [hasSession, startSession]);
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [messages, sending]);
-  function handleModeChange(nextMode: Mode) { setMode(nextMode); }
 
   async function loadSessions() {
-    const token = accessTokenRef.current;
-    if (!token) return;
     setSessionsLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/chat/sessions`, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await authenticatedFetch(`${API_BASE_URL}/chat/sessions`);
       if (!response.ok) return;
       setSessions(await response.json());
-    } catch { /* history panel just shows empty — chat itself is unaffected */ }
+    } catch (cause) {
+      if (cause instanceof AuthSessionUnavailableError) router.replace("/login");
+    }
     finally { setSessionsLoading(false); }
   }
 
   function openHistory() { setHistoryOpen(true); void loadSessions(); }
 
   async function resumeSession(target: SessionSummary) {
-    const token = accessTokenRef.current;
-    if (!token) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/chat/${target.id}`, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await authenticatedFetch(`${API_BASE_URL}/chat/${target.id}`);
       if (!response.ok) return;
       const history = await response.json();
-      resumingRef.current = true;
-      setMode(target.mode);
       setSessionId(target.id);
       setMessages(history);
+      setAppointmentAction(null);
       setHistoryOpen(false);
-    } catch { /* stay on the history panel so the patient can retry */ }
+    } catch (cause) {
+      if (cause instanceof AuthSessionUnavailableError) router.replace("/login");
+    }
   }
 
   function startNewFromHistory() {
     setHistoryOpen(false);
-    void startSession(mode, () => true);
+    void startSession(() => true);
   }
 
   async function handleSend(event: React.FormEvent) {
     event.preventDefault();
-    const token = accessTokenRef.current;
-    if (!input.trim() || !token || !sessionId || sending || historyOpen) return;
+    if (!input.trim() || !session || sending || historyOpen) return;
+    setSending(true);
+    let activeSessionId = sessionId;
+    if (!activeSessionId) {
+      activeSessionId = await startSession(() => true);
+      if (!activeSessionId) {
+        setSending(false);
+        return;
+      }
+    }
     const question = input.trim();
-    const activeSessionId = sessionId;
     setInput("");
     setMessages((previous) => [...previous, { id: `local-${Date.now()}`, role: "user", content: question, citations: null }]);
-    setSending(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/chat/${activeSessionId}/message`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ content: question }) });
+      // RAG generation and independent evidence verification can legitimately
+      // take longer than ordinary CRUD requests. Do not abandon an answer
+      // that the backend is still safely generating and persisting.
+      const response = await authenticatedFetch(`${API_BASE_URL}/chat/${activeSessionId}/message`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content: question }) }, 90_000);
       if (!response.ok) throw new Error("request failed");
       const data = await response.json();
       // If the session changed while this request was in flight (mode
@@ -227,28 +236,33 @@ export function ChatTab() {
       // on screen — drop it instead of appending to the wrong thread.
       if (activeSessionId !== sessionIdRef.current) return;
       setMessages((previous) => [...previous, { ...data.message, grounded: data.grounded, reason: data.reason }]);
-    } catch {
+      setAppointmentAction(data.action ?? null);
+    } catch (cause) {
+      if (cause instanceof AuthSessionUnavailableError) {
+        router.replace("/login");
+        return;
+      }
       if (activeSessionId !== sessionIdRef.current) return;
       setMessages((previous) => [...previous, { id: `err-${Date.now()}`, role: "assistant", content: t("error"), citations: null, grounded: false }]);
     } finally { setSending(false); }
   }
 
-  const tabs: { key: Mode; label: string }[] = [{ key: "general", label: t("chatModeGeneral") }, { key: "triage", label: t("chatModeTriage") }];
-
   return <div className="flex flex-col gap-4">
-    <PageHeader eyebrow={t("verifiedKnowledge")} title={t("evidenceFirstTitle")} description={t("evidenceFirstHint")} />
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-white p-2 shadow-[var(--shadow-sm)]"><div className="flex gap-1 rounded-xl bg-[var(--surface-muted)] p-1">{tabs.map((tab) => <button key={tab.key} onClick={() => handleModeChange(tab.key)} className={`rounded-lg px-3.5 py-2 text-xs font-extrabold transition ${mode === tab.key && !historyOpen ? "bg-white text-[var(--accent)] shadow-sm" : "text-[var(--ink-soft)] hover:text-[var(--ink)]"}`}>{tab.label}</button>)}</div><div className="flex items-center gap-2"><button type="button" onClick={() => historyOpen ? setHistoryOpen(false) : openHistory()} aria-label={t("chatHistory")} title={t("chatHistory")} className={`inline-flex h-9 w-9 items-center justify-center rounded-xl border transition ${historyOpen ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]" : "border-[var(--border)] bg-white text-[var(--ink-soft)] hover:text-[var(--accent)]"}`}><Icon name="clock" size={16} /></button><span className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--danger-bg)] px-3 py-2 text-xs font-extrabold text-[var(--danger-ink)]"><Icon name="shield" size={14} />{t("freeAlways")}</span></div></div>
+    <PageHeader eyebrow="Cura" title={t("patientAssistantTitle")} description={t("patientAssistantHint")} />
+    <div className="motion-reveal flex justify-end rounded-2xl border border-[#ded7ef] bg-white p-2 shadow-[var(--shadow-sm)]"><button type="button" onClick={() => historyOpen ? setHistoryOpen(false) : openHistory()} aria-label={t("chatHistory")} title={t("chatHistory")} className={`inline-flex h-9 w-9 items-center justify-center rounded-xl border transition ${historyOpen ? "border-[var(--cura)] bg-[var(--cura-soft)] text-[var(--cura-strong)]" : "border-[var(--border)] bg-white text-[var(--ink-soft)] hover:border-[var(--cura)] hover:text-[var(--cura-strong)]"}`}><Icon name="clock" size={16} /></button></div>
     <div className="pulse-line" data-active={sending} aria-hidden="true" />
     {historyOpen ? <div className="flex min-h-[500px] max-h-[calc(100vh-315px)] flex-col gap-3 overflow-y-auto rounded-[24px] border border-[var(--border)] bg-[var(--surface-subtle)] p-4 sm:p-6">
       <div className="flex items-center justify-between gap-3"><h2 className="text-sm font-extrabold">{t("chatHistory")}</h2><SecondaryButton type="button" onClick={startNewFromHistory} className="text-xs"><Icon name="chat" size={15} />{t("newConversation")}</SecondaryButton></div>
       {sessionsLoading ? <div className="grid gap-3"><Skeleton className="h-16" /><Skeleton className="h-16" /></div>
         : sessions.length === 0 ? <EmptyState icon="clock" title={t("noSessionsYet")} />
-        : <div className="grid gap-2">{sessions.map((item) => <Card key={item.id} className="cursor-pointer p-4 transition hover:border-[var(--accent)]"><button type="button" onClick={() => void resumeSession(item)} className="flex w-full items-center justify-between gap-3 text-start"><div className="flex items-center gap-3"><Pill tone={item.mode === "triage" ? "danger" : "accent"}>{item.mode === "triage" ? t("chatModeTriage") : t("chatModeGeneral")}</Pill><span className="text-xs text-[var(--ink-soft)]">{new Date(item.started_at).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US")}</span></div><span className="text-xs font-bold text-[var(--ink-faint)]">{item.message_count}</span></button></Card>)}</div>}
+        : <div className="grid gap-2">{sessions.map((item) => <Card key={item.id} className="cursor-pointer p-4 transition hover:border-[var(--accent)]"><button type="button" onClick={() => void resumeSession(item)} className="flex w-full items-center justify-between gap-3 text-start"><span className="text-xs text-[var(--ink-soft)]">{new Date(item.started_at).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US")}</span><span className="text-xs font-bold text-[var(--ink-faint)]">{item.message_count}</span></button></Card>)}</div>}
     </div> : <div ref={scrollRef} className="chat-ltr clinical-grid flex min-h-[500px] max-h-[calc(100vh-315px)] flex-col gap-4 overflow-y-auto rounded-[24px] border border-[var(--border)] bg-[var(--surface-subtle)] p-4 sm:p-6">
-      {messages.length === 0 && !sending && <div className="flex flex-1 flex-col items-center justify-center px-5 text-center"><span className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[#cbe8e1] bg-white text-[var(--accent)] shadow-[var(--shadow-sm)]"><Icon name="chat" size={28} /></span><h2 className="mt-4 text-xl font-extrabold">{t("chatEmptyTitle")}</h2><p className="mt-2 max-w-md text-sm leading-6 text-[var(--ink-soft)]">{t("chatEmptyHint")}</p></div>}
+      {messages.length === 0 && !sending && <div className="motion-reveal flex flex-1 flex-col items-center justify-center px-5 text-center"><CuraAvatar size={68} /><p className="mt-3 text-xs font-extrabold uppercase tracking-[0.18em] text-[var(--cura-strong)]">Cura</p><h2 className="mt-2 text-xl font-extrabold">{t("chatEmptyTitle")}</h2><p className="mt-2 max-w-md text-sm leading-6 text-[var(--ink-soft)]">{t("patientAssistantHint")}</p></div>}
       {messages.map((message) => message.role === "user" ? <div key={message.id} className="msg-in max-w-[82%] shrink-0 self-end rounded-2xl rounded-br-md bg-[var(--accent)] px-4 py-3 text-sm leading-6 text-white shadow-[0_12px_26px_-18px_var(--accent)]"><span className="whitespace-pre-wrap">{message.content}</span></div> : <EvidenceAnswer key={message.id} message={message} />)}
-      {sending && <div className="msg-in shrink-0 self-start rounded-2xl border border-[var(--border)] bg-white px-4 py-3 shadow-[var(--shadow-sm)]"><p className="flex items-center gap-2 text-xs font-bold text-[var(--ink-soft)]"><Icon name="activity" size={15} className="text-[var(--accent)] animate-pulse" />{t("assistantThinking")}</p></div>}
+      {appointmentAction && sessionId && <AppointmentChatAction action={appointmentAction} sessionId={sessionId} onComplete={(message) => { setMessages((previous) => [...previous, message as Message]); setAppointmentAction(null); }} />}
+      {sending && <div className="msg-in shrink-0 self-start rounded-2xl border border-[#ddd6ee] bg-[var(--cura-soft)] px-4 py-3 shadow-[var(--shadow-sm)]"><p className="flex items-center gap-2 text-xs font-bold text-[var(--ink-soft)]"><Icon name="activity" size={15} className="animate-pulse text-[var(--cura-strong)]" />{t("patientAssistantThinking")}</p></div>}
     </div>}
-    <form onSubmit={handleSend} className="flex items-end gap-2 rounded-2xl border border-[var(--border)] bg-white p-2 shadow-[var(--shadow)] focus-within:border-[var(--accent)]"><textarea rows={1} value={input} disabled={historyOpen} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} placeholder={t("typeMessage")} className="min-h-11 flex-1 resize-none bg-transparent px-3 py-3 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)] disabled:opacity-50" /><button type="submit" disabled={sending || !input.trim() || !sessionId || historyOpen} aria-label={t("send")} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--accent)] text-white transition hover:bg-[var(--accent-2)] disabled:opacity-40"><Icon name="send" size={18} /></button></form>
+    {sessionError && <div role="alert" className="motion-reveal flex items-center justify-between gap-3 rounded-xl border border-[#f1d9a5] bg-[var(--pending-bg)] px-4 py-3 text-xs font-bold text-[var(--pending)]"><span>{t("connectionError")}</span><button type="button" onClick={() => void startSession(() => true)} className="rounded-lg bg-white px-3 py-1.5 text-[var(--ink)] shadow-sm">{t("retry")}</button></div>}
+    <form onSubmit={handleSend} className="motion-reveal flex items-end gap-2 rounded-2xl border border-[var(--border)] bg-white p-2 shadow-[var(--shadow)] transition-all focus-within:border-[var(--cura)] focus-within:ring-4 focus-within:ring-[rgba(142,124,195,.1)]"><textarea rows={1} value={input} disabled={historyOpen} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} placeholder={t("typeMessage")} className="min-h-11 flex-1 resize-none bg-transparent px-3 py-3 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)] disabled:opacity-50" /><button type="submit" disabled={sending || !input.trim() || historyOpen} aria-label={t("send")} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--cura)] text-white shadow-[0_10px_24px_-14px_rgba(142,124,195,.9)] transition-all hover:-translate-y-0.5 hover:bg-[var(--cura-strong)] disabled:opacity-40"><Icon name="send" size={18} /></button></form>
   </div>;
 }

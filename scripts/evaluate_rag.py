@@ -14,14 +14,15 @@ from langchain_huggingface import HuggingFaceEmbeddings
 
 from app.config import settings
 from app.llm import MockProvider, get_provider
-from app.llm_prompts import PROMPT_VERSION, system_prompt
-from app.services.generation import validate_claims, verification_failure
+from app.llm_prompts import PROMPT_VERSION, get_system_prompt
+from app.services.generation import normalize_text, validate_claims, verification_failure
 from app.services.safety import personal_clinical_request
 from rag.config import (
     ABSURD_DISTANCE,
     CHROMA_DIR,
     COLLECTION_NAME,
     EMBEDDING_MODEL,
+    HF_LOCAL_FILES_ONLY,
     QUERIES_PATH,
     RAG_REPORT_PATH,
     RERANK_CANDIDATE_K,
@@ -29,7 +30,7 @@ from rag.config import (
     RERANK_MODEL,
     RETRIEVAL_K,
 )
-from rag.rerank import rerank_hits
+from rag.hybrid_retrieval import hybrid_retrieve
 
 
 def load_queries(path: Path = QUERIES_PATH) -> List[dict]:
@@ -40,12 +41,15 @@ def load_queries(path: Path = QUERIES_PATH) -> List[dict]:
 def load_vectorstore(persist_dir: Path = CHROMA_DIR) -> Chroma:
     return Chroma(
         collection_name=COLLECTION_NAME,
-        embedding_function=HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL),
+        embedding_function=HuggingFaceEmbeddings(
+            model_name=EMBEDDING_MODEL,
+            model_kwargs={"local_files_only": HF_LOCAL_FILES_ONLY},
+        ),
         persist_directory=str(persist_dir),
     )
 
 
-def _source_from_hit(document, distance: float, rerank_score: Optional[float], rank: int) -> dict:
+def _source_from_hit(document, distance: Optional[float], rerank_score: Optional[float], rank: int) -> dict:
     metadata = document.metadata
     return {
         "rank": rank,
@@ -58,7 +62,7 @@ def _source_from_hit(document, distance: float, rerank_score: Optional[float], r
         "page_number": metadata.get("page_number"),
         "section_title": metadata.get("section_title"),
         "chunk_id": metadata.get("chunk_id"),
-        "distance": round(float(distance), 4),
+        "distance": round(float(distance), 4) if distance is not None else None,
         "rerank_score": round(float(rerank_score), 4) if rerank_score is not None else None,
     }
 
@@ -73,7 +77,7 @@ def retrieve_for_evaluation(vectorstore: Chroma, question: str) -> Tuple[List[di
 
     started = perf_counter()
     ranked = (
-        rerank_hits(question, hits, k=RETRIEVAL_K)
+        hybrid_retrieve(vectorstore, question, candidate_k=candidate_k, k=RETRIEVAL_K)
         if RERANK_ENABLED
         else [(document, float(distance), None) for document, distance in hits[:RETRIEVAL_K]]
     )
@@ -141,14 +145,23 @@ def retrieval_metrics(query: dict, sources: List[dict]) -> dict:
 
 
 def _exact_citations(citations: List[dict], sources: List[dict]) -> bool:
+    """Is every stored excerpt genuinely verbatim in the source it cites?
+
+    Uses generation.normalize_text on both sides -- the same fold validate_claims
+    applied when it accepted the excerpt. Collapsing whitespace alone is not
+    enough: the stored excerpt has already had its typographic punctuation
+    folded, so checking it against raw source text failed on any chunk
+    containing a non-breaking hyphen or en dash, and marked correctly grounded
+    answers as ungrounded.
+    """
     if not citations:
         return False
     for citation in citations:
         number = citation.get("source_id")
-        excerpt = " ".join(str(citation.get("excerpt") or "").split())
+        excerpt = normalize_text(str(citation.get("excerpt") or ""))
         if not isinstance(number, int) or not 1 <= number <= len(sources) or not excerpt:
             return False
-        if excerpt not in " ".join(sources[number - 1].get("text", "").split()):
+        if excerpt not in normalize_text(str(sources[number - 1].get("text") or "")):
             return False
     return True
 
@@ -171,7 +184,7 @@ def evaluate_query(vectorstore: Chroma, provider, query: dict) -> dict:
     if sources:
         started = perf_counter()
         try:
-            result = provider.complete(system_prompt("general"), sources, query["query"], "")
+            result = provider.complete(get_system_prompt("patient", "general"), sources, query["query"], "")
         except Exception as exc:
             error = f"generation:{type(exc).__name__}:{exc}"[:1000]
         generation_ms = (perf_counter() - started) * 1000

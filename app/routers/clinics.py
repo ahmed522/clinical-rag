@@ -25,6 +25,11 @@ router = APIRouter(prefix="/clinics", tags=["clinics"])
 
 @router.get("/by-slug/{slug}", response_model=ClinicPublicOut)
 def get_clinic_by_slug(slug: str):
+    if slug == "__internal__":
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Clinic not found",
+        )
     result = (
         admin_client()
         .table("clinics")

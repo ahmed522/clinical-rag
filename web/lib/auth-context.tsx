@@ -8,7 +8,7 @@ import { withTimeout } from "./timeout";
 
 const AUTH_INITIALIZATION_TIMEOUT_MS = 8_000;
 
-export type Role = "clinic_admin" | "doctor" | "patient" | null;
+export type Role = "clinic_admin" | "doctor" | "patient" | "it" | null;
 
 export interface Profile {
   id: string;
@@ -131,10 +131,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Set synchronously, before the deferred fetch, so a render in
-    // between (e.g. the session resolving on the next macrotask) still
-    // sees profileLoading=true instead of the previous user's stale value.
-    setProfileLoading(true);
+    // profileReady already stays false while profileForUserId differs from
+    // the new identity, so the gate remains closed during this deferred load
+    // without a synchronous state update inside the effect.
     const timer = window.setTimeout(() => void loadProfile(), 0);
     return () => window.clearTimeout(timer);
     // loadProfile is intentionally keyed by the authenticated identity.

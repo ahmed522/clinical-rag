@@ -3,8 +3,7 @@
 -- Removes the "consult" chat mode, leaving two modes: general information
 -- and urgent triage.
 --
--- Consult was intended as the premium tier but was never gated: the
--- subscriptions table exists and no application code reads it, so the mode
+-- Consult was intended as the premium tier but was never gated, so the mode
 -- was free to every patient and only duplicated General with the patient's
 -- own records injected for relevance. Triage still injects that same
 -- context, so this narrows the product surface, not the data reaching the

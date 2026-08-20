@@ -1,6 +1,6 @@
 {
   "report_version": "2.0",
-  "created_at": "2026-08-18T19:55:42.148272+00:00",
+  "created_at": "2026-08-19T13:14:11.240933+00:00",
   "provider": "mock",
   "llm_model": "deterministic-extractive",
   "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
@@ -8,7 +8,7 @@
   "rerank_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
   "candidate_k": 30,
   "context_k": 5,
-  "prompt_version": "2026-08-18.3",
+  "prompt_version": "2026-08-18.4",
   "dataset_size": 44,
   "metric_definitions": {
     "faithfulness": "Verifier-supported claims divided by generated clinical claims.",
@@ -21,19 +21,19 @@
       "grounded_answers": 38,
       "valid_citations": 38,
       "exact_citations": 38,
-      "correct_page_citations": 22,
-      "citation_answer_support": 21
+      "correct_page_citations": 19,
+      "citation_answer_support": 17
     },
     "out_of_scope": {
       "total": 6,
       "correct_abstentions": 2
     },
     "retrieval": {
-      "recall_at_1": 21,
-      "recall_at_3": 26,
-      "recall_at_5": 29,
-      "mean_context_precision": 0.1789,
-      "mrr": 0.6298
+      "recall_at_1": 17,
+      "recall_at_3": 29,
+      "recall_at_5": 34,
+      "mean_context_precision": 0.2211,
+      "mrr": 0.618
     },
     "claims": {
       "total": 42,
@@ -45,8 +45,8 @@
     },
     "errors": 0,
     "latency_ms": {
-      "p50_total": 755.68,
-      "p95_total": 896.24
+      "p50_total": 865.28,
+      "p95_total": 1071.38
     }
   },
   "results": [
@@ -63,7 +63,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 81,
@@ -125,11 +125,11 @@
           "rerank_score": 3.6354
         },
         {
-          "chunk_id": "source1:p91:c151",
+          "chunk_id": "source1:p58:c97",
           "source": "source1.pdf",
-          "page": 91,
-          "distance": 0.7395,
-          "rerank_score": 1.5547
+          "page": 58,
+          "distance": null,
+          "rerank_score": 3.7602
         }
       ],
       "validation_errors": [],
@@ -144,11 +144,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 260.47,
-        "rerank": 943.65,
-        "generation": 0.32,
+        "vector": 310.06,
+        "rerank": 3806.4,
+        "generation": 0.31,
         "verification": 0.02,
-        "total": 1204.86
+        "total": 4117.45
       },
       "error": null
     },
@@ -165,7 +165,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 55,
@@ -206,20 +206,6 @@
           "rerank_score": 7.6964
         },
         {
-          "chunk_id": "source1:p58:c97",
-          "source": "source1.pdf",
-          "page": 58,
-          "distance": 0.8818,
-          "rerank_score": 6.9121
-        },
-        {
-          "chunk_id": "source1:p49:c80",
-          "source": "source1.pdf",
-          "page": 49,
-          "distance": 0.8952,
-          "rerank_score": 5.8206
-        },
-        {
           "chunk_id": "source2:p14:c16",
           "source": "source2.pdf",
           "page": 14,
@@ -232,6 +218,20 @@
           "page": 74,
           "distance": 0.761,
           "rerank_score": 4.4225
+        },
+        {
+          "chunk_id": "source1:p49:c80",
+          "source": "source1.pdf",
+          "page": 49,
+          "distance": 0.8952,
+          "rerank_score": 5.8206
+        },
+        {
+          "chunk_id": "source1:p40:c64",
+          "source": "source1.pdf",
+          "page": 40,
+          "distance": null,
+          "rerank_score": 7.9942
         }
       ],
       "validation_errors": [],
@@ -246,11 +246,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 19.15,
-        "rerank": 784.72,
-        "generation": 0.05,
+        "vector": 19.13,
+        "rerank": 913.37,
+        "generation": 0.07,
         "verification": 0.02,
-        "total": 804.23
+        "total": 933.08
       },
       "error": null
     },
@@ -261,28 +261,28 @@
       "scope": "in_scope",
       "grounded": true,
       "abstained": false,
-      "answer": "The clinic's uploaded guidance states: 1.14.1 For adults with type 2 diabetes and heart failure offer: • modified-release metformin, and • an SGLT-2 inhibitor. [2026] 1.14.2 If metformin is contraindicated or not tolerated, offer monotherapy with an SGLT-2 inhibitor. [2026] Why the committee made these recommendations Metformin and SGLT-2 inhibitors There is a significant body of evidence showing that type 2 diabetes management should aim at holistic [C1]",
+      "answer": "The clinic's uploaded guidance states: 1.26 People with heart failure (any ejection fraction unless specified) 1.26.1 For adults with type 2 diabetes and heart failure who need further medicines to reach their individualised glycaemic targets: • offer to add a DPP-4 inhibitor to their current treatment • if this is contraindicated, not tolerated or not effective, offer to add: － a sulfonylurea or － an insulin-based treatment (see the section on [C1]",
       "citations": [
         {
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
-          "page": 40,
-          "section": "1.14.1 For adults with type 2 diabetes and heart failure offer:",
-          "chunk_id": "source1:p40:c64",
+          "page": 85,
+          "section": "1.26 People with heart failure (any ejection fraction",
+          "chunk_id": "source1:p85:c141",
           "source_url": "https://www.nice.org.uk/guidance/ng28",
-          "excerpt": "1.14.1 For adults with type 2 diabetes and heart failure offer: • modified-release metformin, and • an SGLT-2 inhibitor. [2026] 1.14.2 If metformin is contraindicated or not tolerated, offer monotherapy with an SGLT-2 inhibitor. [2026] Why the committee made these recommendations Metformin and SGLT-2 inhibitors There is a significant body of evidence showing that type 2 diabetes management should aim at holistic",
-          "vector_distance": 0.7934,
-          "rerank_score": 7.9412
+          "excerpt": "1.26 People with heart failure (any ejection fraction unless specified) 1.26.1 For adults with type 2 diabetes and heart failure who need further medicines to reach their individualised glycaemic targets: • offer to add a DPP-4 inhibitor to their current treatment • if this is contraindicated, not tolerated or not effective, offer to add: － a sulfonylurea or － an insulin-based treatment (see the section on",
+          "vector_distance": 0.7575,
+          "rerank_score": 7.7975
         }
       ],
       "citation_valid": true,
       "citation_exact": true,
-      "citation_page_correct": true,
-      "citation_answer_support": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
       "citation_coverage": 1.0,
       "claim_count": 1,
       "supported_claims": 1,
@@ -293,33 +293,19 @@
       "unsupported_claims": 0,
       "safety_refusal": false,
       "retrieval_metrics": {
-        "recall_at_1": true,
-        "recall_at_3": true,
+        "recall_at_1": false,
+        "recall_at_3": false,
         "recall_at_5": true,
         "context_precision": 0.2,
-        "reciprocal_rank": 1.0
+        "reciprocal_rank": 0.25
       },
       "retrieved": [
-        {
-          "chunk_id": "source1:p40:c64",
-          "source": "source1.pdf",
-          "page": 40,
-          "distance": 0.7934,
-          "rerank_score": 7.9412
-        },
         {
           "chunk_id": "source1:p85:c141",
           "source": "source1.pdf",
           "page": 85,
           "distance": 0.7575,
           "rerank_score": 7.7975
-        },
-        {
-          "chunk_id": "source1:p32:c50",
-          "source": "source1.pdf",
-          "page": 32,
-          "distance": 0.8744,
-          "rerank_score": 6.7808
         },
         {
           "chunk_id": "source1:p81:c136",
@@ -329,11 +315,25 @@
           "rerank_score": 6.3271
         },
         {
-          "chunk_id": "source1:p93:c154",
+          "chunk_id": "source1:p41:c65",
           "source": "source1.pdf",
-          "page": 93,
-          "distance": 0.8477,
-          "rerank_score": 5.4071
+          "page": 41,
+          "distance": 0.7478,
+          "rerank_score": 4.7987
+        },
+        {
+          "chunk_id": "source1:p40:c64",
+          "source": "source1.pdf",
+          "page": 40,
+          "distance": 0.7934,
+          "rerank_score": 7.9412
+        },
+        {
+          "chunk_id": "source1:p32:c50",
+          "source": "source1.pdf",
+          "page": 32,
+          "distance": 0.8744,
+          "rerank_score": 6.7808
         }
       ],
       "validation_errors": [],
@@ -348,11 +348,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 17.46,
-        "rerank": 765.39,
-        "generation": 0.08,
+        "vector": 17.67,
+        "rerank": 842.18,
+        "generation": 0.05,
         "verification": 0.02,
-        "total": 783.46
+        "total": 860.56
       },
       "error": null
     },
@@ -369,7 +369,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 87,
@@ -399,7 +399,7 @@
         "recall_at_3": false,
         "recall_at_5": true,
         "context_precision": 0.2,
-        "reciprocal_rank": 0.2
+        "reciprocal_rank": 0.25
       },
       "retrieved": [
         {
@@ -424,18 +424,18 @@
           "rerank_score": 6.5803
         },
         {
-          "chunk_id": "source1:p32:c50",
-          "source": "source1.pdf",
-          "page": 32,
-          "distance": 0.8266,
-          "rerank_score": 6.1482
-        },
-        {
           "chunk_id": "source1:p45:c71",
           "source": "source1.pdf",
           "page": 45,
           "distance": 0.7534,
           "rerank_score": 6.075
+        },
+        {
+          "chunk_id": "source1:p124:c210",
+          "source": "source1.pdf",
+          "page": 124,
+          "distance": null,
+          "rerank_score": 6.3124
         }
       ],
       "validation_errors": [],
@@ -450,11 +450,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 21.87,
-        "rerank": 770.96,
+        "vector": 16.78,
+        "rerank": 801.49,
         "generation": 0.05,
         "verification": 0.02,
-        "total": 793.34
+        "total": 818.93
       },
       "error": null
     },
@@ -465,28 +465,28 @@
       "scope": "in_scope",
       "grounded": true,
       "abstained": false,
-      "answer": "The clinic's uploaded guidance states: 1.16 People with early onset type 2 diabetes 1.16.1 For adults with early onset type 2 diabetes, offer modified-release metformin and an SGLT-2 inhibitor, and consider adding either: • a GLP-1 receptor agonist for its cardiovascular, renal and glycaemic benefits or • tirzepatide for its glycaemic benefits. [2026] 1.16.2 If metformin is contraindicated or not tolerated, offer an SGLT-2 inhibitor and consider adding [C1]",
+      "answer": "The clinic's uploaded guidance states: agreed that even people with a relatively lower cardiovascular risk should be offered an SGLT-2 inhibitor and metformin, because it is important to reduce this risk, including for those without comorbidities or other cardiovascular risk factors. They also noted that, compared with groups who have a higher risk of cardiovascular disease, including people with early onset type 2 diabetes, the population that these [C1]",
       "citations": [
         {
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
-          "page": 51,
-          "section": "1.16 People with early onset type 2 diabetes",
-          "chunk_id": "source1:p51:c84",
+          "page": 36,
+          "section": "1.13 People with type 2 diabetes and no relevant",
+          "chunk_id": "source1:p36:c56",
           "source_url": "https://www.nice.org.uk/guidance/ng28",
-          "excerpt": "1.16 People with early onset type 2 diabetes 1.16.1 For adults with early onset type 2 diabetes, offer modified-release metformin and an SGLT-2 inhibitor, and consider adding either: • a GLP-1 receptor agonist for its cardiovascular, renal and glycaemic benefits or • tirzepatide for its glycaemic benefits. [2026] 1.16.2 If metformin is contraindicated or not tolerated, offer an SGLT-2 inhibitor and consider adding",
-          "vector_distance": 0.8498,
-          "rerank_score": 5.2272
+          "excerpt": "agreed that even people with a relatively lower cardiovascular risk should be offered an SGLT-2 inhibitor and metformin, because it is important to reduce this risk, including for those without comorbidities or other cardiovascular risk factors. They also noted that, compared with groups who have a higher risk of cardiovascular disease, including people with early onset type 2 diabetes, the population that these",
+          "vector_distance": 0.764,
+          "rerank_score": 3.3243
         }
       ],
       "citation_valid": true,
       "citation_exact": true,
-      "citation_page_correct": true,
-      "citation_answer_support": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
       "citation_coverage": 1.0,
       "claim_count": 1,
       "supported_claims": 1,
@@ -497,27 +497,13 @@
       "unsupported_claims": 0,
       "safety_refusal": false,
       "retrieval_metrics": {
-        "recall_at_1": true,
-        "recall_at_3": true,
+        "recall_at_1": false,
+        "recall_at_3": false,
         "recall_at_5": true,
         "context_precision": 0.2,
-        "reciprocal_rank": 1.0
+        "reciprocal_rank": 0.2
       },
       "retrieved": [
-        {
-          "chunk_id": "source1:p51:c84",
-          "source": "source1.pdf",
-          "page": 51,
-          "distance": 0.8498,
-          "rerank_score": 5.2272
-        },
-        {
-          "chunk_id": "source2:p14:c14",
-          "source": "source2.pdf",
-          "page": 14,
-          "distance": 0.7908,
-          "rerank_score": 3.5179
-        },
         {
           "chunk_id": "source1:p36:c56",
           "source": "source1.pdf",
@@ -526,18 +512,32 @@
           "rerank_score": 3.3243
         },
         {
-          "chunk_id": "source1:p107:c176",
+          "chunk_id": "source1:p52:c85",
           "source": "source1.pdf",
-          "page": 107,
-          "distance": 0.7897,
-          "rerank_score": 2.5972
+          "page": 52,
+          "distance": null,
+          "rerank_score": 5.9586
         },
         {
-          "chunk_id": "source1:p73:c121",
+          "chunk_id": "source1:p75:c124",
           "source": "source1.pdf",
-          "page": 73,
-          "distance": 0.5699,
-          "rerank_score": 2.0359
+          "page": 75,
+          "distance": null,
+          "rerank_score": 4.0345
+        },
+        {
+          "chunk_id": "source1:p93:c153",
+          "source": "source1.pdf",
+          "page": 93,
+          "distance": null,
+          "rerank_score": 5.7552
+        },
+        {
+          "chunk_id": "source1:p51:c84",
+          "source": "source1.pdf",
+          "page": 51,
+          "distance": 0.8498,
+          "rerank_score": 5.2272
         }
       ],
       "validation_errors": [],
@@ -552,11 +552,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 15.7,
-        "rerank": 662.34,
-        "generation": 0.05,
-        "verification": 0.01,
-        "total": 678.49
+        "vector": 16.87,
+        "rerank": 762.8,
+        "generation": 0.04,
+        "verification": 0.02,
+        "total": 780.16
       },
       "error": null
     },
@@ -573,7 +573,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 58,
@@ -635,11 +635,11 @@
           "rerank_score": 5.8876
         },
         {
-          "chunk_id": "source1:p21:c32",
+          "chunk_id": "source1:p96:c160",
           "source": "source1.pdf",
-          "page": 21,
-          "distance": 0.8912,
-          "rerank_score": 5.7535
+          "page": 96,
+          "distance": null,
+          "rerank_score": 6.8057
         }
       ],
       "validation_errors": [],
@@ -654,11 +654,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 14.82,
-        "rerank": 772.76,
-        "generation": 0.05,
-        "verification": 0.01,
-        "total": 788.04
+        "vector": 14.2,
+        "rerank": 932.2,
+        "generation": 0.06,
+        "verification": 0.02,
+        "total": 947.23
       },
       "error": null
     },
@@ -675,7 +675,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 62,
@@ -723,13 +723,6 @@
           "rerank_score": 4.999
         },
         {
-          "chunk_id": "source1:p25:c38",
-          "source": "source1.pdf",
-          "page": 25,
-          "distance": 0.8884,
-          "rerank_score": 4.6665
-        },
-        {
           "chunk_id": "source1:p62:c104",
           "source": "source1.pdf",
           "page": 62,
@@ -737,11 +730,18 @@
           "rerank_score": 4.5416
         },
         {
-          "chunk_id": "source1:p130:c220",
+          "chunk_id": "source1:p25:c38",
           "source": "source1.pdf",
-          "page": 130,
-          "distance": 0.9817,
-          "rerank_score": 3.7421
+          "page": 25,
+          "distance": 0.8884,
+          "rerank_score": 4.6665
+        },
+        {
+          "chunk_id": "source1:p63:c107",
+          "source": "source1.pdf",
+          "page": 63,
+          "distance": 0.8321,
+          "rerank_score": 3.141
         }
       ],
       "validation_errors": [],
@@ -756,11 +756,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 17.55,
-        "rerank": 878.16,
-        "generation": 0.04,
-        "verification": 0.02,
-        "total": 896.24
+        "vector": 21.26,
+        "rerank": 1025.44,
+        "generation": 0.25,
+        "verification": 0.04,
+        "total": 1048.01
       },
       "error": null
     },
@@ -777,7 +777,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 65,
@@ -818,18 +818,11 @@
           "rerank_score": 4.1443
         },
         {
-          "chunk_id": "source1:p7:c4",
+          "chunk_id": "source1:p105:c174",
           "source": "source1.pdf",
-          "page": 7,
-          "distance": 0.7786,
-          "rerank_score": 4.0782
-        },
-        {
-          "chunk_id": "source1:p107:c176",
-          "source": "source1.pdf",
-          "page": 107,
-          "distance": 0.8659,
-          "rerank_score": 3.7744
+          "page": 105,
+          "distance": 0.6185,
+          "rerank_score": 2.8891
         },
         {
           "chunk_id": "source1:p122:c206",
@@ -844,6 +837,13 @@
           "page": 32,
           "distance": 0.7735,
           "rerank_score": 2.9004
+        },
+        {
+          "chunk_id": "source1:p7:c4",
+          "source": "source1.pdf",
+          "page": 7,
+          "distance": 0.7786,
+          "rerank_score": 4.0782
         }
       ],
       "validation_errors": [],
@@ -858,11 +858,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 13.66,
-        "rerank": 687.74,
-        "generation": 0.05,
-        "verification": 0.01,
-        "total": 701.85
+        "vector": 19.22,
+        "rerank": 762.58,
+        "generation": 0.06,
+        "verification": 0.02,
+        "total": 782.49
       },
       "error": null
     },
@@ -879,7 +879,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 12,
@@ -927,25 +927,25 @@
           "rerank_score": 4.5292
         },
         {
+          "chunk_id": "source1:p14:c17",
+          "source": "source1.pdf",
+          "page": 14,
+          "distance": 0.5955,
+          "rerank_score": 3.3193
+        },
+        {
+          "chunk_id": "source1:p14:c19",
+          "source": "source1.pdf",
+          "page": 14,
+          "distance": 0.7762,
+          "rerank_score": 3.0973
+        },
+        {
           "chunk_id": "source1:p13:c15",
           "source": "source1.pdf",
           "page": 13,
           "distance": 0.725,
           "rerank_score": 4.4413
-        },
-        {
-          "chunk_id": "source1:p12:c14",
-          "source": "source1.pdf",
-          "page": 12,
-          "distance": 0.8441,
-          "rerank_score": 3.7557
-        },
-        {
-          "chunk_id": "source1:p15:c20",
-          "source": "source1.pdf",
-          "page": 15,
-          "distance": 0.9398,
-          "rerank_score": 3.7271
         }
       ],
       "validation_errors": [],
@@ -960,11 +960,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 17.23,
-        "rerank": 837.29,
-        "generation": 0.05,
+        "vector": 17.18,
+        "rerank": 954.27,
+        "generation": 0.06,
         "verification": 0.02,
-        "total": 855.0
+        "total": 972.25
       },
       "error": null
     },
@@ -975,27 +975,27 @@
       "scope": "in_scope",
       "grounded": true,
       "abstained": false,
-      "answer": "The clinic's uploaded guidance states: measurements. Seek advice from a team with specialist expertise in diabetes or clinical biochemistry. [2015] Targets NICE has produced a patient decision aid on agreeing HbA1c targets, which also covers factors to weigh up when discussing HbA1c targets with patients. 1.5.5 Discuss and agree an individual HbA1c target with adults with type 2 diabetes (see recommendations 1.5.6 to 1.5.10). Encourage them to reach [C1]",
+      "answer": "The clinic's uploaded guidance states: • reinforce advice about diet, healthy living and adherence to medicines and • support the person to aim for an HbA1c level of 53 mmol/mol (7.0%) and • intensify medicines. [2015, amended 2026] 1.5.9 Consider relaxing the target HbA1c level (see recommendations 1.5.7 and 1.5.8 and NICE's patient decision aid on type 2 diabetes: agreeing someone's blood glucose (HbA1c) target) on a case-by-case basis and in [C1]",
       "citations": [
         {
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
-          "page": 12,
+          "page": 13,
           "section": "1.5 HbA1c measurement and targets",
-          "chunk_id": "source1:p12:c14",
+          "chunk_id": "source1:p13:c16",
           "source_url": "https://www.nice.org.uk/guidance/ng28",
-          "excerpt": "measurements. Seek advice from a team with specialist expertise in diabetes or clinical biochemistry. [2015] Targets NICE has produced a patient decision aid on agreeing HbA1c targets, which also covers factors to weigh up when discussing HbA1c targets with patients. 1.5.5 Discuss and agree an individual HbA1c target with adults with type 2 diabetes (see recommendations 1.5.6 to 1.5.10). Encourage them to reach",
-          "vector_distance": 0.4149,
-          "rerank_score": 7.498
+          "excerpt": "• reinforce advice about diet, healthy living and adherence to medicines and • support the person to aim for an HbA1c level of 53 mmol/mol (7.0%) and • intensify medicines. [2015, amended 2026] 1.5.9 Consider relaxing the target HbA1c level (see recommendations 1.5.7 and 1.5.8 and NICE's patient decision aid on type 2 diabetes: agreeing someone's blood glucose (HbA1c) target) on a case-by-case basis and in",
+          "vector_distance": 0.4062,
+          "rerank_score": 6.6801
         }
       ],
       "citation_valid": true,
       "citation_exact": true,
-      "citation_page_correct": false,
+      "citation_page_correct": true,
       "citation_answer_support": false,
       "citation_coverage": 1.0,
       "claim_count": 1,
@@ -1015,13 +1015,6 @@
       },
       "retrieved": [
         {
-          "chunk_id": "source1:p12:c14",
-          "source": "source1.pdf",
-          "page": 12,
-          "distance": 0.4149,
-          "rerank_score": 7.498
-        },
-        {
           "chunk_id": "source1:p13:c16",
           "source": "source1.pdf",
           "page": 13,
@@ -1029,11 +1022,11 @@
           "rerank_score": 6.6801
         },
         {
-          "chunk_id": "source1:p75:c123",
+          "chunk_id": "source1:p12:c14",
           "source": "source1.pdf",
-          "page": 75,
-          "distance": 0.737,
-          "rerank_score": 5.8406
+          "page": 12,
+          "distance": 0.4149,
+          "rerank_score": 7.498
         },
         {
           "chunk_id": "source1:p18:c24",
@@ -1048,6 +1041,13 @@
           "page": 32,
           "distance": 0.6645,
           "rerank_score": 4.5549
+        },
+        {
+          "chunk_id": "source1:p14:c17",
+          "source": "source1.pdf",
+          "page": 14,
+          "distance": 0.4621,
+          "rerank_score": 3.8384
         }
       ],
       "validation_errors": [],
@@ -1062,11 +1062,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 16.79,
-        "rerank": 785.64,
-        "generation": 0.06,
+        "vector": 20.52,
+        "rerank": 1049.78,
+        "generation": 0.07,
         "verification": 0.02,
-        "total": 803.06
+        "total": 1071.38
       },
       "error": null
     },
@@ -1083,7 +1083,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source2",
           "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
           "publisher": "World Health Organization (WHO)",
           "page": 17,
@@ -1113,7 +1113,7 @@
         "recall_at_3": true,
         "recall_at_5": true,
         "context_precision": 0.2,
-        "reciprocal_rank": 0.5
+        "reciprocal_rank": 0.3333
       },
       "retrieved": [
         {
@@ -1124,13 +1124,6 @@
           "rerank_score": 6.0615
         },
         {
-          "chunk_id": "source1:p13:c16",
-          "source": "source1.pdf",
-          "page": 13,
-          "distance": 0.9637,
-          "rerank_score": 5.0467
-        },
-        {
           "chunk_id": "source1:p14:c17",
           "source": "source1.pdf",
           "page": 14,
@@ -1138,18 +1131,25 @@
           "rerank_score": 1.864
         },
         {
+          "chunk_id": "source1:p13:c16",
+          "source": "source1.pdf",
+          "page": 13,
+          "distance": 0.9637,
+          "rerank_score": 5.0467
+        },
+        {
+          "chunk_id": "source1:p12:c14",
+          "source": "source1.pdf",
+          "page": 12,
+          "distance": 0.9813,
+          "rerank_score": -0.2672
+        },
+        {
           "chunk_id": "source1:p12:c13",
           "source": "source1.pdf",
           "page": 12,
           "distance": 0.9286,
           "rerank_score": 1.7525
-        },
-        {
-          "chunk_id": "source1:p75:c123",
-          "source": "source1.pdf",
-          "page": 75,
-          "distance": 1.3486,
-          "rerank_score": 0.1868
         }
       ],
       "validation_errors": [],
@@ -1164,11 +1164,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 16.36,
-        "rerank": 802.08,
+        "vector": 21.62,
+        "rerank": 979.54,
         "generation": 0.05,
-        "verification": 0.01,
-        "total": 819.0
+        "verification": 0.02,
+        "total": 1001.83
       },
       "error": null
     },
@@ -1179,20 +1179,20 @@
       "scope": "in_scope",
       "grounded": true,
       "abstained": false,
-      "answer": "The clinic's uploaded guidance states: 1.6 Self-monitoring of capillary blood glucose These recommendations relate to self-monitoring by capillary blood glucose monitoring. 1.6.1 Take the Driver and Vehicle Licensing Agency (DVLA)'s Assessing fitness to drive: a guide for medical professionals into account when offering self‑monitoring of capillary blood glucose levels for adults with type 2 diabetes. [2015, amended 2022] 1.6.2 Do not routinely offer [C1]",
+      "answer": "The clinic's uploaded guidance states: 1.6 Self-monitoring of capillary blood glucose These recommendations relate to self-monitoring by capillary blood glucose monitoring. 1.6.1 Take the Driver and Vehicle Licensing Agency (DVLA)'s Assessing fitness to drive: a guide for medical professionals into account when offering self-monitoring of capillary blood glucose levels for adults with type 2 diabetes. [2015, amended 2022] 1.6.2 Do not routinely offer [C1]",
       "citations": [
         {
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 14,
           "section": "1.6 Self-monitoring of capillary blood glucose",
           "chunk_id": "source1:p14:c18",
           "source_url": "https://www.nice.org.uk/guidance/ng28",
-          "excerpt": "1.6 Self-monitoring of capillary blood glucose These recommendations relate to self-monitoring by capillary blood glucose monitoring. 1.6.1 Take the Driver and Vehicle Licensing Agency (DVLA)'s Assessing fitness to drive: a guide for medical professionals into account when offering self‑monitoring of capillary blood glucose levels for adults with type 2 diabetes. [2015, amended 2022] 1.6.2 Do not routinely offer",
+          "excerpt": "1.6 Self-monitoring of capillary blood glucose These recommendations relate to self-monitoring by capillary blood glucose monitoring. 1.6.1 Take the Driver and Vehicle Licensing Agency (DVLA)'s Assessing fitness to drive: a guide for medical professionals into account when offering self-monitoring of capillary blood glucose levels for adults with type 2 diabetes. [2015, amended 2022] 1.6.2 Do not routinely offer",
           "vector_distance": 0.3768,
           "rerank_score": 9.3463
         }
@@ -1233,13 +1233,6 @@
           "rerank_score": 7.4138
         },
         {
-          "chunk_id": "source1:p15:c20",
-          "source": "source1.pdf",
-          "page": 15,
-          "distance": 0.7931,
-          "rerank_score": 6.8628
-        },
-        {
           "chunk_id": "source1:p16:c21",
           "source": "source1.pdf",
           "page": 16,
@@ -1247,11 +1240,18 @@
           "rerank_score": 6.3931
         },
         {
-          "chunk_id": "source1:p19:c28",
+          "chunk_id": "source1:p15:c20",
           "source": "source1.pdf",
-          "page": 19,
-          "distance": 0.6586,
-          "rerank_score": 6.1044
+          "page": 15,
+          "distance": 0.7931,
+          "rerank_score": 6.8628
+        },
+        {
+          "chunk_id": "source1:p129:c219",
+          "source": "source1.pdf",
+          "page": 129,
+          "distance": 0.5932,
+          "rerank_score": 5.2016
         }
       ],
       "validation_errors": [],
@@ -1266,11 +1266,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 16.91,
-        "rerank": 756.8,
-        "generation": 0.05,
+        "vector": 18.86,
+        "rerank": 939.86,
+        "generation": 0.04,
         "verification": 0.01,
-        "total": 774.19
+        "total": 959.35
       },
       "error": null
     },
@@ -1281,28 +1281,28 @@
       "scope": "in_scope",
       "grounded": true,
       "abstained": false,
-      "answer": "The clinic's uploaded guidance states: 1.7 Continuous glucose monitoring 1.7.1 Offer intermittently scanned continuous glucose monitoring (isCGM, commonly referred to as 'flash') to adults with type 2 diabetes on multiple daily insulin injections if any of the following apply: • they have recurrent hypoglycaemia or severe hypoglycaemia • they have impaired hypoglycaemia awareness • they have a condition or disability (including a learning disability or [C1]",
+      "answer": "The clinic's uploaded guidance states: Full details of the evidence and the committee's discussion are in evidence review C: continuous glucose monitoring in adults with type 2 diabetes. How the recommendations might affect practice The recommendations are likely to increase the number of adults with type 2 diabetes who are offered CGM, particularly those who have issues with hypoglycaemia. This will have associated cost implications: • It may save the [C1]",
       "citations": [
         {
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
-          "page": 15,
+          "page": 20,
           "section": "1.7 Continuous glucose monitoring",
-          "chunk_id": "source1:p15:c20",
+          "chunk_id": "source1:p20:c31",
           "source_url": "https://www.nice.org.uk/guidance/ng28",
-          "excerpt": "1.7 Continuous glucose monitoring 1.7.1 Offer intermittently scanned continuous glucose monitoring (isCGM, commonly referred to as 'flash') to adults with type 2 diabetes on multiple daily insulin injections if any of the following apply: • they have recurrent hypoglycaemia or severe hypoglycaemia • they have impaired hypoglycaemia awareness • they have a condition or disability (including a learning disability or",
-          "vector_distance": 0.7292,
-          "rerank_score": 7.7228
+          "excerpt": "Full details of the evidence and the committee's discussion are in evidence review C: continuous glucose monitoring in adults with type 2 diabetes. How the recommendations might affect practice The recommendations are likely to increase the number of adults with type 2 diabetes who are offered CGM, particularly those who have issues with hypoglycaemia. This will have associated cost implications: • It may save the",
+          "vector_distance": 0.546,
+          "rerank_score": 7.5915
         }
       ],
       "citation_valid": true,
       "citation_exact": true,
-      "citation_page_correct": true,
-      "citation_answer_support": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
       "citation_coverage": 1.0,
       "claim_count": 1,
       "supported_claims": 1,
@@ -1313,20 +1313,13 @@
       "unsupported_claims": 0,
       "safety_refusal": false,
       "retrieval_metrics": {
-        "recall_at_1": true,
+        "recall_at_1": false,
         "recall_at_3": true,
         "recall_at_5": true,
         "context_precision": 0.4,
-        "reciprocal_rank": 1.0
+        "reciprocal_rank": 0.5
       },
       "retrieved": [
-        {
-          "chunk_id": "source1:p15:c20",
-          "source": "source1.pdf",
-          "page": 15,
-          "distance": 0.7292,
-          "rerank_score": 7.7228
-        },
         {
           "chunk_id": "source1:p20:c31",
           "source": "source1.pdf",
@@ -1335,11 +1328,11 @@
           "rerank_score": 7.5915
         },
         {
-          "chunk_id": "source1:p16:c21",
+          "chunk_id": "source1:p15:c20",
           "source": "source1.pdf",
-          "page": 16,
-          "distance": 0.6966,
-          "rerank_score": 6.3033
+          "page": 15,
+          "distance": 0.7292,
+          "rerank_score": 7.7228
         },
         {
           "chunk_id": "source1:p17:c23",
@@ -1349,11 +1342,18 @@
           "rerank_score": 5.84
         },
         {
-          "chunk_id": "source1:p14:c18",
+          "chunk_id": "source1:p16:c21",
           "source": "source1.pdf",
-          "page": 14,
-          "distance": 0.7839,
-          "rerank_score": 5.1239
+          "page": 16,
+          "distance": 0.6966,
+          "rerank_score": 6.3033
+        },
+        {
+          "chunk_id": "source1:p120:c203",
+          "source": "source1.pdf",
+          "page": 120,
+          "distance": 0.7481,
+          "rerank_score": 4.7949
         }
       ],
       "validation_errors": [],
@@ -1368,11 +1368,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 14.79,
-        "rerank": 681.76,
-        "generation": 0.07,
-        "verification": 0.02,
-        "total": 697.23
+        "vector": 16.57,
+        "rerank": 796.16,
+        "generation": 0.06,
+        "verification": 0.03,
+        "total": 813.65
       },
       "error": null
     },
@@ -1389,7 +1389,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 8,
@@ -1430,18 +1430,18 @@
           "rerank_score": 8.9292
         },
         {
-          "chunk_id": "source1:p107:c176",
-          "source": "source1.pdf",
-          "page": 107,
-          "distance": 0.8459,
-          "rerank_score": 7.288
-        },
-        {
           "chunk_id": "source1:p8:c7",
           "source": "source1.pdf",
           "page": 8,
           "distance": 0.482,
           "rerank_score": 6.0133
+        },
+        {
+          "chunk_id": "source1:p107:c176",
+          "source": "source1.pdf",
+          "page": 107,
+          "distance": 0.8459,
+          "rerank_score": 7.288
         },
         {
           "chunk_id": "source1:p9:c8",
@@ -1470,11 +1470,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 17.6,
-        "rerank": 685.26,
-        "generation": 0.05,
-        "verification": 0.01,
-        "total": 703.6
+        "vector": 16.3,
+        "rerank": 832.29,
+        "generation": 0.06,
+        "verification": 0.02,
+        "total": 849.37
       },
       "error": null
     },
@@ -1491,7 +1491,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 10,
@@ -1546,18 +1546,18 @@
           "rerank_score": 4.1775
         },
         {
+          "chunk_id": "source1:p9:c8",
+          "source": "source1.pdf",
+          "page": 9,
+          "distance": 0.7397,
+          "rerank_score": 2.8184
+        },
+        {
           "chunk_id": "source1:p107:c176",
           "source": "source1.pdf",
           "page": 107,
           "distance": 1.0502,
           "rerank_score": 3.9601
-        },
-        {
-          "chunk_id": "source1:p13:c16",
-          "source": "source1.pdf",
-          "page": 13,
-          "distance": 1.0448,
-          "rerank_score": 3.4883
         }
       ],
       "validation_errors": [],
@@ -1572,11 +1572,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 14.91,
-        "rerank": 686.56,
-        "generation": 0.04,
-        "verification": 0.01,
-        "total": 701.97
+        "vector": 17.59,
+        "rerank": 852.66,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 870.92
       },
       "error": null
     },
@@ -1593,7 +1593,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 11,
@@ -1641,25 +1641,25 @@
           "rerank_score": 2.1521
         },
         {
-          "chunk_id": "source1:p14:c19",
+          "chunk_id": "source1:p25:c38",
           "source": "source1.pdf",
-          "page": 14,
-          "distance": 1.0685,
-          "rerank_score": -1.844
+          "page": 25,
+          "distance": null,
+          "rerank_score": -2.3233
         },
         {
-          "chunk_id": "source1:p1:c0",
+          "chunk_id": "source1:p12:c14",
           "source": "source1.pdf",
-          "page": 1,
-          "distance": 1.078,
-          "rerank_score": -2.1803
+          "page": 12,
+          "distance": null,
+          "rerank_score": -2.458
         },
         {
-          "chunk_id": "source1:p130:c221",
+          "chunk_id": "source1:p131:c222",
           "source": "source1.pdf",
-          "page": 130,
-          "distance": 0.9766,
-          "rerank_score": -2.4158
+          "page": 131,
+          "distance": 0.9241,
+          "rerank_score": -4.5174
         }
       ],
       "validation_errors": [],
@@ -1674,11 +1674,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 15.36,
-        "rerank": 738.75,
+        "vector": 17.47,
+        "rerank": 891.21,
         "generation": 0.02,
         "verification": 0.02,
-        "total": 754.5
+        "total": 909.13
       },
       "error": null
     },
@@ -1695,7 +1695,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 69,
@@ -1743,6 +1743,13 @@
           "rerank_score": 6.1975
         },
         {
+          "chunk_id": "source1:p71:c117",
+          "source": "source1.pdf",
+          "page": 71,
+          "distance": null,
+          "rerank_score": 4.2665
+        },
+        {
           "chunk_id": "source1:p93:c153",
           "source": "source1.pdf",
           "page": 93,
@@ -1750,18 +1757,11 @@
           "rerank_score": 3.9804
         },
         {
-          "chunk_id": "source1:p91:c151",
+          "chunk_id": "source1:p70:c116",
           "source": "source1.pdf",
-          "page": 91,
-          "distance": 0.7893,
-          "rerank_score": 3.4256
-        },
-        {
-          "chunk_id": "source1:p81:c136",
-          "source": "source1.pdf",
-          "page": 81,
-          "distance": 0.733,
-          "rerank_score": 3.3901
+          "page": 70,
+          "distance": null,
+          "rerank_score": 3.0842
         }
       ],
       "validation_errors": [],
@@ -1776,11 +1776,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 15.84,
-        "rerank": 739.32,
-        "generation": 0.06,
+        "vector": 16.19,
+        "rerank": 984.68,
+        "generation": 0.07,
         "verification": 0.02,
-        "total": 755.68
+        "total": 1001.86
       },
       "error": null
     },
@@ -1797,7 +1797,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 70,
@@ -1845,6 +1845,13 @@
           "rerank_score": 7.6986
         },
         {
+          "chunk_id": "source1:p35:c53",
+          "source": "source1.pdf",
+          "page": 35,
+          "distance": 0.503,
+          "rerank_score": 3.4887
+        },
+        {
           "chunk_id": "source1:p69:c114",
           "source": "source1.pdf",
           "page": 69,
@@ -1857,13 +1864,6 @@
           "page": 70,
           "distance": 0.824,
           "rerank_score": 3.5564
-        },
-        {
-          "chunk_id": "source1:p35:c53",
-          "source": "source1.pdf",
-          "page": 35,
-          "distance": 0.503,
-          "rerank_score": 3.4887
         }
       ],
       "validation_errors": [],
@@ -1878,11 +1878,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 18.24,
-        "rerank": 797.69,
+        "vector": 28.63,
+        "rerank": 1108.69,
         "generation": 0.05,
         "verification": 0.02,
-        "total": 816.45
+        "total": 1138.07
       },
       "error": null
     },
@@ -1899,7 +1899,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 107,
@@ -1954,18 +1954,18 @@
           "rerank_score": 3.1525
         },
         {
-          "chunk_id": "source1:p81:c136",
-          "source": "source1.pdf",
-          "page": 81,
-          "distance": 0.8467,
-          "rerank_score": 2.9927
+          "chunk_id": "source2:p29:c56",
+          "source": "source2.pdf",
+          "page": 29,
+          "distance": 0.6359,
+          "rerank_score": 3.4082
         },
         {
-          "chunk_id": "source1:p111:c183",
+          "chunk_id": "source1:p92:c152",
           "source": "source1.pdf",
-          "page": 111,
-          "distance": 0.74,
-          "rerank_score": 2.7849
+          "page": 92,
+          "distance": null,
+          "rerank_score": 2.6185
         }
       ],
       "validation_errors": [],
@@ -1980,11 +1980,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 15.79,
-        "rerank": 752.93,
+        "vector": 15.62,
+        "rerank": 834.01,
         "generation": 0.05,
         "verification": 0.01,
-        "total": 769.2
+        "total": 850.27
       },
       "error": null
     },
@@ -2001,7 +2001,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 107,
@@ -2049,13 +2049,6 @@
           "rerank_score": 5.907
         },
         {
-          "chunk_id": "source1:p108:c179",
-          "source": "source1.pdf",
-          "page": 108,
-          "distance": 0.7391,
-          "rerank_score": 3.4823
-        },
-        {
           "chunk_id": "source1:p8:c7",
           "source": "source1.pdf",
           "page": 8,
@@ -2063,11 +2056,18 @@
           "rerank_score": 3.2854
         },
         {
-          "chunk_id": "source1:p81:c136",
+          "chunk_id": "source1:p14:c19",
           "source": "source1.pdf",
-          "page": 81,
-          "distance": 0.8189,
-          "rerank_score": 3.0331
+          "page": 14,
+          "distance": null,
+          "rerank_score": 2.2389
+        },
+        {
+          "chunk_id": "source1:p16:c21",
+          "source": "source1.pdf",
+          "page": 16,
+          "distance": null,
+          "rerank_score": 4.6904
         }
       ],
       "validation_errors": [],
@@ -2082,11 +2082,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 16.06,
-        "rerank": 674.89,
-        "generation": 0.05,
+        "vector": 14.75,
+        "rerank": 976.75,
+        "generation": 0.06,
         "verification": 0.02,
-        "total": 691.42
+        "total": 992.22
       },
       "error": null
     },
@@ -2103,7 +2103,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 79,
@@ -2133,7 +2133,7 @@
         "recall_at_3": true,
         "recall_at_5": true,
         "context_precision": 0.2,
-        "reciprocal_rank": 0.3333
+        "reciprocal_rank": 0.5
       },
       "retrieved": [
         {
@@ -2142,13 +2142,6 @@
           "page": 79,
           "distance": 0.6679,
           "rerank_score": 6.7734
-        },
-        {
-          "chunk_id": "source1:p76:c126",
-          "source": "source1.pdf",
-          "page": 76,
-          "distance": 0.7544,
-          "rerank_score": 6.5398
         },
         {
           "chunk_id": "source1:p74:c122",
@@ -2165,11 +2158,18 @@
           "rerank_score": 5.6821
         },
         {
-          "chunk_id": "source1:p79:c133",
+          "chunk_id": "source1:p43:c69",
           "source": "source1.pdf",
-          "page": 79,
-          "distance": 0.6901,
-          "rerank_score": 5.3445
+          "page": 43,
+          "distance": 0.6392,
+          "rerank_score": 4.2462
+        },
+        {
+          "chunk_id": "source1:p47:c74",
+          "source": "source1.pdf",
+          "page": 47,
+          "distance": 0.597,
+          "rerank_score": 3.7826
         }
       ],
       "validation_errors": [],
@@ -2184,11 +2184,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 15.29,
-        "rerank": 618.19,
+        "vector": 22.47,
+        "rerank": 804.75,
         "generation": 0.04,
-        "verification": 0.02,
-        "total": 633.95
+        "verification": 0.03,
+        "total": 827.87
       },
       "error": null
     },
@@ -2205,7 +2205,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 75,
@@ -2246,13 +2246,6 @@
           "rerank_score": 7.4905
         },
         {
-          "chunk_id": "source1:p78:c131",
-          "source": "source1.pdf",
-          "page": 78,
-          "distance": 0.8035,
-          "rerank_score": 7.0348
-        },
-        {
           "chunk_id": "source1:p25:c39",
           "source": "source1.pdf",
           "page": 25,
@@ -2260,11 +2253,18 @@
           "rerank_score": 6.7688
         },
         {
-          "chunk_id": "source1:p48:c78",
+          "chunk_id": "source1:p78:c131",
           "source": "source1.pdf",
-          "page": 48,
-          "distance": 0.7527,
-          "rerank_score": 5.9879
+          "page": 78,
+          "distance": 0.8035,
+          "rerank_score": 7.0348
+        },
+        {
+          "chunk_id": "source1:p123:c207",
+          "source": "source1.pdf",
+          "page": 123,
+          "distance": 0.5762,
+          "rerank_score": 4.6285
         },
         {
           "chunk_id": "source1:p77:c128",
@@ -2286,11 +2286,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 18.54,
-        "rerank": 800.3,
-        "generation": 0.04,
-        "verification": 0.01,
-        "total": 819.31
+        "vector": 20.25,
+        "rerank": 937.67,
+        "generation": 0.07,
+        "verification": 0.03,
+        "total": 958.97
       },
       "error": null
     },
@@ -2307,7 +2307,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 119,
@@ -2362,18 +2362,18 @@
           "rerank_score": 4.6738
         },
         {
-          "chunk_id": "source1:p87:c145",
+          "chunk_id": "source1:p36:c56",
           "source": "source1.pdf",
-          "page": 87,
-          "distance": 0.9164,
-          "rerank_score": 3.7833
+          "page": 36,
+          "distance": 0.8461,
+          "rerank_score": 2.3456
         },
         {
-          "chunk_id": "source1:p81:c136",
-          "source": "source1.pdf",
-          "page": 81,
-          "distance": 0.8796,
-          "rerank_score": 3.4537
+          "chunk_id": "source2:p15:c18",
+          "source": "source2.pdf",
+          "page": 15,
+          "distance": 0.8384,
+          "rerank_score": 1.6289
         }
       ],
       "validation_errors": [],
@@ -2388,11 +2388,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 15.55,
-        "rerank": 738.43,
-        "generation": 0.04,
-        "verification": 0.01,
-        "total": 754.42
+        "vector": 29.72,
+        "rerank": 941.18,
+        "generation": 0.05,
+        "verification": 0.02,
+        "total": 971.58
       },
       "error": null
     },
@@ -2409,7 +2409,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 118,
@@ -2450,18 +2450,18 @@
           "rerank_score": 6.5214
         },
         {
-          "chunk_id": "source2:p20:c33",
-          "source": "source2.pdf",
-          "page": 20,
-          "distance": 0.8304,
-          "rerank_score": 2.8938
-        },
-        {
           "chunk_id": "source1:p130:c220",
           "source": "source1.pdf",
           "page": 130,
           "distance": 0.7921,
           "rerank_score": 1.9404
+        },
+        {
+          "chunk_id": "source2:p20:c33",
+          "source": "source2.pdf",
+          "page": 20,
+          "distance": 0.8304,
+          "rerank_score": 2.8938
         },
         {
           "chunk_id": "source2:p26:c50",
@@ -2471,11 +2471,11 @@
           "rerank_score": 0.1441
         },
         {
-          "chunk_id": "source1:p130:c221",
-          "source": "source1.pdf",
-          "page": 130,
-          "distance": 1.0468,
-          "rerank_score": -1.6873
+          "chunk_id": "source2:p22:c38",
+          "source": "source2.pdf",
+          "page": 22,
+          "distance": null,
+          "rerank_score": 2.0606
         }
       ],
       "validation_errors": [],
@@ -2490,11 +2490,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 15.18,
-        "rerank": 720.85,
+        "vector": 90.06,
+        "rerank": 835.45,
         "generation": 0.03,
         "verification": 0.02,
-        "total": 736.53
+        "total": 926.03
       },
       "error": null
     },
@@ -2505,20 +2505,20 @@
       "scope": "in_scope",
       "grounded": true,
       "abstained": false,
-      "answer": "The clinic's uploaded guidance states: 1.42 Erectile dysfunction 1.42.1 As part of the type 2 diabetes annual review, offer to discuss erectile dysfunction (if relevant). [2015] 1.42.2 Assess, educate and support people with type 2 diabetes who have problematic erectile dysfunction, addressing contributory factors such as cardiovascular disease as well as possible treatment options. [2015] 1.42.3 Consider a phosphodiesterase‑5 inhibitor to treat [C1]",
+      "answer": "The clinic's uploaded guidance states: 1.42 Erectile dysfunction 1.42.1 As part of the type 2 diabetes annual review, offer to discuss erectile dysfunction (if relevant). [2015] 1.42.2 Assess, educate and support people with type 2 diabetes who have problematic erectile dysfunction, addressing contributory factors such as cardiovascular disease as well as possible treatment options. [2015] 1.42.3 Consider a phosphodiesterase-5 inhibitor to treat [C1]",
       "citations": [
         {
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 118,
           "section": "1.42 Erectile dysfunction",
           "chunk_id": "source1:p118:c198",
           "source_url": "https://www.nice.org.uk/guidance/ng28",
-          "excerpt": "1.42 Erectile dysfunction 1.42.1 As part of the type 2 diabetes annual review, offer to discuss erectile dysfunction (if relevant). [2015] 1.42.2 Assess, educate and support people with type 2 diabetes who have problematic erectile dysfunction, addressing contributory factors such as cardiovascular disease as well as possible treatment options. [2015] 1.42.3 Consider a phosphodiesterase‑5 inhibitor to treat",
+          "excerpt": "1.42 Erectile dysfunction 1.42.1 As part of the type 2 diabetes annual review, offer to discuss erectile dysfunction (if relevant). [2015] 1.42.2 Assess, educate and support people with type 2 diabetes who have problematic erectile dysfunction, addressing contributory factors such as cardiovascular disease as well as possible treatment options. [2015] 1.42.3 Consider a phosphodiesterase-5 inhibitor to treat",
           "vector_distance": 0.2935,
           "rerank_score": 4.5268
         }
@@ -2559,11 +2559,11 @@
           "rerank_score": 0.8472
         },
         {
-          "chunk_id": "source1:p107:c176",
-          "source": "source1.pdf",
-          "page": 107,
-          "distance": 1.0551,
-          "rerank_score": -0.2349
+          "chunk_id": "source2:p10:c4",
+          "source": "source2.pdf",
+          "page": 10,
+          "distance": 1.0245,
+          "rerank_score": -1.108
         },
         {
           "chunk_id": "source1:p32:c50",
@@ -2573,11 +2573,11 @@
           "rerank_score": -0.9264
         },
         {
-          "chunk_id": "source2:p10:c4",
-          "source": "source2.pdf",
-          "page": 10,
-          "distance": 1.0245,
-          "rerank_score": -1.108
+          "chunk_id": "source1:p73:c121",
+          "source": "source1.pdf",
+          "page": 73,
+          "distance": 0.9415,
+          "rerank_score": -2.0207
         }
       ],
       "validation_errors": [],
@@ -2592,11 +2592,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 16.66,
-        "rerank": 684.82,
+        "vector": 16.08,
+        "rerank": 702.34,
         "generation": 0.05,
         "verification": 0.02,
-        "total": 701.97
+        "total": 719.03
       },
       "error": null
     },
@@ -2613,7 +2613,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 116,
@@ -2668,18 +2668,18 @@
           "rerank_score": 4.8967
         },
         {
-          "chunk_id": "source1:p107:c176",
-          "source": "source1.pdf",
-          "page": 107,
-          "distance": 0.9662,
-          "rerank_score": 3.6682
+          "chunk_id": "source2:p14:c14",
+          "source": "source2.pdf",
+          "page": 14,
+          "distance": 0.8843,
+          "rerank_score": 1.0712
         },
         {
-          "chunk_id": "source1:p81:c136",
+          "chunk_id": "source1:p32:c50",
           "source": "source1.pdf",
-          "page": 81,
-          "distance": 0.995,
-          "rerank_score": 2.0462
+          "page": 32,
+          "distance": 0.992,
+          "rerank_score": 1.4424
         }
       ],
       "validation_errors": [],
@@ -2694,11 +2694,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 15.49,
-        "rerank": 762.36,
-        "generation": 0.05,
+        "vector": 15.96,
+        "rerank": 770.91,
+        "generation": 0.04,
         "verification": 0.02,
-        "total": 778.3
+        "total": 787.46
       },
       "error": null
     },
@@ -2709,28 +2709,28 @@
       "scope": "in_scope",
       "grounded": true,
       "abstained": false,
-      "answer": "The clinic's uploaded guidance states: haemoglobin (HbA1c). Diagnostic cut-off values are presented in Table 3. Table 3 Diagnostic criteria for diabetes Measurement Diagnostic cut-off value Comment Fasting venous or capillary** plasma glucose ≥7.0 mmol/L (126 mg/dL) Least costly but difficulties with ensuring a fasting state 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) Cumbersome and costly, difficulties with ensuring a fasting state [C1]",
+      "answer": "The clinic's uploaded guidance states: presence of complications at diagnosis. Type 1 diabetes is more likely to present with symptoms and its onset is typically in children and young adults. However, the type of diabetes cannot always be determined at diagnosis, and initial treatment decisions should be based on clinical presentation and plasma glucose values. Table 2 Symptoms and signs of diabetes Symptoms of diabetes •• thirst •• frequent urination •• [C1]",
       "citations": [
         {
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source2",
           "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
           "publisher": "World Health Organization (WHO)",
-          "page": 13,
+          "page": 12,
           "section": "1 Clinical manifestations of",
-          "chunk_id": "source2:p13:c11",
+          "chunk_id": "source2:p12:c10",
           "source_url": "https://iris.who.int/handle/10665/331710",
-          "excerpt": "haemoglobin (HbA1c). Diagnostic cut-off values are presented in Table 3. Table 3 Diagnostic criteria for diabetes Measurement Diagnostic cut-off value Comment Fasting venous or capillary** plasma glucose ≥7.0 mmol/L (126 mg/dL) Least costly but difficulties with ensuring a fasting state 2-hour post-load venous plasma glucose ≥11.1 mmol/L (200 mg/dL) Cumbersome and costly, difficulties with ensuring a fasting state",
-          "vector_distance": 0.8958,
-          "rerank_score": 7.5318
+          "excerpt": "presence of complications at diagnosis. Type 1 diabetes is more likely to present with symptoms and its onset is typically in children and young adults. However, the type of diabetes cannot always be determined at diagnosis, and initial treatment decisions should be based on clinical presentation and plasma glucose values. Table 2 Symptoms and signs of diabetes Symptoms of diabetes •• thirst •• frequent urination ••",
+          "vector_distance": 0.5251,
+          "rerank_score": 5.5331
         }
       ],
       "citation_valid": true,
       "citation_exact": true,
-      "citation_page_correct": true,
-      "citation_answer_support": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
       "citation_coverage": 1.0,
       "claim_count": 1,
       "supported_claims": 1,
@@ -2741,26 +2741,26 @@
       "unsupported_claims": 0,
       "safety_refusal": false,
       "retrieval_metrics": {
-        "recall_at_1": true,
+        "recall_at_1": false,
         "recall_at_3": true,
         "recall_at_5": true,
-        "context_precision": 0.2,
-        "reciprocal_rank": 1.0
+        "context_precision": 0.4,
+        "reciprocal_rank": 0.5
       },
       "retrieved": [
-        {
-          "chunk_id": "source2:p13:c11",
-          "source": "source2.pdf",
-          "page": 13,
-          "distance": 0.8958,
-          "rerank_score": 7.5318
-        },
         {
           "chunk_id": "source2:p12:c10",
           "source": "source2.pdf",
           "page": 12,
           "distance": 0.5251,
           "rerank_score": 5.5331
+        },
+        {
+          "chunk_id": "source2:p13:c11",
+          "source": "source2.pdf",
+          "page": 13,
+          "distance": 0.8958,
+          "rerank_score": 7.5318
         },
         {
           "chunk_id": "source2:p12:c9",
@@ -2770,18 +2770,18 @@
           "rerank_score": -0.2541
         },
         {
+          "chunk_id": "source2:p13:c12",
+          "source": "source2.pdf",
+          "page": 13,
+          "distance": 0.8501,
+          "rerank_score": -2.7931
+        },
+        {
           "chunk_id": "source2:p18:c27",
           "source": "source2.pdf",
           "page": 18,
           "distance": 0.8974,
           "rerank_score": -1.9258
-        },
-        {
-          "chunk_id": "source2:p27:c52",
-          "source": "source2.pdf",
-          "page": 27,
-          "distance": 0.747,
-          "rerank_score": -2.1007
         }
       ],
       "validation_errors": [],
@@ -2796,11 +2796,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 15.13,
-        "rerank": 764.46,
+        "vector": 16.03,
+        "rerank": 861.03,
         "generation": 0.05,
-        "verification": 0.01,
-        "total": 780.13
+        "verification": 0.02,
+        "total": 877.79
       },
       "error": null
     },
@@ -2817,7 +2817,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source2",
           "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
           "publisher": "World Health Organization (WHO)",
           "page": 10,
@@ -2858,6 +2858,20 @@
           "rerank_score": 7.3689
         },
         {
+          "chunk_id": "source2:p9:c3",
+          "source": "source2.pdf",
+          "page": 9,
+          "distance": 0.9422,
+          "rerank_score": -0.4756
+        },
+        {
+          "chunk_id": "source2:p11:c6",
+          "source": "source2.pdf",
+          "page": 11,
+          "distance": 0.9415,
+          "rerank_score": 0.2022
+        },
+        {
           "chunk_id": "source2:p11:c8",
           "source": "source2.pdf",
           "page": 11,
@@ -2870,20 +2884,6 @@
           "page": 10,
           "distance": 0.7033,
           "rerank_score": 0.9473
-        },
-        {
-          "chunk_id": "source2:p12:c10",
-          "source": "source2.pdf",
-          "page": 12,
-          "distance": 0.6855,
-          "rerank_score": 0.2102
-        },
-        {
-          "chunk_id": "source2:p11:c6",
-          "source": "source2.pdf",
-          "page": 11,
-          "distance": 0.9415,
-          "rerank_score": 0.2022
         }
       ],
       "validation_errors": [],
@@ -2898,11 +2898,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 14.87,
-        "rerank": 699.96,
-        "generation": 0.06,
+        "vector": 15.56,
+        "rerank": 729.29,
+        "generation": 0.04,
         "verification": 0.02,
-        "total": 715.38
+        "total": 745.38
       },
       "error": null
     },
@@ -2919,7 +2919,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 55,
@@ -2946,10 +2946,10 @@
       "safety_refusal": false,
       "retrieval_metrics": {
         "recall_at_1": false,
-        "recall_at_3": false,
-        "recall_at_5": false,
-        "context_precision": 0.0,
-        "reciprocal_rank": 0.0
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 0.5
       },
       "retrieved": [
         {
@@ -2974,18 +2974,18 @@
           "rerank_score": 4.8652
         },
         {
-          "chunk_id": "source1:p43:c69",
-          "source": "source1.pdf",
-          "page": 43,
-          "distance": 0.8719,
-          "rerank_score": 4.6674
-        },
-        {
           "chunk_id": "source1:p49:c80",
           "source": "source1.pdf",
           "page": 49,
           "distance": 0.9534,
           "rerank_score": 3.5063
+        },
+        {
+          "chunk_id": "source1:p43:c69",
+          "source": "source1.pdf",
+          "page": 43,
+          "distance": 0.8719,
+          "rerank_score": 4.6674
         }
       ],
       "validation_errors": [],
@@ -3000,11 +3000,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 16.28,
-        "rerank": 776.87,
+        "vector": 15.41,
+        "rerank": 889.05,
         "generation": 0.04,
         "verification": 0.01,
-        "total": 793.47
+        "total": 905.08
       },
       "error": null
     },
@@ -3021,7 +3021,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source2",
           "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
           "publisher": "World Health Organization (WHO)",
           "page": 24,
@@ -3048,10 +3048,10 @@
       "safety_refusal": false,
       "retrieval_metrics": {
         "recall_at_1": false,
-        "recall_at_3": false,
-        "recall_at_5": false,
-        "context_precision": 0.0,
-        "reciprocal_rank": 0.0
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 0.5
       },
       "retrieved": [
         {
@@ -3083,11 +3083,11 @@
           "rerank_score": -0.8134
         },
         {
-          "chunk_id": "source2:p27:c53",
-          "source": "source2.pdf",
-          "page": 27,
-          "distance": 0.952,
-          "rerank_score": -2.3649
+          "chunk_id": "source1:p126:c215",
+          "source": "source1.pdf",
+          "page": 126,
+          "distance": null,
+          "rerank_score": -2.2054
         }
       ],
       "validation_errors": [],
@@ -3102,11 +3102,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 14.87,
-        "rerank": 704.12,
+        "vector": 14.59,
+        "rerank": 797.36,
         "generation": 0.04,
         "verification": 0.02,
-        "total": 719.33
+        "total": 812.47
       },
       "error": null
     },
@@ -3123,7 +3123,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source2",
           "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
           "publisher": "World Health Organization (WHO)",
           "page": 19,
@@ -3151,9 +3151,9 @@
       "retrieval_metrics": {
         "recall_at_1": false,
         "recall_at_3": false,
-        "recall_at_5": false,
-        "context_precision": 0.0,
-        "reciprocal_rank": 0.0
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 0.25
       },
       "retrieved": [
         {
@@ -3164,13 +3164,6 @@
           "rerank_score": 5.7471
         },
         {
-          "chunk_id": "source2:p18:c28",
-          "source": "source2.pdf",
-          "page": 18,
-          "distance": 0.8378,
-          "rerank_score": 5.6784
-        },
-        {
           "chunk_id": "source2:p18:c27",
           "source": "source2.pdf",
           "page": 18,
@@ -3178,18 +3171,25 @@
           "rerank_score": 5.192
         },
         {
-          "chunk_id": "source2:p14:c14",
+          "chunk_id": "source2:p18:c28",
           "source": "source2.pdf",
-          "page": 14,
-          "distance": 0.8394,
-          "rerank_score": 4.1841
+          "page": 18,
+          "distance": 0.8378,
+          "rerank_score": 5.6784
         },
         {
-          "chunk_id": "source1:p107:c176",
+          "chunk_id": "source2:p19:c29",
+          "source": "source2.pdf",
+          "page": 19,
+          "distance": 0.7934,
+          "rerank_score": 2.5942
+        },
+        {
+          "chunk_id": "source1:p13:c15",
           "source": "source1.pdf",
-          "page": 107,
-          "distance": 0.9763,
-          "rerank_score": 3.9735
+          "page": 13,
+          "distance": 0.8472,
+          "rerank_score": 2.606
         }
       ],
       "validation_errors": [],
@@ -3204,11 +3204,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 16.15,
-        "rerank": 773.26,
+        "vector": 15.01,
+        "rerank": 829.2,
         "generation": 0.05,
         "verification": 0.02,
-        "total": 789.88
+        "total": 844.97
       },
       "error": null
     },
@@ -3225,7 +3225,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source2",
           "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
           "publisher": "World Health Organization (WHO)",
           "page": 19,
@@ -3239,8 +3239,8 @@
       ],
       "citation_valid": true,
       "citation_exact": true,
-      "citation_page_correct": false,
-      "citation_answer_support": false,
+      "citation_page_correct": true,
+      "citation_answer_support": true,
       "citation_coverage": 1.0,
       "claim_count": 1,
       "supported_claims": 1,
@@ -3251,11 +3251,11 @@
       "unsupported_claims": 0,
       "safety_refusal": false,
       "retrieval_metrics": {
-        "recall_at_1": false,
-        "recall_at_3": false,
-        "recall_at_5": false,
-        "context_precision": 0.0,
-        "reciprocal_rank": 0.0
+        "recall_at_1": true,
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.6,
+        "reciprocal_rank": 1.0
       },
       "retrieved": [
         {
@@ -3280,11 +3280,11 @@
           "rerank_score": 1.2054
         },
         {
-          "chunk_id": "source1:p84:c139",
-          "source": "source1.pdf",
-          "page": 84,
-          "distance": 0.925,
-          "rerank_score": -1.6274
+          "chunk_id": "source2:p19:c29",
+          "source": "source2.pdf",
+          "page": 19,
+          "distance": 0.5933,
+          "rerank_score": -5.3322
         },
         {
           "chunk_id": "source1:p104:c172",
@@ -3306,11 +3306,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 16.01,
-        "rerank": 781.09,
-        "generation": 0.04,
+        "vector": 16.07,
+        "rerank": 888.23,
+        "generation": 0.05,
         "verification": 0.02,
-        "total": 797.43
+        "total": 904.93
       },
       "error": null
     },
@@ -3327,7 +3327,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source2",
           "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
           "publisher": "World Health Organization (WHO)",
           "page": 20,
@@ -3368,13 +3368,6 @@
           "rerank_score": 7.4676
         },
         {
-          "chunk_id": "source1:p130:c221",
-          "source": "source1.pdf",
-          "page": 130,
-          "distance": 0.9471,
-          "rerank_score": 2.3937
-        },
-        {
           "chunk_id": "source1:p71:c117",
           "source": "source1.pdf",
           "page": 71,
@@ -3382,11 +3375,18 @@
           "rerank_score": 2.1042
         },
         {
-          "chunk_id": "source1:p118:c199",
+          "chunk_id": "source2:p22:c38",
+          "source": "source2.pdf",
+          "page": 22,
+          "distance": null,
+          "rerank_score": 4.2022
+        },
+        {
+          "chunk_id": "source1:p130:c221",
           "source": "source1.pdf",
-          "page": 118,
-          "distance": 0.7352,
-          "rerank_score": 1.6996
+          "page": 130,
+          "distance": 0.9471,
+          "rerank_score": 2.3937
         },
         {
           "chunk_id": "source1:p69:c114",
@@ -3408,11 +3408,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 14.87,
-        "rerank": 704.59,
-        "generation": 0.04,
+        "vector": 14.61,
+        "rerank": 727.01,
+        "generation": 0.05,
         "verification": 0.02,
-        "total": 719.8
+        "total": 742.12
       },
       "error": null
     },
@@ -3429,7 +3429,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source2",
           "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
           "publisher": "World Health Organization (WHO)",
           "page": 21,
@@ -3459,7 +3459,7 @@
         "recall_at_3": true,
         "recall_at_5": true,
         "context_precision": 0.2,
-        "reciprocal_rank": 0.5
+        "reciprocal_rank": 0.3333
       },
       "retrieved": [
         {
@@ -3470,13 +3470,6 @@
           "rerank_score": 3.7671
         },
         {
-          "chunk_id": "source2:p22:c38",
-          "source": "source2.pdf",
-          "page": 22,
-          "distance": 1.0037,
-          "rerank_score": -1.0733
-        },
-        {
           "chunk_id": "source2:p21:c35",
           "source": "source2.pdf",
           "page": 21,
@@ -3484,11 +3477,11 @@
           "rerank_score": -1.2224
         },
         {
-          "chunk_id": "source2:p13:c13",
+          "chunk_id": "source2:p22:c38",
           "source": "source2.pdf",
-          "page": 13,
-          "distance": 1.0176,
-          "rerank_score": -6.4528
+          "page": 22,
+          "distance": 1.0037,
+          "rerank_score": -1.0733
         },
         {
           "chunk_id": "source2:p13:c12",
@@ -3496,6 +3489,13 @@
           "page": 13,
           "distance": 1.1682,
           "rerank_score": -6.8768
+        },
+        {
+          "chunk_id": "source2:p21:c36",
+          "source": "source2.pdf",
+          "page": 21,
+          "distance": 0.9564,
+          "rerank_score": -6.9112
         }
       ],
       "validation_errors": [],
@@ -3510,11 +3510,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 17.68,
-        "rerank": 891.09,
+        "vector": 25.76,
+        "rerank": 1034.03,
         "generation": 0.05,
-        "verification": 0.01,
-        "total": 909.21
+        "verification": 0.02,
+        "total": 1060.4
       },
       "error": null
     },
@@ -3525,28 +3525,28 @@
       "scope": "in_scope",
       "grounded": true,
       "abstained": false,
-      "answer": "The clinic's uploaded guidance states: 4 Criteria for referral to higher levels of care Urgent (same day) referral should occur if one of the following is detected: •• urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide •• suspicion of ketoacidosis or HHS (see page 19) •• hypoglycaemia unresolved by treatment (see page 19) •• clinical suspicion of type 1 diabetes in newly diagnosed patient •• [C1]",
+      "answer": "The clinic's uploaded guidance states: Annex 2: Prevention, assessment and management of diabetic foot months Assess every 1-3 months Urgent referral Patients with diabetes should receive counselling on avoidance of foot complications (see below). •• Patients at low risk can be assessed annually, those at moderate risk every 3-6 months, and those at high risk every 1-3 months. •• Pre-ulcerative lesions need to be treated by a trained professional by: o o [C1]",
       "citations": [
         {
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source2",
           "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
           "publisher": "World Health Organization (WHO)",
-          "page": 26,
-          "section": "4 Criteria for referral to higher",
-          "chunk_id": "source2:p26:c50",
+          "page": 33,
+          "section": "Annex 2: Prevention, assessment and management of diabetic foot",
+          "chunk_id": "source2:p33:c67",
           "source_url": "https://iris.who.int/handle/10665/331710",
-          "excerpt": "4 Criteria for referral to higher levels of care Urgent (same day) referral should occur if one of the following is detected: •• urine ketones >2+, or no improvement in glycaemia ≥18 mmol/L after management with metformin and/or gliclazide •• suspicion of ketoacidosis or HHS (see page 19) •• hypoglycaemia unresolved by treatment (see page 19) •• clinical suspicion of type 1 diabetes in newly diagnosed patient ••",
-          "vector_distance": 0.9056,
-          "rerank_score": 5.7366
+          "excerpt": "Annex 2: Prevention, assessment and management of diabetic foot months Assess every 1-3 months Urgent referral Patients with diabetes should receive counselling on avoidance of foot complications (see below). •• Patients at low risk can be assessed annually, those at moderate risk every 3-6 months, and those at high risk every 1-3 months. •• Pre-ulcerative lesions need to be treated by a trained professional by: o o",
+          "vector_distance": 0.8508,
+          "rerank_score": 5.0028
         }
       ],
       "citation_valid": true,
       "citation_exact": true,
-      "citation_page_correct": true,
-      "citation_answer_support": true,
+      "citation_page_correct": false,
+      "citation_answer_support": false,
       "citation_coverage": 1.0,
       "claim_count": 1,
       "supported_claims": 1,
@@ -3557,26 +3557,19 @@
       "unsupported_claims": 0,
       "safety_refusal": false,
       "retrieval_metrics": {
-        "recall_at_1": true,
+        "recall_at_1": false,
         "recall_at_3": true,
         "recall_at_5": true,
         "context_precision": 0.2,
-        "reciprocal_rank": 1.0
+        "reciprocal_rank": 0.3333
       },
       "retrieved": [
         {
-          "chunk_id": "source2:p26:c50",
+          "chunk_id": "source2:p33:c67",
           "source": "source2.pdf",
-          "page": 26,
-          "distance": 0.9056,
-          "rerank_score": 5.7366
-        },
-        {
-          "chunk_id": "source2:p34:c67",
-          "source": "source2.pdf",
-          "page": 34,
-          "distance": 0.9505,
-          "rerank_score": 4.2998
+          "page": 33,
+          "distance": 0.8508,
+          "rerank_score": 5.0028
         },
         {
           "chunk_id": "source2:p25:c46",
@@ -3586,18 +3579,25 @@
           "rerank_score": 3.3572
         },
         {
+          "chunk_id": "source2:p26:c50",
+          "source": "source2.pdf",
+          "page": 26,
+          "distance": 0.9056,
+          "rerank_score": 5.7366
+        },
+        {
+          "chunk_id": "source2:p34:c68",
+          "source": "source2.pdf",
+          "page": 34,
+          "distance": null,
+          "rerank_score": 4.0184
+        },
+        {
           "chunk_id": "source2:p19:c31",
           "source": "source2.pdf",
           "page": 19,
           "distance": 0.8752,
           "rerank_score": -3.7226
-        },
-        {
-          "chunk_id": "source1:p11:c11",
-          "source": "source1.pdf",
-          "page": 11,
-          "distance": 0.8584,
-          "rerank_score": -3.8903
         }
       ],
       "validation_errors": [],
@@ -3612,11 +3612,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 14.76,
-        "rerank": 728.87,
-        "generation": 0.05,
+        "vector": 14.57,
+        "rerank": 831.45,
+        "generation": 0.08,
         "verification": 0.02,
-        "total": 744.16
+        "total": 846.99
       },
       "error": null
     },
@@ -3633,7 +3633,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 107,
@@ -3660,10 +3660,10 @@
       "safety_refusal": false,
       "retrieval_metrics": {
         "recall_at_1": false,
-        "recall_at_3": false,
-        "recall_at_5": false,
-        "context_precision": 0.0,
-        "reciprocal_rank": 0.0
+        "recall_at_3": true,
+        "recall_at_5": true,
+        "context_precision": 0.2,
+        "reciprocal_rank": 0.3333
       },
       "retrieved": [
         {
@@ -3674,18 +3674,18 @@
           "rerank_score": 0.1615
         },
         {
-          "chunk_id": "source2:p28:c54",
+          "chunk_id": "source2:p8:c1",
           "source": "source2.pdf",
-          "page": 28,
-          "distance": 0.9196,
-          "rerank_score": -2.4359
+          "page": 8,
+          "distance": null,
+          "rerank_score": -2.4645
         },
         {
-          "chunk_id": "source1:p22:c33",
-          "source": "source1.pdf",
-          "page": 22,
-          "distance": 0.881,
-          "rerank_score": -3.0506
+          "chunk_id": "source2:p29:c56",
+          "source": "source2.pdf",
+          "page": 29,
+          "distance": 0.7539,
+          "rerank_score": 1.2855
         },
         {
           "chunk_id": "source2:p14:c14",
@@ -3695,11 +3695,11 @@
           "rerank_score": -3.3746
         },
         {
-          "chunk_id": "source2:p15:c18",
-          "source": "source2.pdf",
-          "page": 15,
-          "distance": 0.819,
-          "rerank_score": -3.4509
+          "chunk_id": "source1:p109:c181",
+          "source": "source1.pdf",
+          "page": 109,
+          "distance": 0.6656,
+          "rerank_score": -6.6713
         }
       ],
       "validation_errors": [],
@@ -3714,11 +3714,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 18.52,
-        "rerank": 693.77,
-        "generation": 0.05,
+        "vector": 25.08,
+        "rerank": 828.66,
+        "generation": 0.06,
         "verification": 0.02,
-        "total": 712.68
+        "total": 854.65
       },
       "error": null
     },
@@ -3729,22 +3729,22 @@
       "scope": "in_scope",
       "grounded": true,
       "abstained": false,
-      "answer": "The clinic's uploaded guidance states: However, the absence of symptoms does not exclude diabetic foot problems. Assessment and management of diabetic foot problems Examination of the feet Remove the patient’s shoes, socks, dressings, and bandages and carry out the following examination procedures: Palpation of arteries Fig. 5 Dorsal pedis palpation Dorsal pedis: Feel in the middle of the dorsum of the foot just lateral to the tendon of extensor halluces [C1]",
+      "answer": "The clinic's uploaded guidance states: Annex 2: Prevention, assessment and management of diabetic foot Diabetic foot ulcers frequently result from a person with diabetes simultaneously having two or more risk factors, with diabetic peripheral neuropathy and peripheral artery disease usually playing a central role. Fig. 4 Areas of foot at highest risk for ulceration The neuropathy leads to an insensitive and sometimes deformed foot, often causing abnormal [C1]",
       "citations": [
         {
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source2",
           "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
           "publisher": "World Health Organization (WHO)",
-          "page": 31,
-          "section": "REDUCE INSULIN",
-          "chunk_id": "source2:p31:c61",
+          "page": 30,
+          "section": "Annex 2: Prevention, assessment and management of diabetic foot",
+          "chunk_id": "source2:p30:c59",
           "source_url": "https://iris.who.int/handle/10665/331710",
-          "excerpt": "However, the absence of symptoms does not exclude diabetic foot problems. Assessment and management of diabetic foot problems Examination of the feet Remove the patient’s shoes, socks, dressings, and bandages and carry out the following examination procedures: Palpation of arteries Fig. 5 Dorsal pedis palpation Dorsal pedis: Feel in the middle of the dorsum of the foot just lateral to the tendon of extensor halluces",
-          "vector_distance": 0.5689,
-          "rerank_score": 6.0557
+          "excerpt": "Annex 2: Prevention, assessment and management of diabetic foot Diabetic foot ulcers frequently result from a person with diabetes simultaneously having two or more risk factors, with diabetic peripheral neuropathy and peripheral artery disease usually playing a central role. Fig. 4 Areas of foot at highest risk for ulceration The neuropathy leads to an insensitive and sometimes deformed foot, often causing abnormal",
+          "vector_distance": 0.5779,
+          "rerank_score": 2.8442
         }
       ],
       "citation_valid": true,
@@ -3762,25 +3762,32 @@
       "safety_refusal": false,
       "retrieval_metrics": {
         "recall_at_1": false,
-        "recall_at_3": false,
+        "recall_at_3": true,
         "recall_at_5": true,
         "context_precision": 0.2,
-        "reciprocal_rank": 0.2
+        "reciprocal_rank": 0.5
       },
       "retrieved": [
-        {
-          "chunk_id": "source2:p31:c61",
-          "source": "source2.pdf",
-          "page": 31,
-          "distance": 0.5689,
-          "rerank_score": 6.0557
-        },
         {
           "chunk_id": "source2:p30:c59",
           "source": "source2.pdf",
           "page": 30,
-          "distance": 0.6743,
-          "rerank_score": 1.3963
+          "distance": 0.5779,
+          "rerank_score": 2.8442
+        },
+        {
+          "chunk_id": "source2:p33:c65",
+          "source": "source2.pdf",
+          "page": 33,
+          "distance": 0.7075,
+          "rerank_score": 4.9013
+        },
+        {
+          "chunk_id": "source2:p31:c62",
+          "source": "source2.pdf",
+          "page": 31,
+          "distance": 0.7969,
+          "rerank_score": 6.5663
         },
         {
           "chunk_id": "source2:p22:c39",
@@ -3790,18 +3797,11 @@
           "rerank_score": 0.9555
         },
         {
-          "chunk_id": "source2:p30:c58",
+          "chunk_id": "source2:p31:c61",
           "source": "source2.pdf",
-          "page": 30,
-          "distance": 0.6356,
-          "rerank_score": 0.4656
-        },
-        {
-          "chunk_id": "source2:p32:c63",
-          "source": "source2.pdf",
-          "page": 32,
-          "distance": 1.1106,
-          "rerank_score": -0.2946
+          "page": 31,
+          "distance": 0.6479,
+          "rerank_score": 1.4455
         }
       ],
       "validation_errors": [],
@@ -3816,11 +3816,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 20.57,
-        "rerank": 823.24,
-        "generation": 0.05,
-        "verification": 0.01,
-        "total": 844.37
+        "vector": 20.37,
+        "rerank": 875.48,
+        "generation": 0.04,
+        "verification": 0.02,
+        "total": 896.43
       },
       "error": null
     },
@@ -3837,7 +3837,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source2",
           "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
           "publisher": "World Health Organization (WHO)",
           "page": 27,
@@ -3892,11 +3892,11 @@
           "rerank_score": 0.5125
         },
         {
-          "chunk_id": "source1:p19:c28",
+          "chunk_id": "source1:p14:c19",
           "source": "source1.pdf",
-          "page": 19,
-          "distance": 1.0215,
-          "rerank_score": -0.8195
+          "page": 14,
+          "distance": 0.8342,
+          "rerank_score": -3.5324
         },
         {
           "chunk_id": "source2:p8:c1",
@@ -3918,11 +3918,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 15.91,
-        "rerank": 716.0,
-        "generation": 0.05,
+        "vector": 14.49,
+        "rerank": 732.81,
+        "generation": 0.06,
         "verification": 0.02,
-        "total": 732.52
+        "total": 748.04
       },
       "error": null
     },
@@ -3939,7 +3939,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
           "page": 111,
@@ -3994,18 +3994,18 @@
           "rerank_score": 1.3581
         },
         {
-          "chunk_id": "source1:p21:c32",
-          "source": "source1.pdf",
-          "page": 21,
-          "distance": 0.951,
-          "rerank_score": 0.1434
+          "chunk_id": "source2:p12:c10",
+          "source": "source2.pdf",
+          "page": 12,
+          "distance": 0.8717,
+          "rerank_score": -2.2511
         },
         {
-          "chunk_id": "source1:p107:c176",
-          "source": "source1.pdf",
-          "page": 107,
-          "distance": 0.8437,
-          "rerank_score": 0.1411
+          "chunk_id": "source2:p29:c56",
+          "source": "source2.pdf",
+          "page": 29,
+          "distance": 0.8026,
+          "rerank_score": -1.307
         }
       ],
       "validation_errors": [],
@@ -4020,11 +4020,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 18.71,
-        "rerank": 750.03,
+        "vector": 17.02,
+        "rerank": 981.28,
         "generation": 0.05,
         "verification": 0.02,
-        "total": 769.17
+        "total": 998.78
       },
       "error": null
     },
@@ -4041,7 +4041,7 @@
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source2",
           "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
           "publisher": "World Health Organization (WHO)",
           "page": 11,
@@ -4122,11 +4122,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 17.16,
-        "rerank": 808.46,
-        "generation": 0.05,
+        "vector": 15.5,
+        "rerank": 839.68,
+        "generation": 0.04,
         "verification": 0.02,
-        "total": 826.01
+        "total": 855.58
       },
       "error": null
     },
@@ -4137,22 +4137,22 @@
       "scope": "out_of_scope",
       "grounded": true,
       "abstained": false,
-      "answer": "The clinic's uploaded guidance states: reduce the number of appointments needed to treat atherosclerotic cardiovascular disease. An increase in GLP-1 receptor agonist or tirzepatide use will mean that DPP-4 inhibitor use will reduce. Early intervention could lead to weight loss as a beneficial side effect and so to a better long-term prognosis, which, if maintained, will reduce: • long-term treatment requirements and • the need for later stage treatments [C1]",
+      "answer": "The clinic's uploaded guidance states: previously reserved for later treatment phases. Recommending subcutaneous semaglutide (Ozempic), up to 1 mg once a week, for some people as part of initial therapy will increase costs. Taking subcutaneous semaglutide will mean that DPP-4 inhibitor use will reduce. Early intervention could lead to weight loss as a beneficial side effect that may result in better long-term prognoses. If maintained, this will reduce [C1]",
       "citations": [
         {
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
+          "document_id": "source1",
           "document": "Type 2 diabetes in adults: management (NG28)",
           "publisher": "National Institute for Health and Care Excellence (NICE)",
-          "page": 101,
-          "section": "1.29 People living with obesity",
-          "chunk_id": "source1:p101:c167",
+          "page": 50,
+          "section": "1.15 People with atherosclerotic cardiovascular",
+          "chunk_id": "source1:p50:c82",
           "source_url": "https://www.nice.org.uk/guidance/ng28",
-          "excerpt": "reduce the number of appointments needed to treat atherosclerotic cardiovascular disease. An increase in GLP-1 receptor agonist or tirzepatide use will mean that DPP-4 inhibitor use will reduce. Early intervention could lead to weight loss as a beneficial side effect and so to a better long-term prognosis, which, if maintained, will reduce: • long-term treatment requirements and • the need for later stage treatments",
-          "vector_distance": 1.198,
-          "rerank_score": -3.6209
+          "excerpt": "previously reserved for later treatment phases. Recommending subcutaneous semaglutide (Ozempic), up to 1 mg once a week, for some people as part of initial therapy will increase costs. Taking subcutaneous semaglutide will mean that DPP-4 inhibitor use will reduce. Early intervention could lead to weight loss as a beneficial side effect that may result in better long-term prognoses. If maintained, this will reduce",
+          "vector_distance": 1.0722,
+          "rerank_score": -3.7026
         }
       ],
       "citation_valid": true,
@@ -4177,13 +4177,6 @@
       },
       "retrieved": [
         {
-          "chunk_id": "source1:p101:c167",
-          "source": "source1.pdf",
-          "page": 101,
-          "distance": 1.198,
-          "rerank_score": -3.6209
-        },
-        {
           "chunk_id": "source1:p50:c82",
           "source": "source1.pdf",
           "page": 50,
@@ -4191,11 +4184,18 @@
           "rerank_score": -3.7026
         },
         {
-          "chunk_id": "source1:p105:c173",
+          "chunk_id": "source1:p101:c167",
           "source": "source1.pdf",
-          "page": 105,
-          "distance": 1.1501,
-          "rerank_score": -3.9231
+          "page": 101,
+          "distance": 1.198,
+          "rerank_score": -3.6209
+        },
+        {
+          "chunk_id": "source1:p91:c149",
+          "source": "source1.pdf",
+          "page": 91,
+          "distance": 1.0846,
+          "rerank_score": -4.7489
         },
         {
           "chunk_id": "source1:p95:c157",
@@ -4205,11 +4205,11 @@
           "rerank_score": -4.3814
         },
         {
-          "chunk_id": "source1:p91:c149",
+          "chunk_id": "source1:p91:c150",
           "source": "source1.pdf",
           "page": 91,
-          "distance": 1.0846,
-          "rerank_score": -4.7489
+          "distance": 1.1436,
+          "rerank_score": -5.9487
         }
       ],
       "validation_errors": [],
@@ -4224,11 +4224,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 16.13,
-        "rerank": 738.5,
+        "vector": 21.21,
+        "rerank": 843.55,
         "generation": 0.05,
         "verification": 0.02,
-        "total": 754.99
+        "total": 865.28
       },
       "error": null
     },
@@ -4265,11 +4265,11 @@
       "validation_errors": [],
       "verification": [],
       "latency_ms": {
-        "vector": 15.27,
+        "vector": 16.48,
         "rerank": 0.0,
         "generation": 0.0,
         "verification": 0.0,
-        "total": 15.33
+        "total": 16.54
       },
       "error": null
     },
@@ -4321,22 +4321,22 @@
       "scope": "out_of_scope",
       "grounded": true,
       "abstained": false,
-      "answer": "The clinic's uploaded guidance states: IF SYMPTOMATIC and FPG ≥15 mmol/L REVIEW IN 3 MONTHS (or immediately if symptoms appear) IF goal not achieved despite adherence to medication and diet and physical activity, REFER to higher level of care or BEGIN INSULIN (see insulin protocol) * Derived from WHO-PEN 2013 Control of blood pressure and blood lipids Blood pressure should be measured at every visit. Hypertension treatment is indicated in people with [C1]",
+      "answer": "The clinic's uploaded guidance states: 1.19 People with frailty 1.19.1 For adults with type 2 diabetes and frailty: • Offer modified-release metformin. • Only offer an SGLT2 inhibitor if the person's level of frailty does not place them at risk of adverse events from such a medicine (for example, volume depletion or hypotension). [2026] 1.19.2 If metformin is contraindicated or not tolerated, assess whether their level of frailty places the person at [C1]",
       "citations": [
         {
           "id": "C1",
           "source_id": 1,
           "rank": 1,
-          "document_id": null,
-          "document": "HEARTS D: Diagnosis and management of type 2 diabetes",
-          "publisher": "World Health Organization (WHO)",
-          "page": 16,
-          "section": "IF SYMPTOMATIC",
-          "chunk_id": "source2:p16:c24",
-          "source_url": "https://iris.who.int/handle/10665/331710",
-          "excerpt": "IF SYMPTOMATIC and FPG ≥15 mmol/L REVIEW IN 3 MONTHS (or immediately if symptoms appear) IF goal not achieved despite adherence to medication and diet and physical activity, REFER to higher level of care or BEGIN INSULIN (see insulin protocol) * Derived from WHO-PEN 2013 Control of blood pressure and blood lipids Blood pressure should be measured at every visit. Hypertension treatment is indicated in people with",
-          "vector_distance": 1.0863,
-          "rerank_score": -4.6167
+          "document_id": "source1",
+          "document": "Type 2 diabetes in adults: management (NG28)",
+          "publisher": "National Institute for Health and Care Excellence (NICE)",
+          "page": 65,
+          "section": "1.19 People with frailty",
+          "chunk_id": "source1:p65:c110",
+          "source_url": "https://www.nice.org.uk/guidance/ng28",
+          "excerpt": "1.19 People with frailty 1.19.1 For adults with type 2 diabetes and frailty: • Offer modified-release metformin. • Only offer an SGLT2 inhibitor if the person's level of frailty does not place them at risk of adverse events from such a medicine (for example, volume depletion or hypotension). [2026] 1.19.2 If metformin is contraindicated or not tolerated, assess whether their level of frailty places the person at",
+          "vector_distance": null,
+          "rerank_score": -5.4241
         }
       ],
       "citation_valid": true,
@@ -4361,25 +4361,32 @@
       },
       "retrieved": [
         {
-          "chunk_id": "source2:p16:c24",
+          "chunk_id": "source1:p65:c110",
+          "source": "source1.pdf",
+          "page": 65,
+          "distance": null,
+          "rerank_score": -5.4241
+        },
+        {
+          "chunk_id": "source2:p14:c15",
           "source": "source2.pdf",
-          "page": 16,
-          "distance": 1.0863,
-          "rerank_score": -4.6167
+          "page": 14,
+          "distance": 1.1122,
+          "rerank_score": -3.5246
         },
         {
-          "chunk_id": "source1:p108:c179",
+          "chunk_id": "source1:p122:c206",
           "source": "source1.pdf",
-          "page": 108,
-          "distance": 1.102,
-          "rerank_score": -5.3795
+          "page": 122,
+          "distance": null,
+          "rerank_score": -6.3829
         },
         {
-          "chunk_id": "source1:p111:c183",
+          "chunk_id": "source1:p126:c215",
           "source": "source1.pdf",
-          "page": 111,
-          "distance": 1.1063,
-          "rerank_score": -5.5252
+          "page": 126,
+          "distance": 1.0246,
+          "rerank_score": -8.6004
         },
         {
           "chunk_id": "source1:p19:c26",
@@ -4387,13 +4394,6 @@
           "page": 19,
           "distance": 1.0314,
           "rerank_score": -5.7415
-        },
-        {
-          "chunk_id": "source1:p127:c217",
-          "source": "source1.pdf",
-          "page": 127,
-          "distance": 1.0949,
-          "rerank_score": -6.022
         }
       ],
       "validation_errors": [],
@@ -4408,11 +4408,11 @@
         }
       ],
       "latency_ms": {
-        "vector": 12.59,
-        "rerank": 677.81,
+        "vector": 14.34,
+        "rerank": 838.49,
         "generation": 0.05,
-        "verification": 0.01,
-        "total": 690.79
+        "verification": 0.02,
+        "total": 853.39
       },
       "error": null
     }

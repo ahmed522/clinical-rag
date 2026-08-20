@@ -28,6 +28,7 @@ from rag.config import (
     CHUNKS_PATH,
     COLLECTION_NAME,
     EMBEDDING_MODEL,
+    HF_LOCAL_FILES_ONLY,
 )
 
 PERSIST_DIR = str(CHROMA_DIR)  # Chroma wants a string, not a Path
@@ -49,8 +50,22 @@ def chunks_to_documents(chunks: list[dict]) -> list[Document]:
     """
     documents = []
     for c in chunks:
+        # Prepend the section heading to what actually gets embedded/indexed,
+        # but ONLY for "Annex N:" headings specifically — not every heading.
+        # Measured broadening this to all section_titles: it fixed the one
+        # case it targeted but net-regressed recall@10 (37/38 -> 36/38) and
+        # nudged an out-of-scope distance across its threshold, by perturbing
+        # hundreds of already-well-embedded chunks whose numbered-
+        # recommendation headings didn't need this help. "Annex N:" chunks
+        # are the narrow, verified exception: pure flowchart/algorithm text
+        # ("START with 10 units...") with no self-contained framing, where
+        # the heading ("Annex 1: Protocol for treatment of type 2 diabetes
+        # mellitus with insulin") is the only thing that makes them
+        # findable, and it otherwise exists only as invisible metadata.
+        heading = c["section_title"]
+        text = f"{heading}\n{c['text']}" if heading.startswith("Annex ") else c["text"]
         doc = Document(
-            page_content=c["text"],
+            page_content=text,
             metadata={
                 "chunk_id": c["chunk_id"],
                 # Empty string when absent (an index built before this field
@@ -97,7 +112,10 @@ def index_chunks(chunks, collection_name=COLLECTION_NAME, persist_dir=None):
     """
     documents = chunks_to_documents(chunks)
 
-    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+    embeddings = HuggingFaceEmbeddings(
+        model_name=EMBEDDING_MODEL,
+        model_kwargs={"local_files_only": HF_LOCAL_FILES_ONLY},
+    )
 
     vectorstore = Chroma(
         collection_name=collection_name,

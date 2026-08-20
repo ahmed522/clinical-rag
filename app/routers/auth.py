@@ -28,7 +28,6 @@ from app.deps import (
     ROLE_PATIENT,
     CurrentUser,
     require_clinic_admin,
-    require_doctor,
 )
 from app.schemas import ClinicRegister, DoctorRegister, LoginRequest, PatientRegister, TokenResponse
 from app.supabase_client import admin_client, anon_client
@@ -70,16 +69,23 @@ def register_clinic(payload: ClinicRegister):
     Create a clinic (tenant) and its first admin.
 
     **Start here.** This is the only registration endpoint that needs no
-    token. It returns an admin `access_token` — authorize with it to add
-    doctors and view analytics. The admin no longer uploads documents or
-    registers patients directly; that moved to the doctor role.
+    token. Whoever the clinic owner designates (a receptionist) fills this
+    out and becomes the first account. It returns that account's
+    `access_token` — authorize with it to register doctors and patients and
+    view clinic statistics. The receptionist never touches documents,
+    medical records, or chat (enforced by RLS, not just the UI).
     """
     admin = admin_client()
 
     slug = _unique_slug(admin, _slugify(payload.clinic_name))
-    clinic = admin.table("clinics").insert(
-        {"name": payload.clinic_name, "specialty": payload.specialty, "slug": slug}
-    ).execute().data[0]
+    clinic = admin.table("clinics").insert({
+        "name": payload.clinic_name,
+        "specialty": payload.specialty,
+        "slug": slug,
+        "owner_name": payload.owner_name,
+        "owner_phone": payload.owner_phone,
+        "owner_email": payload.owner_email,
+    }).execute().data[0]
 
     try:
         admin.auth.admin.create_user({
@@ -155,24 +161,56 @@ def register_doctor(payload: DoctorRegister, admin: CurrentUser = Depends(requir
 @router.post(
     "/register-patient",
     status_code=status.HTTP_201_CREATED,
-    summary="Register a patient (doctor only)",
+    summary="Register a patient (receptionist / clinic admin only)",
     responses={
-        401: {"description": "Missing or invalid token — authorize as a doctor first"},
-        403: {"description": "Authenticated, but not a doctor"},
+        400: {"description": "No doctor to assign, or an invalid doctor for this clinic"},
+        401: {"description": "Missing or invalid token — authorize as a receptionist first"},
+        403: {"description": "Authenticated, but not a receptionist"},
         409: {"description": "Email already registered"},
     },
 )
-def register_patient(payload: PatientRegister, doctor: CurrentUser = Depends(require_doctor)):
+def register_patient(payload: PatientRegister, admin: CurrentUser = Depends(require_clinic_admin)):
     """
-    Register a patient under the caller's clinic, owned by the caller.
+    Register a patient under the caller's clinic, assigned to a doctor.
 
-    This moved from the clinic admin to the doctor: a patient's account is
-    linked to the medical relationship from the start, not created by an
-    administrative role with no clinical involvement. The doctor sets the
-    initial password and shares the clinic link + credentials with the
-    patient directly; must_change_password forces them to set their own on
-    first login.
+    Patient registration is the receptionist's job — a data-entry task, not
+    a clinical one. The patient must still be attached to a doctor from the
+    start (that link is the ownership key used throughout RLS). If the
+    clinic has exactly one doctor and none is named, it is assigned
+    automatically; with more than one, `doctor_id` is required. The
+    receptionist sets the initial password and shares the clinic link +
+    credentials with the patient directly; must_change_password forces them
+    to set their own on first login.
     """
+    # Resolve which doctor this patient is assigned to, restricted to the
+    # caller's own clinic. This runs through the admin's RLS-scoped client,
+    # so doctors_select already limits it to this clinic; the explicit
+    # clinic_id filter is defensive redundancy, not the boundary.
+    clinic_doctors = (
+        admin.db.table("doctors").select("id").eq("clinic_id", admin.clinic_id).execute().data
+    )
+    if not clinic_doctors:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Register a doctor before registering patients",
+        )
+
+    doctor_ids = {row["id"] for row in clinic_doctors}
+    if payload.doctor_id:
+        if payload.doctor_id not in doctor_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="That doctor does not belong to this clinic",
+            )
+        assigned_doctor_id = payload.doctor_id
+    elif len(doctor_ids) == 1:
+        assigned_doctor_id = next(iter(doctor_ids))
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This clinic has more than one doctor; choose which one to assign",
+        )
+
     root = admin_client()
 
     try:
@@ -180,34 +218,30 @@ def register_patient(payload: PatientRegister, doctor: CurrentUser = Depends(req
             "email": payload.email,
             "password": payload.password,
             "email_confirm": True,
-            "app_metadata": {"clinic_id": doctor.clinic_id, "role": ROLE_PATIENT},
+            "app_metadata": {"clinic_id": admin.clinic_id, "role": ROLE_PATIENT},
         })
     except AuthApiError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
 
-    # Through the DOCTOR's own client: patients_doctor_insert requires
-    # doctor_id = current_doctor_id(), so this call fails closed if the
-    # caller's own doctors row can't be resolved — never silently drops
-    # the ownership link.
-    doctor_row = doctor.db.table("doctors").select("id").eq("auth_id", doctor.user_id).execute().data
-    if not doctor_row:
+    # Through the RECEPTIONIST's own client: patients_admin_insert requires
+    # is_clinic_admin() and a doctor_id within this clinic. If the insert
+    # fails, roll back the orphaned auth user so a failed registration
+    # never leaves a login with no patient row behind it.
+    try:
+        patient = admin.db.table("patients").insert({
+            "clinic_id": admin.clinic_id,
+            "doctor_id": assigned_doctor_id,
+            "auth_id": user.user.id,
+            "name": payload.name,
+            "email": payload.email,
+            "age": payload.age,
+            "phone": payload.phone,
+        }).execute().data[0]
+    except Exception:
         root.auth.admin.delete_user(user.user.id)
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No doctor record linked to this account",
-        )
+        raise
 
-    patient = doctor.db.table("patients").insert({
-        "clinic_id": doctor.clinic_id,
-        "doctor_id": doctor_row[0]["id"],
-        "auth_id": user.user.id,
-        "name": payload.name,
-        "email": payload.email,
-        "age": payload.age,
-        "phone": payload.phone,
-    }).execute().data[0]
-
-    return {"patient_id": patient["id"], "user_id": user.user.id, "clinic_id": doctor.clinic_id}
+    return {"patient_id": patient["id"], "user_id": user.user.id, "clinic_id": admin.clinic_id}
 
 
 @router.post("/login", response_model=TokenResponse)

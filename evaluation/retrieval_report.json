@@ -16,8 +16,8 @@
       "query": "What should be offered if metformin is contraindicated or not tolerated?",
       "category": "initial_treatment",
       "expected": "source1.pdf p[32]",
-      "page_rank": null,
-      "answer_rank": null,
+      "page_rank": 7,
+      "answer_rank": 7,
       "best_score": 0.6782
     },
     {
@@ -25,8 +25,8 @@
       "query": "Which medicines should be offered to adults with type 2 diabetes and heart failure?",
       "category": "comorbidity",
       "expected": "source1.pdf p[40]",
-      "page_rank": 1,
-      "answer_rank": 1,
+      "page_rank": 4,
+      "answer_rank": 4,
       "best_score": 0.7374
     },
     {
@@ -34,8 +34,8 @@
       "query": "What treatment is recommended for type 2 diabetes with atherosclerotic cardiovascular disease?",
       "category": "comorbidity",
       "expected": "source1.pdf p[45]",
-      "page_rank": 5,
-      "answer_rank": 5,
+      "page_rank": 4,
+      "answer_rank": 4,
       "best_score": 0.6786
     },
     {
@@ -43,8 +43,8 @@
       "query": "How should early onset type 2 diabetes be treated?",
       "category": "comorbidity",
       "expected": "source1.pdf p[51]",
-      "page_rank": 1,
-      "answer_rank": 1,
+      "page_rank": 5,
+      "answer_rank": 5,
       "best_score": 0.5699
     },
     {
@@ -88,7 +88,7 @@
       "query": "How should an individual HbA1c target be agreed with a person with type 2 diabetes?",
       "category": "targets",
       "expected": "source1.pdf p[13]",
-      "page_rank": 2,
+      "page_rank": 1,
       "answer_rank": null,
       "best_score": 0.4062
     },
@@ -98,7 +98,7 @@
       "category": "targets",
       "expected": "source1.pdf p[13, 14]",
       "page_rank": 2,
-      "answer_rank": 2,
+      "answer_rank": 3,
       "best_score": 0.8325
     },
     {
@@ -115,8 +115,8 @@
       "query": "Who should be offered continuous glucose monitoring in type 2 diabetes?",
       "category": "monitoring",
       "expected": "source1.pdf p[15, 16]",
-      "page_rank": 1,
-      "answer_rank": 1,
+      "page_rank": 2,
+      "answer_rank": 2,
       "best_score": 0.546
     },
     {
@@ -187,8 +187,8 @@
       "query": "What should happen for people already taking standard-release metformin?",
       "category": "review",
       "expected": "source1.pdf p[74]",
-      "page_rank": 3,
-      "answer_rank": 3,
+      "page_rank": 2,
+      "answer_rank": 2,
       "best_score": 0.5922
     },
     {
@@ -241,8 +241,8 @@
       "query": "What are the diagnostic criteria and cut-off values for diagnosing diabetes?",
       "category": "diagnosis",
       "expected": "source2.pdf p[13]",
-      "page_rank": 1,
-      "answer_rank": 1,
+      "page_rank": 2,
+      "answer_rank": 2,
       "best_score": 0.5251
     },
     {
@@ -250,7 +250,7 @@
       "query": "How are the different types of diabetes classified?",
       "category": "diagnosis",
       "expected": "source2.pdf p[11]",
-      "page_rank": 2,
+      "page_rank": 3,
       "answer_rank": null,
       "best_score": 0.5959
     },
@@ -258,18 +258,18 @@
       "id": 29,
       "query": "When is metformin contraindicated?",
       "category": "safety",
-      "expected": "source2.pdf p[15]",
-      "page_rank": null,
-      "answer_rank": null,
+      "expected": "source2.pdf p[14]",
+      "page_rank": 2,
+      "answer_rank": 2,
       "best_score": 0.7393
     },
     {
       "id": 30,
       "query": "How should blood pressure and blood lipids be controlled in people with diabetes?",
       "category": "cardiovascular",
-      "expected": "source2.pdf p[17]",
-      "page_rank": null,
-      "answer_rank": null,
+      "expected": "source2.pdf p[16]",
+      "page_rank": 2,
+      "answer_rank": 2,
       "best_score": 0.6048
     },
     {
@@ -278,16 +278,16 @@
       "category": "acute_complications",
       "expected": "source2.pdf p[19]",
       "page_rank": 1,
-      "answer_rank": 8,
+      "answer_rank": 4,
       "best_score": 0.7147
     },
     {
       "id": 32,
       "query": "How should hyperglycaemic emergencies such as DKA and HHS be managed?",
       "category": "acute_complications",
-      "expected": "source2.pdf p[20]",
-      "page_rank": null,
-      "answer_rank": null,
+      "expected": "source2.pdf p[19]",
+      "page_rank": 1,
+      "answer_rank": 1,
       "best_score": 0.4591
     },
     {
@@ -295,8 +295,8 @@
       "query": "How should people with type 2 diabetes be screened for retinopathy?",
       "category": "complications",
       "expected": "source2.pdf p[21]",
-      "page_rank": null,
-      "answer_rank": null,
+      "page_rank": 9,
+      "answer_rank": 9,
       "best_score": 0.5663
     },
     {
@@ -304,8 +304,8 @@
       "query": "How should urinary albumin excretion be measured to check for kidney disease?",
       "category": "complications",
       "expected": "source2.pdf p[22]",
-      "page_rank": 2,
-      "answer_rank": 2,
+      "page_rank": 3,
+      "answer_rank": 3,
       "best_score": 0.6276
     },
     {
@@ -313,8 +313,8 @@
       "query": "When should a patient with diabetes be referred urgently to a higher level of care?",
       "category": "referral",
       "expected": "source2.pdf p[26]",
-      "page_rank": 1,
-      "answer_rank": 1,
+      "page_rank": 3,
+      "answer_rank": 3,
       "best_score": 0.773
     },
     {
@@ -322,8 +322,8 @@
       "query": "What is the protocol for starting insulin treatment in a primary care setting?",
       "category": "insulin",
       "expected": "source2.pdf p[29]",
-      "page_rank": null,
-      "answer_rank": null,
+      "page_rank": 3,
+      "answer_rank": 3,
       "best_score": 0.6656
     },
     {
@@ -331,9 +331,9 @@
       "query": "How should loss of protective sensation in the diabetic foot be assessed?",
       "category": "complications",
       "expected": "source2.pdf p[32, 33]",
-      "page_rank": 5,
-      "answer_rank": 5,
-      "best_score": 0.5689
+      "page_rank": 2,
+      "answer_rank": 2,
+      "best_score": 0.5779
     },
     {
       "id": 38,
@@ -349,7 +349,7 @@
     {
       "id": 101,
       "query": "What insulin regimen is recommended for children with type 1 diabetes?",
-      "best_score": 0.8049,
+      "best_score": 0.8026,
       "abstains": true
     },
     {

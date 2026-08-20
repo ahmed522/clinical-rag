@@ -31,7 +31,7 @@ export default function LoginPage() {
   }
 
   return <AuthShell title={t("login")} subtitle={t("loginSubtitle")}>
-    <form onSubmit={handleSubmit} className="space-y-4"><Field label={t("email")}><TextInput type="email" required value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" /></Field><Field label={t("password")}><TextInput type="password" required value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" /></Field><ErrorText>{error}</ErrorText><PrimaryButton type="submit" disabled={submitting} className="w-full">{submitting ? t("signingIn") : t("login")}</PrimaryButton></form>
-    <p className="mt-6 text-center text-sm text-[var(--ink-soft)]">{t("needClinic")} <Link href="/register-clinic" className="font-extrabold text-[var(--accent)] hover:underline">{t("registerClinic")}</Link></p>
+    <form onSubmit={handleSubmit} className="auth-login-form space-y-5"><Field label={t("email")}><TextInput type="email" required value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" /></Field><Field label={t("password")}><TextInput type="password" required value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" /></Field><ErrorText>{error}</ErrorText><PrimaryButton type="submit" disabled={submitting} className="w-full">{submitting ? t("signingIn") : t("login")}</PrimaryButton></form>
+    <p className="mt-7 text-center text-sm text-[var(--ink-soft)]">{t("needClinic")} <Link href="/register-clinic" className="font-extrabold text-[var(--accent)] underline-offset-4 hover:underline">{t("registerClinic")}</Link></p>
   </AuthShell>;
 }

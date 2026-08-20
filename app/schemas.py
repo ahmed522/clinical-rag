@@ -6,7 +6,7 @@ taken from the JWT, so it cannot be supplied — or forged — by a caller.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -20,6 +20,11 @@ class ClinicRegister(BaseModel):
     specialty: str = Field("General", max_length=255)
     admin_email: EmailStr
     admin_password: str = Field(..., min_length=8, max_length=72)
+    # The clinic owner is a contact, not an account: the clinic contracts
+    # with them directly and a receptionist fills out this registration.
+    owner_name: Optional[str] = Field(None, max_length=255)
+    owner_phone: Optional[str] = Field(None, max_length=64)
+    owner_email: Optional[EmailStr] = None
 
 
 class DoctorRegister(BaseModel):
@@ -35,6 +40,10 @@ class PatientRegister(BaseModel):
     password: str = Field(..., min_length=8, max_length=72)
     age: Optional[int] = Field(None, ge=0, le=130)
     phone: Optional[str] = Field(None, max_length=64)
+    # Which doctor the patient is assigned to. Optional: with a single
+    # doctor in the clinic the receptionist can omit it and the backend
+    # auto-assigns; with more than one it is required.
+    doctor_id: Optional[str] = Field(None, max_length=64)
 
 
 class LoginRequest(BaseModel):
@@ -93,7 +102,9 @@ class DocumentOut(BaseModel):
 # ----------------------------------------------------------------------
 
 class SessionCreate(BaseModel):
-    mode: str = Field("general", pattern="^(general|triage)$")
+    # Legacy triage sessions remain readable, but all newly-created patient
+    # conversations are the single normal chat experience.
+    mode: str = Field("general", pattern="^general$")
 
 
 class SessionOut(BaseModel):
@@ -188,3 +199,119 @@ class ChatReply(BaseModel):
     message: MessageOut
     grounded: bool
     reason: Optional[str] = None
+    action: Optional[Literal["book", "cancel", "reschedule"]] = None
+
+
+class AppointmentDoctor(BaseModel):
+    id: str
+    name: str
+    specialty: Optional[str] = None
+
+
+class AppointmentSlot(BaseModel):
+    doctor_id: str
+    slot: datetime
+
+
+class PatientAppointment(BaseModel):
+    id: str
+    doctor_id: str
+    slot: datetime
+    status: str
+    doctor_name: Optional[str] = None
+
+
+class AppointmentOptionsOut(BaseModel):
+    doctors: List[AppointmentDoctor] = Field(default_factory=list)
+    slots: List[AppointmentSlot] = Field(default_factory=list)
+    appointments: List[PatientAppointment] = Field(default_factory=list)
+
+
+class AppointmentActionIn(BaseModel):
+    action: Literal["book", "cancel", "reschedule"]
+    confirmed: bool = False
+    doctor_id: Optional[str] = None
+    slot: Optional[datetime] = None
+    appointment_id: Optional[str] = None
+
+
+class AppointmentActionOut(BaseModel):
+    message: MessageOut
+    grounded: bool
+    reason: Optional[str] = None
+
+
+# ----------------------------------------------------------------------
+# Doctor chat (same retrieval as patients, clinician prompt and private history)
+# ----------------------------------------------------------------------
+
+class DoctorChatRequest(BaseModel):
+    content: str = Field(..., min_length=1, max_length=4000)
+
+
+class DoctorChatReply(BaseModel):
+    """
+    Compatibility response for the original single-turn doctor endpoint.
+    Persisted conversations use the doctor-session endpoints below.
+    """
+
+    content: str
+    grounded: bool
+    reason: Optional[str] = None
+    citations: Optional[List[Citation]] = None
+    evidence_strength: Optional[str] = None
+    evidence: Optional[EvidencePackage] = None
+
+
+class DoctorChatSessionOut(BaseModel):
+    id: str
+    started_at: datetime
+    message_count: int = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DoctorMessageOut(BaseModel):
+    id: str
+    role: str
+    content: str
+    citations: Optional[List[Citation]] = None
+    grounded: Optional[bool] = None
+    reason: Optional[str] = None
+    evidence_strength: Optional[str] = None
+    evidence: Optional[EvidencePackage] = None
+    prompt_version: Optional[str] = None
+    rag_metadata: Optional[Dict[str, Any]] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ----------------------------------------------------------------------
+# Bug reports (doctor -> IT queue) and IT pipeline test
+# ----------------------------------------------------------------------
+
+class BugReportCreate(BaseModel):
+    issue: str = Field(..., min_length=1, max_length=4000)
+
+
+class BugReportStatusUpdate(BaseModel):
+    status: str = Field(..., pattern="^(open|investigating|resolved)$")
+
+
+class BugReportOut(BaseModel):
+    id: str
+    clinic_id: str
+    document_id: Optional[str] = None
+    reported_by: Optional[str] = None
+    issue: str
+    status: str
+    created_at: datetime
+    resolved_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PipelineTestRequest(BaseModel):
+    document_id: str = Field(..., max_length=64)
+    question: str = Field(..., min_length=1, max_length=4000)

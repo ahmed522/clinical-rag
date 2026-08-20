@@ -32,12 +32,13 @@ from rag.config import (
     ABSURD_DISTANCE,
     CHROMA_DIR,
     EMBEDDING_MODEL,
+    HF_LOCAL_FILES_ONLY,
     RERANK_CANDIDATE_K,
     RERANK_ENABLED,
     RETRIEVAL_K,
     collection_name_for,
 )
-from rag.rerank import rerank_hits
+from rag.hybrid_retrieval import hybrid_retrieve
 
 _embeddings = None
 
@@ -52,7 +53,10 @@ def _get_embeddings():
     if _embeddings is None:
         from langchain_huggingface import HuggingFaceEmbeddings
 
-        _embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+        _embeddings = HuggingFaceEmbeddings(
+            model_name=EMBEDDING_MODEL,
+            model_kwargs={"local_files_only": HF_LOCAL_FILES_ONLY},
+        )
     return _embeddings
 
 
@@ -62,6 +66,7 @@ def retrieve(
     k: int = RETRIEVAL_K,
     persist_dir=None,
     document_ids: Optional[List[str]] = None,
+    distance_gate: float = ABSURD_DISTANCE,
 ) -> List[dict]:
     """
     Return up to k chunks from this clinic's collection, or [] if the
@@ -81,6 +86,10 @@ def retrieve(
     "no documents are eligible" and must return nothing — falling through to
     an unfiltered search there would answer from precisely the documents the
     caller just excluded.
+
+    distance_gate defaults to the shared loose gate. Role-specific callers
+    may pass a wider gate, but must still enforce their own downstream
+    grounding and safety checks.
     """
     from langchain_chroma import Chroma
 
@@ -108,6 +117,10 @@ def retrieve(
 
     try:
         candidate_k = max(k, RERANK_CANDIDATE_K) if RERANK_ENABLED else k
+        # The ABSURD_DISTANCE gate below reads raw vector distance, which
+        # hybrid_retrieve's BM25/rerank fusion does not alter or replace —
+        # this call is purely to get that gate's input independent of
+        # whichever retrieval path runs next.
         hits = store.similarity_search_with_score(
             question, k=candidate_k, filter=search_filter
         )
@@ -117,13 +130,18 @@ def retrieve(
     if not hits:
         return []
 
-    # Chroma returns distance: lower is closer.
-    if hits[0][1] > ABSURD_DISTANCE:
+    # Chroma returns distance: lower is closer. Deliberately checked against
+    # the raw, unfused vector hits — BM25 scores are not commensurate with
+    # vector distance (higher-is-better vs lower-is-better, different
+    # scale) and must never be mixed into this specific safety check.
+    if hits[0][1] > distance_gate:
         return []
 
     if RERANK_ENABLED:
         try:
-            ranked_hits = rerank_hits(question, hits, k=k)
+            ranked_hits = hybrid_retrieve(
+                store, question, candidate_k=candidate_k, k=k, where=search_filter
+            )
         except Exception as exc:
             raise RetrievalUnavailableError("Reranking is temporarily unavailable") from exc
     else:
@@ -142,7 +160,7 @@ def retrieve(
             "page_number": doc.metadata.get("page_number"),
             "section_title": doc.metadata.get("section_title"),
             "chunk_id": doc.metadata.get("chunk_id"),
-            "distance": round(float(score), 4),
+            "distance": round(float(score), 4) if score is not None else None,
             "rerank_score": round(float(rerank_score), 4) if rerank_score is not None else None,
         }
         for rank, (doc, score, rerank_score) in enumerate(ranked_hits, start=1)

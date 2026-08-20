@@ -363,6 +363,59 @@ class OpenRouterProvider:
         return VerificationResult.from_json(raw)
 
 
+class OllamaProvider:
+    """A locally-running model via Ollama's OpenAI-compatible endpoint.
+
+    No rate limit, no cost, no network dependency once a model is pulled —
+    but speed and JSON reliability depend entirely on local hardware and the
+    chosen model. Verify locally before relying on it, the same lesson
+    learned from OpenRouterProvider's free-tier model failing structured
+    output. Ollama can pull GGUF models straight from Hugging Face too
+    (`ollama pull hf.co/<repo>:<quant>`), not just its own library.
+    """
+
+    name = "ollama"
+    DEFAULT_MODEL = "qwen2.5:7b-instruct"
+
+    def __init__(self, model: str = "", api_key: str = ""):
+        self.model = model or self.DEFAULT_MODEL
+        # Ollama does not check this; the OpenAI SDK just requires a
+        # non-empty string.
+        self.api_key = api_key or "ollama"
+        self.base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434") + "/v1"
+
+    def _client(self, timeout: float):
+        from openai import OpenAI
+
+        return OpenAI(api_key=self.api_key, base_url=self.base_url, timeout=timeout)
+
+    def _request(self, system: str, message: str, max_tokens: int, timeout: float) -> str:
+        response = self._client(timeout).chat.completions.create(
+            model=self.model,
+            messages=[{"role": "system", "content": system}, {"role": "user", "content": message}],
+            response_format={"type": "json_object"},
+            temperature=0.0,
+            max_tokens=max_tokens,
+        )
+        return response.choices[0].message.content or ""
+
+    def chat(self, system: str, message: str) -> str:
+        return self._request(system, message, 128, settings.LLM_TIMEOUT_SECONDS)
+
+    def complete(self, system: str, sources: List[dict], question: str, context: str = "") -> LLMResult:
+        raw = self._request(system, _user_message(sources, question, context), 3000, settings.LLM_TIMEOUT_SECONDS)
+        return LLMResult.from_json(raw)
+
+    def verify(self, question: str, claims: List[dict]) -> VerificationResult:
+        raw = self._request(
+            EVIDENCE_VERIFICATION_PROMPT,
+            _verification_message(question, claims),
+            1000,
+            settings.EVIDENCE_VERIFIER_TIMEOUT_SECONDS,
+        )
+        return VerificationResult.from_json(raw)
+
+
 def _user_message(sources: List[dict], question: str, context: str = "") -> str:
     """Render retrieved text as numbered, explicitly untrusted evidence."""
     blocks = []
@@ -394,4 +447,6 @@ def get_provider():
         return OpenAIProvider(settings.LLM_MODEL, settings.LLM_API_KEY)
     if provider == "openrouter":
         return OpenRouterProvider(settings.LLM_MODEL, settings.LLM_API_KEY)
+    if provider == "ollama":
+        return OllamaProvider(settings.LLM_MODEL, settings.LLM_API_KEY)
     return MockProvider()

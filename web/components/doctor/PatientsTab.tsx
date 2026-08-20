@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { Card, ErrorText, Field, PageHeader, PrimaryButton, SecondaryButton, TextInput } from "@/components/ui";
+import { Card, EmptyState, Field, PageHeader, PrimaryButton, SecondaryButton, TextInput } from "@/components/ui";
 import { useAuth } from "@/lib/auth-context";
 import { useLang } from "@/lib/i18n";
-import { API_BASE_URL, supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 interface PatientRow {
   id: string;
@@ -23,27 +23,17 @@ interface RecordRow {
 }
 
 /**
- * Rebuilt, not just relocated, from the old clinic-admin version: patient
- * registration moved from a plain table insert to minting a real Auth
- * account (name/email/password), and RLS's patients_doctor_insert policy
- * means this list is already scoped to the caller's OWN patients — no
- * client-side filter does that, the database does.
+ * The doctor's view of their own assigned patients: list, history, and
+ * adding medical records. Patient REGISTRATION moved to the receptionist —
+ * a doctor no longer mints patient accounts — so there is no add-patient
+ * form here anymore. RLS's patients_select doctor branch already scopes
+ * this list to the caller's own patients; no client filter does that.
  */
 export function PatientsTab() {
   const { t, lang } = useLang();
-  const { session, clinicId } = useAuth();
+  const { clinicId } = useAuth();
   const [patients, setPatients] = useState<PatientRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [formOpen, setFormOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [age, setAge] = useState("");
-  const [phone, setPhone] = useState("");
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [justRegistered, setJustRegistered] = useState<{ email: string; password: string } | null>(null);
-  const [clinicSlug, setClinicSlug] = useState<string | null>(null);
 
   const [selected, setSelected] = useState<PatientRow | null>(null);
   const [records, setRecords] = useState<RecordRow[]>([]);
@@ -63,57 +53,6 @@ export function PatientsTab() {
     const timer = window.setTimeout(() => void load(), 0);
     return () => window.clearTimeout(timer);
   }, [load]);
-
-  useEffect(() => {
-    if (!clinicId) return;
-    supabase
-      .from("clinics")
-      .select("slug")
-      .eq("id", clinicId)
-      .maybeSingle()
-      .then(({ data }) => setClinicSlug(data?.slug ?? null));
-  }, [clinicId]);
-
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
-    if (!session) return;
-    setError("");
-    setSubmitting(true);
-
-    // Registering a patient means minting a Supabase Auth user with
-    // app_metadata set — only the service role can do that, so this one
-    // goes through the backend rather than a direct table insert.
-    const response = await fetch(`${API_BASE_URL}/auth/register-patient`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({
-        name,
-        email,
-        password,
-        age: age ? Number(age) : null,
-        phone: phone || null,
-      }),
-    });
-
-    setSubmitting(false);
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
-      setError(body?.detail ?? t("error"));
-      return;
-    }
-
-    setJustRegistered({ email, password });
-    setName("");
-    setEmail("");
-    setPassword("");
-    setAge("");
-    setPhone("");
-    setFormOpen(false);
-    load();
-  }
 
   async function openHistory(patient: PatientRow) {
     setSelected(patient);
@@ -207,74 +146,26 @@ export function PatientsTab() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <PageHeader eyebrow={t("roleDoctor")} title={t("myPatients")} description={t("medicalHistory")} />
-      {!formOpen ? (
-        <PrimaryButton onClick={() => { setFormOpen(true); setJustRegistered(null); }} className="self-start">
-          {t("addPatient")}
-        </PrimaryButton>
-      ) : (
-        <Card>
-          <form onSubmit={handleAdd} className="flex flex-col gap-3">
-            <Field label={t("patientName")}>
-              <TextInput required value={name} onChange={(e) => setName(e.target.value)} />
-            </Field>
-            <Field label={t("email")}>
-              <TextInput type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-            </Field>
-            <Field label={t("password")}>
-              <TextInput type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
-            </Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label={t("age")}>
-                <TextInput type="number" min={0} max={130} value={age} onChange={(e) => setAge(e.target.value)} />
-              </Field>
-              <Field label={t("phone")}>
-                <TextInput value={phone} onChange={(e) => setPhone(e.target.value)} />
-              </Field>
-            </div>
-            <ErrorText>{error}</ErrorText>
-            <div className="flex gap-2">
-              <PrimaryButton type="submit" disabled={submitting}>
-                {submitting ? t("uploading") : t("add")}
-              </PrimaryButton>
-              <SecondaryButton type="button" onClick={() => setFormOpen(false)} disabled={submitting}>
-                {t("cancelAction")}
-              </SecondaryButton>
-            </div>
-          </form>
-        </Card>
-      )}
-
-      {justRegistered && (
-        <Card className="border-[var(--accent-2)]">
-          <p className="text-sm font-semibold">{t("initialPasswordNotice")}</p>
-          <p className="text-xs text-[var(--ink-soft)] mt-2">{t("email")}: {justRegistered.email}</p>
-          <p className="text-xs text-[var(--ink-soft)]">{t("password")}: {justRegistered.password}</p>
-          {clinicSlug && (
-            <p className="text-xs text-[var(--ink-soft)] mt-1">
-              {t("clinicLink")}: {typeof window !== "undefined" ? window.location.origin : ""}/clinic/{clinicSlug}
-            </p>
-          )}
-        </Card>
-      )}
 
       {loading ? (
         <p className="text-[var(--ink-soft)] text-sm">{t("loading")}</p>
       ) : patients.length === 0 ? (
-        <p className="text-[var(--ink-soft)] text-sm">{t("noPatientsYet")}</p>
+        <EmptyState icon="users" title={t("noPatientsYet")} />
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {patients.map((patient) => (
             <Card
               key={patient.id}
-              className="flex items-center justify-between gap-3 cursor-pointer hover:border-[var(--accent)]"
+              className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between cursor-pointer hover:border-[var(--accent)]"
             >
               <div onClick={() => openHistory(patient)} className="flex-1">
-                <p className="font-bold text-sm">{patient.name}</p>
-                <p className="text-xs text-[var(--ink-soft)]">
-                  {patient.age ? `${patient.age}` : ""} {patient.phone ?? ""}
-                </p>
+                <p className="font-bold text-[15px]">{patient.name}</p>
+                <div className="mt-3 flex flex-wrap gap-2.5 text-xs">
+                  <PatientInfo label={t("age")} value={patient.age != null ? String(patient.age) : "-"} />
+                  <PatientInfo label={t("phoneNumber")} value={patient.phone || "-"} />
+                </div>
               </div>
               <SecondaryButton onClick={() => openHistory(patient)} className="text-xs px-3 py-1.5">
                 {t("viewHistory")}
@@ -284,5 +175,14 @@ export function PatientsTab() {
         </div>
       )}
     </div>
+  );
+}
+
+function PatientInfo({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="inline-flex items-baseline gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] px-2.5 py-1.5">
+      <span className="font-bold text-[var(--ink-faint)]">{label}</span>
+      <span className="font-extrabold text-[var(--ink-soft)]">{value}</span>
+    </span>
   );
 }

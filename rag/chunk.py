@@ -70,6 +70,17 @@ HEADING_PATTERN = re.compile(
     r"^(?P<heading>"
     r"(\d+(\.\d+)*[ \t]+[A-Z][^\n]{2,80})"   # e.g. "1.2 Managing blood glucose"
     r"|"
+    # "Annex 1: Protocol for\ntreatment...\nmellitus with insulin" — WHO-style
+    # appendix titles that wrap across up to 2 extra lines in narrow PDF
+    # columns, which the [^\n]-based branches below can never match (they
+    # are single-line by construction). Without this, an annex's own title
+    # attaches to whatever section precedes it instead (observed: WHO-HEARTS
+    # source2.pdf's insulin-titration protocol inherited "6 Resources" from
+    # the preceding bibliography, losing the one heading — "Protocol for
+    # treatment ... with insulin" — that would have made it findable for a
+    # question asking about exactly that protocol).
+    r"(Annex\s+\d+\s*:[^\n]{0,40}(?:\n[^\n]{2,40}){0,2})"
+    r"|"
     r"([A-Z][A-Za-z ,\-]{3,70})"             # e.g. all-caps-ish "Diagnosis"
     r")$",
     re.MULTILINE,
@@ -77,8 +88,9 @@ HEADING_PATTERN = re.compile(
 
 # A numbered candidate ("1.5.9 Consider relaxing...") is always a real
 # boundary — in NICE guidelines it starts a numbered recommendation, and
-# a recommendation is exactly the unit we want to retrieve.
-NUMBERED_HEADING = re.compile(r"^\d+(\.\d+)*[ \t]+")
+# a recommendation is exactly the unit we want to retrieve. "Annex N:" is
+# the same kind of unambiguous, always-real boundary for WHO-style annexes.
+NUMBERED_HEADING = re.compile(r"^\d+(\.\d+)*[ \t]+|^Annex\s+\d+\s*:")
 
 # Boilerplate patterns that repeat on every page (page numbers, copyright
 # notices) and get falsely matched as headings. Anything matching one of
@@ -220,8 +232,12 @@ def split_into_sections(full_text: str) -> list[dict]:
         # almost every numbered recommendation existed only in metadata —
         # and metadata is not embedded, so it was unsearchable.
         lead = len(raw) - len(raw.lstrip())
+        # An Annex heading can span up to 3 wrapped lines (see HEADING_PATTERN);
+        # normalize to a single line so section_title metadata and citations
+        # read as one heading, not a heading with raw newlines embedded.
+        heading = " ".join(m.group("heading").split()) if m is not None else "Preamble"
         sections.append({
-            "heading": m.group("heading").strip() if m is not None else "Preamble",
+            "heading": heading,
             "start": start + lead,
             "end": end,
             "text": stripped,

@@ -28,7 +28,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 
 from app.config import settings
 from app.deps import CurrentUser, require_doctor
-from app.schemas import DocumentOut
+from app.schemas import BugReportCreate, BugReportOut, DocumentOut
 from rag.chunk import chunk_document
 from rag.config import CHUNKING_VERSION, EXTRACTION_VERSION, collection_name_for
 from rag.embed import delete_document_chunks, index_chunks
@@ -267,3 +267,42 @@ def verify_document(
         detail = "Document is not ready for verification" if verified else "Document not found"
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail)
     return result.data[0]
+
+
+@router.post("/{document_id}/report", response_model=BugReportOut, status_code=status.HTTP_201_CREATED)
+def report_document_issue(
+    document_id: str,
+    payload: BugReportCreate,
+    doctor: CurrentUser = Depends(require_doctor),
+):
+    """
+    File a bug report against a document for the internal IT queue.
+
+    Used when a document uploaded fine but the assistant answers poorly from
+    it — the doctor describes the issue and IT picks it up in their Test
+    section. Written through the doctor's own client: bug_reports_doctor_insert
+    scopes it to this clinic. The document_id is stored as-is; RLS keeps the
+    doctor from filing against another clinic's document because they cannot
+    see it to reference it in the first place.
+    """
+    document = (
+        doctor.db.table("documents")
+        .select("id")
+        .eq("id", document_id)
+        .maybe_single()
+        .execute()
+        .data
+    )
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+
+    report = doctor.db.table("bug_reports").insert({
+        "clinic_id": doctor.clinic_id,
+        "document_id": document_id,
+        "reported_by": doctor.user_id,
+        "issue": payload.issue,
+    }).execute().data[0]
+    return report

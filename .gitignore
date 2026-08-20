@@ -50,6 +50,11 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+/evaluation/full_rag_runs/
+/evaluation/api_*.log
+/evaluation/api_*.pid
+/evaluation/web_*.log
+/evaluation/web_*.pid
 
 # Translations
 *.mo
@@ -242,6 +247,7 @@ data/query_results.json
 
 # Editor settings — machine-specific interpreter paths
 .vscode/
+.cursor/
 
 # ==================================================
 # SaaS application runtime state
@@ -258,3 +264,7 @@ data/uploads/
 # Claude Code local tool-permission cache — machine/session-specific, not
 # project config. .claude/launch.json (preview server config) IS tracked.
 .claude/settings.local.json
+
+# Ad-hoc named full-RAG runs are local diagnostics. The canonical runner writes
+# to evaluation/full_rag_runs/, which is already ignored above.
+/evaluation/doctor_rag_*/

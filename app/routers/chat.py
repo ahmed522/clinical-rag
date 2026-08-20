@@ -1,5 +1,5 @@
 """
-Patient chat: grounded, cited answers from the patient's own clinic.
+Patient chat for clinic-service requests; it does not answer medical questions.
 
 Every query in this file runs through the patient's OWN Supabase client
 (current_patient_record's caller, forwarded from deps.py), so RLS is doing
@@ -18,20 +18,35 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.deps import CurrentUser, current_patient_record, require_patient
-from app.schemas import ChatReply, MessageIn, MessageOut, SessionCreate, SessionOut
+from app.schemas import (
+    AppointmentActionIn,
+    AppointmentActionOut,
+    AppointmentOptionsOut,
+    ChatReply,
+    MessageIn,
+    MessageOut,
+    SessionCreate,
+    SessionOut,
+)
 from app.llm_prompts import PROMPT_VERSION
-from app.services.appointments import handle_appointment_query
+from app.services.appointments import apply_appointment_action, appointment_options, handle_appointment_query
 from app.services.classifier import QueryIntent, classify_query
-from app.services.generation import GroundedAnswer, answer_question
+from app.services.generation import GroundedAnswer
 
 GREETING_RESPONSES = {
     "hello": (
-        "Hello! I'm your clinic's health assistant. You can ask me "
-        "medical questions or check your appointments. How can I help?"
+        "Hello! I can help you check, book, cancel, or reschedule appointments, "
+        "or see which doctors are available."
     ),
     "thanks": "You're welcome! Let me know if there's anything else I can help with.",
     "farewell": "Goodbye! Take care, and don't hesitate to reach out if you need anything.",
 }
+
+MEDICAL_QUESTION_REFUSAL = (
+    "I'm sorry, but I can't answer medical questions. Please contact your doctor "
+    "or the clinic for medical advice. I can help you check, book, cancel, or "
+    "reschedule appointments."
+)
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -73,22 +88,6 @@ def _insert_assistant_message(user: CurrentUser, session_id: str, answer: Ground
         "prompt_version": answer.audit.get("prompt_version") or PROMPT_VERSION,
         "rag_metadata": answer.audit or None,
     }
-
-
-def _patient_context(user: CurrentUser, patient: dict) -> str:
-    """A short summary of the patient's own records, for triage."""
-    records = (
-        user.db.table("medical_records")
-        .select("diagnosis, notes")
-        .eq("patient_id", patient["id"])
-        .order("created_at", desc=True)
-        .limit(5)
-        .execute()
-        .data
-    )
-    return "\n".join(
-        f"- {r.get('diagnosis') or 'note'}: {r.get('notes') or ''}".strip() for r in records
-    )
 
 
 def _verified_document_ids(user: CurrentUser) -> List[str]:
@@ -191,24 +190,22 @@ def send_message(
         "content": payload.content,
     }).execute()
 
+    action = None
     intent, greeting_type = classify_query(payload.content)
-
     if intent == QueryIntent.GREETING:
         key = greeting_type.value if greeting_type else "hello"
         answer = GroundedAnswer(GREETING_RESPONSES.get(key, GREETING_RESPONSES["hello"]), grounded=True)
-    elif intent == QueryIntent.APPOINTMENT:
+    elif intent in {QueryIntent.BOOK, QueryIntent.CANCEL, QueryIntent.RESCHEDULE}:
+        action = intent.value
+        words = {"book": "choose a doctor and available time", "cancel": "choose an appointment to cancel", "reschedule": "choose an appointment and a new available time"}
+        answer = GroundedAnswer(f"I can help you {intent.value} your appointment. Please {words[action]} below, then confirm your choice.", grounded=True)
+    elif intent in {QueryIntent.APPOINTMENT, QueryIntent.AVAILABILITY}:
         answer = handle_appointment_query(user, payload.content)
     else:
-        context = ""
-        if session["mode"] == "triage":
-            context = _patient_context(user, patient)
-
-        answer = answer_question(
-            clinic_id=user.clinic_id,
-            question=payload.content,
-            mode=session["mode"],
-            patient_context=context,
-            document_ids=_verified_document_ids(user),
+        answer = GroundedAnswer(
+            MEDICAL_QUESTION_REFUSAL,
+            grounded=False,
+            reason="patient_medical_not_supported",
         )
 
     reply = _insert_assistant_message(user, session["id"], answer)
@@ -217,6 +214,29 @@ def send_message(
         message=MessageOut.model_validate(reply),
         grounded=answer.grounded,
         reason=answer.reason,
+        action=action,
+    )
+
+
+@router.get("/appointment-options", response_model=AppointmentOptionsOut)
+def get_appointment_options(user: CurrentUser = Depends(require_patient)):
+    return appointment_options(user)
+
+
+@router.post("/{session_id}/appointment-action", response_model=AppointmentActionOut)
+def appointment_action(
+    session_id: str,
+    payload: AppointmentActionIn,
+    user: CurrentUser = Depends(require_patient),
+):
+    session = _get_session(user, session_id)
+    try:
+        answer = apply_appointment_action(user, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    reply = _insert_assistant_message(user, session["id"], answer)
+    return AppointmentActionOut(
+        message=MessageOut.model_validate(reply), grounded=answer.grounded, reason=answer.reason
     )
 
 

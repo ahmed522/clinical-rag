@@ -5,11 +5,13 @@ import { useEffect } from "react";
 
 import { type Role, useAuth } from "@/lib/auth-context";
 import { useLang } from "@/lib/i18n";
+import { LoadingScreen } from "@/components/ui";
 
 function homeFor(role: Role): string {
   if (role === "clinic_admin") return "/clinic";
   if (role === "doctor") return "/doctor";
   if (role === "patient") return "/patient";
+  if (role === "it") return "/it";
   return "/login";
 }
 
@@ -66,11 +68,7 @@ export function RequireRole({
   }, [ready, session, roleMatches, currentRole, mustChangePassword, needsOnboarding, router]);
 
   if (!ready || !session || !roleMatches || mustChangePassword || needsOnboarding) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-[var(--ink-soft)]">
-        {t("loading")}
-      </div>
-    );
+    return <LoadingScreen label={t("loading")} />;
   }
 
   return <>{children}</>;

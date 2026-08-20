@@ -7,18 +7,17 @@ Defaults to MEDICAL on any ambiguity — the RAG pipeline already has
 its own safe refusal path.
 """
 
-import json
 import re
 from enum import Enum
 from typing import Optional, Tuple
 
-from app.llm import get_provider
-from app.llm_prompts import CLASSIFICATION_PROMPT
-
-
 class QueryIntent(Enum):
     GREETING = "greeting"
     APPOINTMENT = "appointment"
+    AVAILABILITY = "availability"
+    BOOK = "book"
+    CANCEL = "cancel"
+    RESCHEDULE = "reschedule"
     MEDICAL = "medical"
 
 
@@ -53,6 +52,19 @@ for gtype, patterns in _GREETING_PATTERNS.items():
         _ALL_GREETINGS[p] = gtype
 
 
+# Scheduling/availability queries are safe deterministic data lookups. They
+# should not depend on an LLM deciding what the patient meant.
+_BOOKING_PATTERN = re.compile(r"\b(book|schedule|make)\b.{0,40}\b(appointment|visit|slot)\b|\bbook\b", re.IGNORECASE)
+_CANCEL_PATTERN = re.compile(r"\b(cancel|remove)\b.{0,40}\b(appointment|visit|booking)\b|\bcancel\b", re.IGNORECASE)
+_RESCHEDULE_PATTERN = re.compile(r"\b(reschedule|rebook|move|change)\b.{0,40}\b(appointment|visit|booking|slot)\b|\breschedule\b", re.IGNORECASE)
+_AVAILABILITY_PATTERN = re.compile(
+    r"\b(available\s+doctors?|doctor\s+availability|which\s+doctors?|"
+    r"who\s+(?:is|are)\s+available|who\s+can\s+i\s+see|available\s+now)\b",
+    re.IGNORECASE,
+)
+_APPOINTMENT_PATTERN = re.compile(r"\b(appointment|appointments|upcoming\s+visit|my\s+visit)\b", re.IGNORECASE)
+
+
 def _normalize(text: str) -> str:
     return re.sub(r"[^\w\s]", "", text).strip().lower()
 
@@ -62,23 +74,18 @@ def _detect_greeting(query: str) -> Optional[GreetingType]:
     return _ALL_GREETINGS.get(normalized)
 
 
-def _llm_classify(query: str) -> QueryIntent:
-    try:
-        raw = get_provider().chat(CLASSIFICATION_PROMPT, query)
-        start, end = raw.find("{"), raw.rfind("}")
-        if start == -1:
-            return QueryIntent.MEDICAL
-        data = json.loads(raw[start : end + 1])
-        intent = data.get("intent", "medical").lower().strip()
-        if intent == "appointment":
-            return QueryIntent.APPOINTMENT
-    except Exception:
-        pass
-    return QueryIntent.MEDICAL
-
-
 def classify_query(query: str) -> Tuple[QueryIntent, Optional[GreetingType]]:
     greeting_type = _detect_greeting(query)
     if greeting_type is not None:
         return QueryIntent.GREETING, greeting_type
-    return _llm_classify(query), None
+    if _RESCHEDULE_PATTERN.search(query):
+        return QueryIntent.RESCHEDULE, None
+    if _CANCEL_PATTERN.search(query):
+        return QueryIntent.CANCEL, None
+    if _BOOKING_PATTERN.search(query):
+        return QueryIntent.BOOK, None
+    if _AVAILABILITY_PATTERN.search(query):
+        return QueryIntent.AVAILABILITY, None
+    if _APPOINTMENT_PATTERN.search(query):
+        return QueryIntent.APPOINTMENT, None
+    return QueryIntent.MEDICAL, None

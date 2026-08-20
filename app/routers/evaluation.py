@@ -1,4 +1,9 @@
-"""Read-only access to the latest offline RAG evaluation artifact."""
+"""Read-only access to the latest offline RAG evaluation artifact.
+
+Restricted to doctors: the receptionist (clinic_admin) is administrative
+staff and must not see RAG/technical data. IT gets the same benchmark via
+its own /it/metrics route.
+"""
 
 import json
 from pathlib import Path
@@ -6,7 +11,7 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.deps import CurrentUser, require_clinical_staff
+from app.deps import CurrentUser, require_doctor
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -19,7 +24,7 @@ router = APIRouter(prefix="/evaluation", tags=["evaluation"])
 
 
 @router.get("/latest", response_model=Dict[str, Any])
-def latest_report(_user: CurrentUser = Depends(require_clinical_staff)):
+def latest_report(_user: CurrentUser = Depends(require_doctor)):
     available = [path for path in REPORT_PATHS if path.exists()]
     if not available:
         raise HTTPException(

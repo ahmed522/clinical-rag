@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AuthShell } from "@/components/AuthShell";
-import { ErrorText, Field, PrimaryButton, TextInput } from "@/components/ui";
+import { ErrorText, Field, LoadingScreen, PrimaryButton, TextInput } from "@/components/ui";
 import { useLang } from "@/lib/i18n";
 import { API_BASE_URL, supabase } from "@/lib/supabase";
 import { withTimeout } from "@/lib/timeout";
@@ -85,11 +85,7 @@ export default function ClinicLoginPage() {
   }
 
   if (clinicLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-[var(--ink-soft)]">
-        {t("loading")}
-      </div>
-    );
+    return <LoadingScreen label={t("loading")} />;
   }
 
   if (!clinic) {

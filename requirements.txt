@@ -7,6 +7,7 @@ langchain-chroma
 
 chromadb
 sentence-transformers
+rank_bm25
 
 # Web application (multi-tenant SaaS layer)
 fastapi
@@ -21,6 +22,7 @@ python-dotenv
 # Auth issues and verifies tokens, and RLS is what enforces tenancy, not
 # an ORM query filter.
 supabase
+psycopg2-binary
 
 # LLM provider. Only the one named by LLM_PROVIDER is imported at runtime
 # (the imports live inside each provider's complete()), so the others can

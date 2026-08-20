@@ -10,7 +10,7 @@ import { createContext, useContext, useEffect, useState } from "react";
  * chat components, which hardcode their strings rather than translate.
  */
 const dict = {
-  appName: { ar: "طبيبك", en: "Tabibak" },
+  appName: { ar: "طبيبك", en: "Tabeebak" },
 
   // auth
   login: { ar: "تسجيل الدخول", en: "Log in" },
@@ -70,6 +70,7 @@ const dict = {
   patientName: { ar: "اسم المريض", en: "Patient name" },
   age: { ar: "العمر", en: "Age" },
   phone: { ar: "رقم الهاتف", en: "Phone" },
+  phoneNumber: { ar: "رقم الهاتف", en: "Phone number" },
   patients: { ar: "المرضى", en: "Patients" },
   noPatientsYet: { ar: "لا يوجد مرضى مسجّلون بعد.", en: "No patients registered yet." },
 
@@ -109,7 +110,7 @@ const dict = {
   cancelAction: { ar: "إلغاء", en: "Cancel" },
   supportDisclaimer: {
     ar: "طبيبك أداة مساعدة تدعم علاقتك بطبيبك، ولا تحل محل زيارته.",
-    en: "Tabibak is a support tool for your relationship with your doctor, not a replacement for visiting them.",
+    en: "Tabeebak is a support tool for your relationship with your doctor, not a replacement for visiting them.",
   },
 
   // doctor dashboard
@@ -160,13 +161,13 @@ const dict = {
   continueAction: { ar: "متابعة", en: "Continue" },
 
   // patient onboarding / welcome
-  welcomeTitle: { ar: "أهلًا بيك في طبيبك", en: "Welcome to Tabibak" },
+  welcomeTitle: { ar: "أهلًا بيك في طبيبك", en: "Welcome to Tabeebak" },
   welcomeAskQuestion: { ar: "اسأل عن حالتك الصحية", en: "Ask a question about your condition" },
   welcomeBookAppointment: { ar: "احجز موعد مع طبيبك", en: "Book an appointment with your doctor" },
   welcomeSeeHistory: { ar: "شوف أدويتك وسجلك الطبي", en: "See your medications and medical history" },
   welcomeSafety: {
     ar: "طبيبك بيساعدك تفهم، ومش بديل عن طبيبك. في حالة الطوارئ، تواصل مع العيادة فورًا.",
-    en: "Tabibak helps you understand — it is not a replacement for your doctor. In an emergency, contact the clinic immediately.",
+    en: "Tabeebak helps you understand — it is not a replacement for your doctor. In an emergency, contact the clinic immediately.",
   },
   confirmYourInfo: { ar: "أكّد بياناتك", en: "Confirm your info" },
   getStarted: { ar: "ابدأ", en: "Get started" },
@@ -186,7 +187,8 @@ const dict = {
   clinicalSafe: { ar: "ضوابط السلامة مفعّلة", en: "Safety checks active" },
   rolePatient: { ar: "مريض", en: "Patient" },
   roleDoctor: { ar: "طبيب", en: "Doctor" },
-  roleAdmin: { ar: "مسؤول العيادة", en: "Clinic admin" },
+  roleAdmin: { ar: "موظف الاستقبال", en: "Receptionist" },
+  roleIt: { ar: "الدعم الفني", en: "IT" },
   loginSubtitle: { ar: "المساعد المعرفي لعيادتك", en: "The knowledge assistant for your clinic" },
 
   // chat empty state
@@ -195,6 +197,12 @@ const dict = {
     ar: "اسأل عن حالتك الصحية أو اطّلع على مواعيدك.",
     en: "Ask a health question, or check your appointments.",
   },
+  patientAssistantTitle: { ar: "مساعد المواعيد", en: "Appointment assistant" },
+  patientAssistantHint: {
+    ar: "تحقق من مواعيدك أو احجز أو ألغِ أو أعد جدولة موعد.",
+    en: "Check, book, cancel, or reschedule your appointments.",
+  },
+  patientAssistantThinking: { ar: "جارٍ التحقق من طلبك…", en: "Checking your request…" },
   recommendation: { ar: "التوصية", en: "Recommendation" },
   supportingEvidence: { ar: "الأدلة الداعمة", en: "Supporting evidence" },
   citations: { ar: "المراجع", en: "Citations" },
@@ -243,6 +251,95 @@ const dict = {
   trustReview: { ar: "مراجعة الثقة", en: "Trust review" },
   extractionQuality: { ar: "جودة الاستخراج", en: "Extraction quality" },
   verifiedByDoctor: { ar: "تم التحقق بواسطة طبيب", en: "Verified by a doctor" },
+
+  // clinic owner (contact only, not a login)
+  clinicOwner: { ar: "مالك العيادة", en: "Clinic owner" },
+  ownerName: { ar: "اسم المالك", en: "Owner name" },
+  ownerPhone: { ar: "هاتف المالك", en: "Owner phone" },
+  ownerEmail: { ar: "بريد المالك", en: "Owner email" },
+  ownerContactHint: {
+    ar: "بيانات تواصل فقط — المالك ليس له حساب دخول.",
+    en: "Contact details only — the owner has no login account.",
+  },
+
+  // receptionist — patient registration with doctor assignment
+  assignDoctor: { ar: "الطبيب المعالج", en: "Assigned doctor" },
+  selectDoctor: { ar: "اختر الطبيب", en: "Select a doctor" },
+  registerFirstDoctor: {
+    ar: "سجّل طبيبًا واحدًا على الأقل قبل تسجيل المرضى.",
+    en: "Register at least one doctor before registering patients.",
+  },
+  patientRegistered: { ar: "تم تسجيل المريض", en: "Patient registered" },
+
+  // doctor — assistant chat
+  assistant: { ar: "المساعد السريري", en: "Clinical assistant" },
+  doctorAssistantHint: {
+    ar: "اسأل إرشادات عيادتك الموثقة بلغة سريرية دقيقة.",
+    en: "Ask your clinic's verified guidelines in precise clinical terms.",
+  },
+
+  // doctor — report a document issue to IT
+  reportIssue: { ar: "الإبلاغ عن مشكلة", en: "Report an issue" },
+  reportIssueHint: {
+    ar: "صف المشكلة في هذا المستند وسيتحقق فريق الدعم من خط المعالجة.",
+    en: "Describe the problem with this document; IT will investigate the pipeline.",
+  },
+  issueDescription: { ar: "وصف المشكلة", en: "Describe the issue" },
+  submitReport: { ar: "إرسال البلاغ", en: "Submit report" },
+  reportSubmitted: { ar: "تم إرسال البلاغ إلى الدعم الفني.", en: "Report sent to IT." },
+
+  // IT dashboard
+  itPanel: { ar: "لوحة الدعم الفني", en: "IT panel" },
+  itOperations: { ar: "عمليات خط المعالجة", en: "Pipeline operations" },
+  overview: { ar: "نظرة عامة", en: "Overview" },
+  chatbot: { ar: "روبوت المحادثة", en: "Chatbot" },
+  testPipeline: { ar: "اختبار", en: "Test" },
+  bugReports: { ar: "البلاغات", en: "Reports" },
+  crossClinicStats: { ar: "إحصائيات كل العيادات", en: "Cross-clinic statistics" },
+  crossClinicHint: {
+    ar: "أعداد إجمالية لكل العيادات للمراقبة — بدون أي بيانات مرضى.",
+    en: "Aggregate counts across every clinic for monitoring — no patient data.",
+  },
+  clinic: { ar: "العيادة", en: "Clinic" },
+  doctorCount: { ar: "الأطباء", en: "Doctors" },
+  patientCount: { ar: "المرضى", en: "Patients" },
+  documentCount: { ar: "المستندات", en: "Documents" },
+  totalClinics: { ar: "عدد العيادات", en: "Total clinics" },
+  ragMetricsTitle: { ar: "مقاييس جودة الاسترجاع", en: "Retrieval quality metrics" },
+  ragMetricsHint: {
+    ar: "أحدث تشغيل مرجعي لنظام الاسترجاع على مستوى النظام.",
+    en: "The latest system-wide RAG benchmark run.",
+  },
+  pipelineTestTitle: { ar: "اختبار خط المعالجة", en: "Pipeline test" },
+  pipelineTestHint: {
+    ar: "شغّل مستندًا خطوة بخطوة مع سؤال اختباري لتشخيص مشكلة أبلغ عنها طبيب.",
+    en: "Run a document stage by stage with a test question to diagnose a doctor's report.",
+  },
+  documentId: { ar: "معرّف المستند", en: "Document ID" },
+  testQuestion: { ar: "سؤال الاختبار", en: "Test question" },
+  runTest: { ar: "تشغيل الاختبار", en: "Run test" },
+  running: { ar: "جارٍ التشغيل…", en: "Running…" },
+  stageIndexing: { ar: "الفهرسة", en: "Indexing" },
+  stageRetrieval: { ar: "الاسترجاع", en: "Retrieval" },
+  stageGeneration: { ar: "التوليد", en: "Generation" },
+  finalOutput: { ar: "المخرجات النهائية", en: "Final output" },
+  stagePassed: { ar: "نجحت", en: "Passed" },
+  stageFailed: { ar: "فشلت", en: "Failed" },
+  stageNotReached: { ar: "لم تُنفّذ", en: "Not reached" },
+  langsmithLink: { ar: "فتح في LangSmith", en: "Open in LangSmith" },
+  langsmithNotConfigured: {
+    ar: "تتبّع LangSmith غير مُفعّل في هذا النظام.",
+    en: "LangSmith tracing is not configured for this system.",
+  },
+  bugReportsQueue: { ar: "قائمة بلاغات الأطباء", en: "Doctor bug-report queue" },
+  noBugReports: { ar: "لا توجد بلاغات.", en: "No reports." },
+  statusOpen: { ar: "مفتوح", en: "Open" },
+  statusInvestigating: { ar: "قيد الفحص", en: "Investigating" },
+  statusResolved: { ar: "تم الحل", en: "Resolved" },
+  markInvestigating: { ar: "بدء الفحص", en: "Start investigating" },
+  markResolved: { ar: "تم الحل", en: "Mark resolved" },
+  investigate: { ar: "افحص", en: "Investigate" },
+  reportedOn: { ar: "أُبلغ في", en: "Reported" },
 } as const;
 
 export type DictKey = keyof typeof dict;
@@ -261,7 +358,7 @@ const LangContext = createContext<LangContextValue | null>(null);
 const STORAGE_KEY = "tabibak-lang";
 
 export function LangProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("ar");
+  const [lang, setLangState] = useState<Lang>("en");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {

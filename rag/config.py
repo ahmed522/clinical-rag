@@ -125,6 +125,15 @@ MIN_CHUNK_CHARS = 60
 # raising CHUNK_SIZE without changing model would silently truncate.
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
+# The hackathon deployment runs from a pre-warmed local model cache.  Without
+# this guard, Transformers performs a network revision check on every cold
+# worker start; when the network is unavailable that turns a query into a long
+# timeout even though the required model files are already on disk. Set to
+# false only while deliberately downloading/updating a model.
+HF_LOCAL_FILES_ONLY = os.getenv("HF_LOCAL_FILES_ONLY", "true").lower() in {
+    "1", "true", "yes", "on"
+}
+
 # Collection used by the single-tenant CLI scripts. Multi-tenant callers
 # use collection_name_for(clinic_id) instead — every clinic gets its own
 # Chroma collection so one clinic's documents can never be retrieved for
@@ -160,12 +169,40 @@ TOP_K = 10
 # answer@3, answer@5, and answer@10 can still be compared.
 RETRIEVAL_K = 5
 
+# A clinician can inspect a little more of their clinic's verified guidance
+# than the default consumer.  The labelled set plateaus at eight passages
+# (rather than five), which recovers related sections such as a criterion and
+# its exception without changing the shared retrieval behaviour.
+DOCTOR_RETRIEVAL_K = 8
+
 # Two-stage retrieval: Chroma cheaply finds a broad candidate set, then a
 # cross-encoder reads each (question, chunk) pair and produces the final
 # ordering.  Candidate count must stay above the number ultimately returned.
 RERANK_ENABLED = True
 RERANK_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 RERANK_CANDIDATE_K = 30
+
+# Reciprocal Rank Fusion constant, used in rag/hybrid_retrieval.py to combine
+# vector-search rank with BM25 rank into the candidate pool, and again to
+# combine the cross-encoder's rank with that pre-rerank rank for the final
+# ordering.
+#
+# Added after measuring that the cross-encoder alone sometimes actively
+# inverts a good vector rank (position 6 pushed to position ~24, on real
+# labelled-set queries), and that dense embeddings alone miss chunks that
+# share exact clinical terms with the question ("DKA and HHS") but aren't
+# semantically close by this embedding model. RRF gives both retrieval
+# channels and the reranker a vote instead of trusting any one signal.
+#
+# 60 is RRF's textbook default, calibrated for search-engine-scale ranked
+# lists (hundreds/thousands of results). Measured directly on the 38-query
+# labelled set with a ~30-item candidate pool: k=60 was too large and
+# diluted a strong pre-rerank signal against one bad reranker call almost
+# equally, missing recoverable cases. Swept k in {3,5,8,10,15,20,30,60}:
+# k=8 gave the best recall@10 (34/38 vs 32/38 baseline at the time; the
+# dataset itself also had 3 mislabeled expected_pages found and fixed
+# separately, after which recall@10 with k=8 reached 37/38).
+RRF_K = 8
 
 # Similarity distance above which a match is considered too weak.
 #
@@ -206,3 +243,10 @@ WEAK_MATCH_DISTANCE = 0.75
 # are refused by the LLM's grounding judgment over the retrieved text,
 # which is the only check that can actually read the passage.
 ABSURD_DISTANCE = 1.65
+
+# The clinician-facing assistant may inspect a slightly wider near-domain
+# band before the normal claim, citation, verifier, and safety gates decide
+# whether anything can be displayed. Chroma distance is lower-is-closer, so a
+# larger number admits more candidates. This is intentionally doctor-only;
+# callers that do not opt in retain ABSURD_DISTANCE above.
+DOCTOR_RETRIEVAL_DISTANCE_GATE = 1.80

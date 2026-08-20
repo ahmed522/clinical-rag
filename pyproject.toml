@@ -12,6 +12,7 @@ dependencies = [
     "langchain-chroma>=0.2.6",
     "chromadb>=1.5.9",
     "sentence-transformers>=5.1.2",
+    "rank_bm25>=0.2.2",
     # Web application (multi-tenant SaaS layer)
     "fastapi>=0.128.8",
     "uvicorn>=0.39.0",
@@ -21,6 +22,7 @@ dependencies = [
     # Database, auth, and storage — schema + RLS live in supabase/migrations/,
     # applied directly against the project, not by this app at startup.
     "supabase>=2.31.0",
+    "psycopg2-binary>=2.9.10",
     # LLM provider (only the one named by LLM_PROVIDER is actually imported
     # at runtime, but it must be installed to be selectable). openai's SDK
     # also backs "openrouter" — OpenRouter is OpenAI-compatible.

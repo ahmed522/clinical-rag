@@ -124,10 +124,13 @@ separate from `app/config.py` (Supabase, LLM provider, CORS, uploads) — the ap
 `rag.config` for the pipeline knobs it needs, never the other way around.
 
 The generation LLM is swappable via `LLM_PROVIDER` in `.env` — `mock` (default, offline,
-what the test suite runs on), `groq`, `anthropic`, `openai`, or `openrouter`. OpenRouter is
-a free-tier alternative worth keeping as a manual failover for when Groq's rate limit is
-hit mid-demo: switch `LLM_PROVIDER=openrouter`, restart, done. See `app/llm.py` and
-`.env.example` for details and the current caveats on each provider.
+what the test suite runs on), `groq`, `anthropic`, `openai`, `openrouter`, or `ollama`.
+OpenRouter is a free-tier alternative worth keeping as a manual failover for when Groq's
+rate limit is hit mid-demo: switch `LLM_PROVIDER=openrouter`, restart, done. `ollama` runs
+a model locally — no rate limit, no cost, no network dependency once a model is pulled,
+the most demo-safe fallback of the four, at the cost of needing local hardware and a
+model that reliably returns structured JSON (verify before relying on it). See `app/llm.py`
+and `.env.example` for details and the current caveats on each provider.
 
 Constants carry the measurement that justifies them. `MIN_CHUNK_CHARS = 60` is low on
 purpose: `IF SYMPTOMATIC and FPG >=15 mmol/L ... gliclazide 80 mg 1 x daily` is 85

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/Icon";
-import { Card, EmptyState, ErrorText, Field, PageHeader, Pill, PrimaryButton, SecondaryButton, Skeleton, TextInput } from "@/components/ui";
+import { Card, EmptyState, ErrorText, Field, PageHeader, Pill, PrimaryButton, SecondaryButton, Skeleton, TextArea, TextInput } from "@/components/ui";
 import { useAuth } from "@/lib/auth-context";
 import { useLang } from "@/lib/i18n";
 import { API_BASE_URL, supabase } from "@/lib/supabase";
@@ -39,6 +39,29 @@ export function DocumentsTab() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [reportFor, setReportFor] = useState<string | null>(null);
+  const [reportText, setReportText] = useState("");
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportedIds, setReportedIds] = useState<Set<string>>(new Set());
+
+  async function submitReport(documentId: string) {
+    if (!session || !reportText.trim()) return;
+    setReportSubmitting(true);
+    const response = await fetch(`${API_BASE_URL}/documents/${documentId}/report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ issue: reportText.trim() }),
+    });
+    setReportSubmitting(false);
+    if (response.ok) {
+      setReportedIds((prev) => new Set(prev).add(documentId));
+      setReportFor(null);
+      setReportText("");
+    } else {
+      const body = await response.json().catch(() => null);
+      setError(body?.detail ?? t("error"));
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -94,7 +117,8 @@ export function DocumentsTab() {
     {loading ? <div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-56" /><Skeleton className="h-56" /></div> : docs.length === 0 ? <EmptyState icon="file" title={t("noDocumentsYet")} description={t("trustedLibraryHint")} action={<PrimaryButton onClick={() => setUploadOpen(true)}>{t("uploadDocument")}</PrimaryButton>} /> : <div className="grid gap-4 lg:grid-cols-2">{docs.map((doc) => { const current = status(doc); const report = doc.extraction_report ?? {}; return <Card key={doc.id} className="flex flex-col gap-4"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="mb-2 flex items-center gap-2"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--blue-soft)] text-[var(--blue)]"><Icon name="file" size={17} /></span><div className="min-w-0"><h2 className="truncate text-sm font-extrabold">{doc.title}</h2><p className="truncate text-xs text-[var(--ink-soft)]">{doc.publisher || "—"}</p></div></div></div><Pill tone={current.tone}>{current.label}</Pill></div>
       <div className="grid grid-cols-2 gap-2"><div className="rounded-xl bg-[var(--surface-muted)] p-3 text-center"><p className="text-lg font-extrabold text-[var(--accent)]">{doc.page_count ?? 0}</p><p className="text-[10px] font-bold text-[var(--ink-faint)]">{t("pages")}</p></div><div className="rounded-xl bg-[var(--surface-muted)] p-3 text-center"><p className="text-lg font-extrabold text-[var(--blue)]">{doc.chunk_count ?? 0}</p><p className="text-[10px] font-bold text-[var(--ink-faint)]">{t("chunks")}</p></div></div>
       <div className="space-y-2 text-xs text-[var(--ink-soft)]"><p><span className="font-extrabold text-[var(--ink)]">{t("topic")}:</span> {doc.topic || "—"}</p><p><span className="font-extrabold text-[var(--ink)]">{t("extractionQuality")}:</span> {report.warnings?.length ? report.warnings.join(" · ") : "Passed"}</p>{doc.source_url && <a href={doc.source_url} target="_blank" rel="noopener noreferrer" className="inline-flex font-bold text-[var(--blue)] hover:underline">{t("openSource")} ↗</a>}</div>
-      <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4"><p className="text-[11px] leading-5 text-[var(--ink-faint)]">{doc.status === "failed" ? doc.processing_error ?? t("documentProcessingFailed") : doc.verified ? `${t("verifiedByDoctor")}${doc.verified_at ? ` · ${new Date(doc.verified_at).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US")}` : ""}` : doc.status === "ready" ? t("excludedUntilVerified") : t("excludedUntilReady")}</p>{doc.status === "ready" && !doc.verified && <SecondaryButton onClick={() => verify(doc)} className="text-xs"><Icon name="check" size={15} />{t("markVerified")}</SecondaryButton>}</div>
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-4"><p className="text-[11px] leading-5 text-[var(--ink-faint)]">{doc.status === "failed" ? doc.processing_error ?? t("documentProcessingFailed") : doc.verified ? `${t("verifiedByDoctor")}${doc.verified_at ? ` · ${new Date(doc.verified_at).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US")}` : ""}` : doc.status === "ready" ? t("excludedUntilVerified") : t("excludedUntilReady")}</p><div className="flex flex-wrap items-center gap-2">{doc.status === "ready" && !doc.verified && <SecondaryButton onClick={() => verify(doc)} className="text-xs"><Icon name="check" size={15} />{t("markVerified")}</SecondaryButton>}<SecondaryButton onClick={() => { setReportFor(reportFor === doc.id ? null : doc.id); setReportText(""); setError(""); }} className="text-xs" disabled={reportedIds.has(doc.id)}><Icon name="help" size={15} />{reportedIds.has(doc.id) ? t("reportSubmitted") : t("reportIssue")}</SecondaryButton></div></div>
+      {reportFor === doc.id && <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-3"><p className="mb-2 text-xs text-[var(--ink-soft)]">{t("reportIssueHint")}</p><TextArea placeholder={t("issueDescription")} value={reportText} onChange={(event) => setReportText(event.target.value)} /><div className="mt-2 flex justify-end gap-2"><SecondaryButton type="button" onClick={() => setReportFor(null)} className="text-xs">{t("cancelAction")}</SecondaryButton><PrimaryButton type="button" onClick={() => submitReport(doc.id)} disabled={reportSubmitting || !reportText.trim()} className="text-xs">{reportSubmitting ? t("sending") : t("submitReport")}</PrimaryButton></div></div>}
     </Card>; })}</div>}
   </div>;
 }

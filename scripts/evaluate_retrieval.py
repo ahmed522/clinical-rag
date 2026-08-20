@@ -46,13 +46,14 @@ from rag.config import (
     CHROMA_DIR,
     COLLECTION_NAME,
     EMBEDDING_MODEL,
+    HF_LOCAL_FILES_ONLY,
     QUERIES_PATH,
     RERANK_CANDIDATE_K,
     RERANK_ENABLED,
     RETRIEVAL_REPORT_PATH as RESULTS_PATH,
     TOP_K as MAX_K,
 )
-from rag.rerank import rerank_hits
+from rag.hybrid_retrieval import hybrid_retrieve
 
 PERSIST_DIR = str(CHROMA_DIR)  # Chroma wants a string, not a Path
 
@@ -77,7 +78,10 @@ def load_queries():
 
 def load_vectorstore():
 
-    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+    embeddings = HuggingFaceEmbeddings(
+        model_name=EMBEDDING_MODEL,
+        model_kwargs={"local_files_only": HF_LOCAL_FILES_ONLY},
+    )
 
     return Chroma(
         collection_name=COLLECTION_NAME,
@@ -142,7 +146,7 @@ def evaluate_in_scope(vectorstore, queries):
             k=candidate_k
         )
         if RERANK_ENABLED:
-            ranked = rerank_hits(query_spec["query"], hits, k=MAX_K)
+            ranked = hybrid_retrieve(vectorstore, query_spec["query"], candidate_k=candidate_k, k=MAX_K)
             documents = [document for document, _, _ in ranked]
         else:
             documents = [document for document, _ in hits[:MAX_K]]

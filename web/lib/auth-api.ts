@@ -7,8 +7,57 @@ export interface AuthTokenResponse {
   access_token: string;
   refresh_token: string;
   token_type: "bearer";
-  role: "clinic_admin" | "doctor" | "patient";
+  role: "clinic_admin" | "doctor" | "patient" | "it";
   clinic_id: string;
+}
+
+export class AuthSessionUnavailableError extends Error {
+  constructor() {
+    super("The authentication session is missing or expired");
+    this.name = "AuthSessionUnavailableError";
+  }
+}
+
+function withBearer(init: RequestInit | undefined, accessToken: string): RequestInit {
+  const headers = new Headers(init?.headers);
+  headers.set("Authorization", `Bearer ${accessToken}`);
+  return { ...init, headers };
+}
+
+/**
+ * Call an authenticated FastAPI endpoint with the freshest Supabase token.
+ * A token can expire while a dashboard tab remains open; retry exactly once
+ * after an explicit refresh so a stale token does not silently disable UI.
+ */
+export async function authenticatedFetch(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  requestTimeoutMs = 20_000,
+): Promise<Response> {
+  const { data: current, error: sessionError } = await withTimeout(
+    supabase.auth.getSession(),
+    20_000,
+  );
+  if (sessionError || !current.session) throw new AuthSessionUnavailableError();
+
+  let response = await withTimeout(
+    fetch(input, withBearer(init, current.session.access_token)),
+    requestTimeoutMs,
+  );
+  if (response.status !== 401) return response;
+
+  const { data: refreshed, error: refreshError } = await withTimeout(
+    supabase.auth.refreshSession(),
+    20_000,
+  );
+  if (refreshError || !refreshed.session) throw new AuthSessionUnavailableError();
+
+  response = await withTimeout(
+    fetch(input, withBearer(init, refreshed.session.access_token)),
+    requestTimeoutMs,
+  );
+  if (response.status === 401) throw new AuthSessionUnavailableError();
+  return response;
 }
 
 async function readError(response: Response): Promise<string> {
@@ -48,7 +97,8 @@ export async function establishSession(tokens: AuthTokenResponse): Promise<Sessi
 }
 
 export function navigateToRole(role: string | undefined): void {
-  const target = role === "doctor" ? "/doctor" : role === "patient" ? "/patient" : "/clinic";
+  const target =
+    role === "doctor" ? "/doctor" : role === "patient" ? "/patient" : role === "it" ? "/it" : "/clinic";
   // A full navigation makes the AuthProvider start from the newly persisted
   // Supabase session. It avoids a race between router.replace and the auth
   // state event immediately after registration/login.
