@@ -110,5 +110,25 @@ class Settings:
         os.getenv("EVIDENCE_VERIFIER_TIMEOUT_SECONDS", "15")
     )
 
+    # --------------------------------------------------------------
+    # LangSmith — optional tracing for the IT "Pipeline test" diagnostic
+    # tool only (app/routers/it.py). The live patient/doctor chat path is
+    # untouched. Unset LANGSMITH_API_KEY and the tool falls back to its
+    # existing "not configured" state; no other behavior changes.
+    # --------------------------------------------------------------
+    LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY", "")
+    LANGSMITH_PROJECT = os.getenv("LANGSMITH_PROJECT", "clinical-rag-it-pipeline-test")
+    LANGSMITH_ENDPOINT = os.getenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
+
 
 settings = Settings()
+
+# The langsmith SDK reads its own LANGSMITH_* environment variables rather
+# than taking config from callers, so a single LANGSMITH_API_KEY in .env is
+# enough to opt in — no separate "LANGSMITH_TRACING=true" line to remember.
+# setdefault() leaves a real environment variable (e.g. in a deployment)
+# untouched.
+if settings.LANGSMITH_API_KEY:
+    os.environ.setdefault("LANGSMITH_TRACING", "true")
+    os.environ.setdefault("LANGSMITH_PROJECT", settings.LANGSMITH_PROJECT)
+    os.environ.setdefault("LANGSMITH_ENDPOINT", settings.LANGSMITH_ENDPOINT)
