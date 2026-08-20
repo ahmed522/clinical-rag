@@ -5,6 +5,10 @@ langchain-core
 langchain-huggingface
 langchain-chroma
 
+# Optional tracing for the IT "Pipeline test" diagnostic tool
+# (app/routers/it.py) only — inert unless LANGSMITH_API_KEY is set.
+langsmith
+
 chromadb
 sentence-transformers
 rank_bm25
