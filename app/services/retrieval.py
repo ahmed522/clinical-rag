@@ -26,24 +26,25 @@ LLM's grounding judgment instead, because deciding them needs the text,
 not a number.
 """
 
-import sys
-from pathlib import Path
 from typing import List, Optional
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-SRC = PROJECT_ROOT / "src"
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
-
-from config import (  # noqa: E402
+from rag.config import (
     ABSURD_DISTANCE,
     CHROMA_DIR,
     EMBEDDING_MODEL,
+    HF_LOCAL_FILES_ONLY,
+    RERANK_CANDIDATE_K,
+    RERANK_ENABLED,
     RETRIEVAL_K,
     collection_name_for,
 )
+from rag.hybrid_retrieval import hybrid_retrieve
 
 _embeddings = None
+
+
+class RetrievalUnavailableError(RuntimeError):
+    """The vector or reranking dependency failed; this is not a valid abstention."""
 
 
 def _get_embeddings():
@@ -52,7 +53,10 @@ def _get_embeddings():
     if _embeddings is None:
         from langchain_huggingface import HuggingFaceEmbeddings
 
-        _embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+        _embeddings = HuggingFaceEmbeddings(
+            model_name=EMBEDDING_MODEL,
+            model_kwargs={"local_files_only": HF_LOCAL_FILES_ONLY},
+        )
     return _embeddings
 
 
@@ -62,13 +66,15 @@ def retrieve(
     k: int = RETRIEVAL_K,
     persist_dir=None,
     document_ids: Optional[List[str]] = None,
+    distance_gate: float = ABSURD_DISTANCE,
 ) -> List[dict]:
     """
     Return up to k chunks from this clinic's collection, or [] if the
     question is clearly outside the corpus.
 
-    k defaults to 8 because that is where recall plateaus on the labelled
-    set (47% at k=1, 68% at k=4, 84% at k=8, no gain at k=10).
+    k defaults to 5: Chroma first retrieves a broad candidate set, the
+    cross-encoder reranks it, and only the five strongest passages are sent
+    to generation. The offline evaluator keeps reporting through k=10.
 
     document_ids restricts the search to specific documents. Patient-facing
     callers pass the clinic's VERIFIED documents, which is how guardrail #5
@@ -80,17 +86,24 @@ def retrieve(
     "no documents are eligible" and must return nothing — falling through to
     an unfiltered search there would answer from precisely the documents the
     caller just excluded.
+
+    distance_gate defaults to the shared loose gate. Role-specific callers
+    may pass a wider gate, but must still enforce their own downstream
+    grounding and safety checks.
     """
     from langchain_chroma import Chroma
 
     if document_ids is not None and not document_ids:
         return []
 
-    store = Chroma(
-        collection_name=collection_name_for(clinic_id),
-        embedding_function=_get_embeddings(),
-        persist_directory=str(persist_dir or CHROMA_DIR),
-    )
+    try:
+        store = Chroma(
+            collection_name=collection_name_for(clinic_id),
+            embedding_function=_get_embeddings(),
+            persist_directory=str(persist_dir or CHROMA_DIR),
+        )
+    except Exception as exc:
+        raise RetrievalUnavailableError("Vector retrieval is temporarily unavailable") from exc
 
     search_filter = None
     if document_ids:
@@ -103,28 +116,52 @@ def retrieve(
         )
 
     try:
-        hits = store.similarity_search_with_score(question, k=k, filter=search_filter)
-    except Exception:
-        # A clinic with no documents yet has no collection. That is not an
-        # error — it is simply nothing to ground an answer in.
-        return []
+        candidate_k = max(k, RERANK_CANDIDATE_K) if RERANK_ENABLED else k
+        # The ABSURD_DISTANCE gate below reads raw vector distance, which
+        # hybrid_retrieve's BM25/rerank fusion does not alter or replace —
+        # this call is purely to get that gate's input independent of
+        # whichever retrieval path runs next.
+        hits = store.similarity_search_with_score(
+            question, k=candidate_k, filter=search_filter
+        )
+    except Exception as exc:
+        raise RetrievalUnavailableError("Vector retrieval is temporarily unavailable") from exc
 
     if not hits:
         return []
 
-    # Chroma returns distance: lower is closer.
-    if hits[0][1] > ABSURD_DISTANCE:
+    # Chroma returns distance: lower is closer. Deliberately checked against
+    # the raw, unfused vector hits — BM25 scores are not commensurate with
+    # vector distance (higher-is-better vs lower-is-better, different
+    # scale) and must never be mixed into this specific safety check.
+    if hits[0][1] > distance_gate:
         return []
+
+    if RERANK_ENABLED:
+        try:
+            ranked_hits = hybrid_retrieve(
+                store, question, candidate_k=candidate_k, k=k, where=search_filter
+            )
+        except Exception as exc:
+            raise RetrievalUnavailableError("Reranking is temporarily unavailable") from exc
+    else:
+        ranked_hits = [(doc, float(score), None) for doc, score in hits[:k]]
 
     return [
         {
+            "rank": rank,
             "text": doc.page_content,
             "title": doc.metadata.get("title") or doc.metadata.get("source", "Unknown document"),
             "source": doc.metadata.get("source"),
+            "document_id": doc.metadata.get("document_id"),
+            "publisher": doc.metadata.get("publisher"),
+            "source_url": doc.metadata.get("url"),
+            "topic": doc.metadata.get("topic"),
             "page_number": doc.metadata.get("page_number"),
             "section_title": doc.metadata.get("section_title"),
             "chunk_id": doc.metadata.get("chunk_id"),
-            "distance": round(float(score), 4),
+            "distance": round(float(score), 4) if score is not None else None,
+            "rerank_score": round(float(rerank_score), 4) if rerank_score is not None else None,
         }
-        for doc, score in hits
+        for rank, (doc, score, rerank_score) in enumerate(ranked_hits, start=1)
     ]

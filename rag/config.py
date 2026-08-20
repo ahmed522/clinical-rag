@@ -1,0 +1,252 @@
+"""
+config.py
+---------
+Single source of truth for paths and tunable settings.
+
+Every module in rag/ imports from here. Before this file was wired up,
+PROJECT_ROOT was redefined in 6 scripts, the embedding model name and
+collection name in 3 each, and TOP_K disagreed with itself across files —
+so changing the embedding model meant editing three files and silently
+getting it wrong in a fourth.
+
+Paths are absolute, derived from this file's location, so scripts behave
+the same whatever directory they are run from.
+
+Imported as `from rag.config import ...`. rag/ is a regular Python
+package (has __init__.py, no sys.path tricks) — run its modules with
+`python -m rag.chunk` etc. from the repo root, same as the app does.
+"""
+
+import os
+from pathlib import Path
+
+
+# ============================================================
+# Project layout
+# ============================================================
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+DATA_DIR = PROJECT_ROOT / "data"
+EVALUATION_DIR = PROJECT_ROOT / "evaluation"
+
+# Pipeline stages, in order. Each stage reads the previous one's output.
+SOURCE_DIR = DATA_DIR / "source"                 # input PDFs
+EXTRACTED_DIR = DATA_DIR / "extracted"           # ingest.py
+PREPROCESSED_DIR = DATA_DIR / "preprocessed"     # preprocessing.py
+CHUNKS_DIR = DATA_DIR / "chunks"                 # chunk.py
+CHUNKS_PATH = CHUNKS_DIR / "chunks.json"
+CHROMA_DIR = DATA_DIR / "chroma_db"              # embed.py
+QUERY_RESULTS_PATH = DATA_DIR / "query_results.json"   # query.py
+
+# Labelled evaluation set and the report evaluate_retrieval.py writes.
+QUERIES_PATH = EVALUATION_DIR / "clinical_queries.json"
+RETRIEVAL_REPORT_PATH = EVALUATION_DIR / "retrieval_report.json"
+RAG_REPORT_PATH = EVALUATION_DIR / "rag_report.json"
+
+
+# ============================================================
+# PDF extraction
+# ============================================================
+
+# Quality gates. They are intentionally conservative: covers and blank
+# separator pages are normal, but a document with no meaningful text must
+# never be accepted and indexed as if ingestion had succeeded.
+PDF_NATIVE_TEXT_MIN_CHARS = 40
+PDF_MIN_DOCUMENT_CHARS = 100
+PDF_MIN_TEXT_PAGE_RATIO = 0.05
+
+# Stored with every uploaded document so an answer can be traced back to
+# the extraction and chunking behavior that produced its index.
+EXTRACTION_VERSION = "2026-08-18.1"
+CHUNKING_VERSION = "2026-08-18.1"
+
+
+# ============================================================
+# Preprocessing
+#
+# Page furniture is detected by frequency rather than hardcoded regex,
+# so these thresholds control how aggressive that detection is.
+# ============================================================
+
+# Lines this far from the top/bottom of a page may be furniture. Beyond
+# that, a bare number is more likely a table cell — a dose or an eGFR
+# threshold — than a page number.
+EDGE_LINES = 8
+
+# A line must appear near the edge of this fraction of pages to count as
+# a running header/footer.
+FURNITURE_PAGE_RATIO = 0.5
+
+# Frequency detection is meaningless on a very short document.
+MIN_PAGES_FOR_DETECTION = 4
+
+# Real clinical prose is never byte-identical across half a document, but
+# a copyright footer can be long.
+MAX_FURNITURE_LINE_LENGTH = 250
+
+# A page is treated as a table of contents when this fraction of its
+# lines look like contents entries. Measured on these documents: real
+# contents pages score 0.34-1.00, the highest page of real clinical
+# content scores 0.08, so 0.30 sits in a wide gap.
+TOC_LINE_RATIO = 0.30
+MIN_TOC_LINES = 8
+
+
+# ============================================================
+# Chunking
+# ============================================================
+
+CHUNK_SIZE = 1000
+CHUNK_OVERLAP = 150
+
+# Page types preprocessing.py flags as non-content. Chunking these would
+# put copyright notices and contents listings into the index as if they
+# were clinical guidance.
+SKIPPED_PAGE_TYPES = {"copyright", "table_of_contents"}
+
+# Drop chunks too short to support an answer — e.g. a cover-page title,
+# which is topically dense and so scores highly against almost any
+# diabetes question while carrying no clinical information.
+#
+# Kept deliberately low: some genuinely short chunks ARE clinical
+# content. "IF SYMPTOMATIC and FPG >=15 mmol/L ... gliclazide 80 mg
+# 1 x daily" is 85 characters of dosing guidance that a higher threshold
+# would silently delete.
+MIN_CHUNK_CHARS = 60
+
+
+# ============================================================
+# Embedding and vector store
+# ============================================================
+
+# General-purpose model, 384 dimensions, 256-token window. Note the
+# window: chunks near CHUNK_SIZE characters are already at its limit, so
+# raising CHUNK_SIZE without changing model would silently truncate.
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+
+# The hackathon deployment runs from a pre-warmed local model cache.  Without
+# this guard, Transformers performs a network revision check on every cold
+# worker start; when the network is unavailable that turns a query into a long
+# timeout even though the required model files are already on disk. Set to
+# false only while deliberately downloading/updating a model.
+HF_LOCAL_FILES_ONLY = os.getenv("HF_LOCAL_FILES_ONLY", "true").lower() in {
+    "1", "true", "yes", "on"
+}
+
+# Collection used by the single-tenant CLI scripts. Multi-tenant callers
+# use collection_name_for(clinic_id) instead — every clinic gets its own
+# Chroma collection so one clinic's documents can never be retrieved for
+# another.
+COLLECTION_NAME = "clinical_rag_t2dm"
+
+
+def collection_name_for(clinic_id):
+    """
+    Chroma collection name for one clinic.
+
+    Hard tenant isolation: separate collections rather than a shared
+    collection with a metadata filter, so a forgotten filter cannot leak
+    another clinic's documents into a patient's answer.
+    """
+
+    return f"clinic_{clinic_id}"
+
+
+# ============================================================
+# Retrieval
+# ============================================================
+
+# Chunks retrieved per query. Raised from 3 after measuring recall on the
+# labelled set: answers were being retrieved and then truncated away.
+#
+# Measured recall on the 38-query labelled set:
+#   k=1  47%   k=3  58%   k=4  68%   k=5  71%   k=8  84%   k=10 84%
+# k=8 is the plateau, so retrieval uses 8 and gains nothing from 10.
+TOP_K = 10
+# Patient-facing generation receives only the five strongest reranked
+# passages. The wider TOP_K remains available to the offline evaluator so
+# answer@3, answer@5, and answer@10 can still be compared.
+RETRIEVAL_K = 5
+
+# A clinician can inspect a little more of their clinic's verified guidance
+# than the default consumer.  The labelled set plateaus at eight passages
+# (rather than five), which recovers related sections such as a criterion and
+# its exception without changing the shared retrieval behaviour.
+DOCTOR_RETRIEVAL_K = 8
+
+# Two-stage retrieval: Chroma cheaply finds a broad candidate set, then a
+# cross-encoder reads each (question, chunk) pair and produces the final
+# ordering.  Candidate count must stay above the number ultimately returned.
+RERANK_ENABLED = True
+RERANK_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+RERANK_CANDIDATE_K = 30
+
+# Reciprocal Rank Fusion constant, used in rag/hybrid_retrieval.py to combine
+# vector-search rank with BM25 rank into the candidate pool, and again to
+# combine the cross-encoder's rank with that pre-rerank rank for the final
+# ordering.
+#
+# Added after measuring that the cross-encoder alone sometimes actively
+# inverts a good vector rank (position 6 pushed to position ~24, on real
+# labelled-set queries), and that dense embeddings alone miss chunks that
+# share exact clinical terms with the question ("DKA and HHS") but aren't
+# semantically close by this embedding model. RRF gives both retrieval
+# channels and the reranker a vote instead of trusting any one signal.
+#
+# 60 is RRF's textbook default, calibrated for search-engine-scale ranked
+# lists (hundreds/thousands of results). Measured directly on the 38-query
+# labelled set with a ~30-item candidate pool: k=60 was too large and
+# diluted a strong pre-rerank signal against one bad reranker call almost
+# equally, missing recoverable cases. Swept k in {3,5,8,10,15,20,30,60}:
+# k=8 gave the best recall@10 (34/38 vs 32/38 baseline at the time; the
+# dataset itself also had 3 mislabeled expected_pages found and fixed
+# separately, after which recall@10 with k=8 reached 37/38).
+RRF_K = 8
+
+# Similarity distance above which a match is considered too weak.
+#
+# NOT safe as an abstention threshold on its own. On the labelled set the
+# in-scope and out-of-scope score ranges OVERLAP: worst in-scope is
+# 0.833, worst out-of-scope is 0.755. Any single cut-off either admits
+# unanswerable questions or refuses real ones.
+# Kept here as a measured reference point, not as a safety mechanism.
+WEAK_MATCH_DISTANCE = 0.75
+
+# Loose gate used before generation: reject only questions that are
+# clearly outside the corpus entirely.
+#
+# Was 0.95, which was calibrated on the labelled evaluation set — and that
+# set is written in CLINICIAN phrasing ("What is the first-line
+# pharmacological treatment for type 2 diabetes?", scoring 0.53-0.67).
+# Patients do not talk like that, and the same questions asked in ordinary
+# words score far worse against this embedding model. Re-measured against
+# NG28 with patient phrasing:
+#
+#   in-scope, clinician wording   0.53 - 0.67
+#   in-scope, patient wording     0.87 - 1.54
+#     "How often should I check my sugar levels?"      0.868
+#     "What should I eat to manage my blood sugar?"    0.985
+#     "I forgot to take my metformin, what do I do?"   1.034
+#     "When should I see the doctor urgently?"         1.242
+#     "Is it safe for me to exercise?"                 1.543
+#   out of scope (pizza, car repair, wifi, trivia)     1.80 - 1.94
+#
+# At 0.95 the gate refused six of those eight real patient questions —
+# including "when should I see the doctor urgently?", the exact question
+# the previous version of this comment said must never be refused. The
+# gate was silently the most dangerous component in the system.
+#
+# 1.65 sits in the empty band between the worst real question (1.543) and
+# the closest off-domain one (1.803), with ~0.1 of margin on each side.
+# It stays a LOOSE gate by design: near-domain questions still pass and
+# are refused by the LLM's grounding judgment over the retrieved text,
+# which is the only check that can actually read the passage.
+ABSURD_DISTANCE = 1.65
+
+# The clinician-facing assistant may inspect a slightly wider near-domain
+# band before the normal claim, citation, verifier, and safety gates decide
+# whether anything can be displayed. Chroma distance is lower-is-closer, so a
+# larger number admits more candidates. This is intentionally doctor-only;
+# callers that do not opt in retain ABSURD_DISTANCE above.
+DOCTOR_RETRIEVAL_DISTANCE_GATE = 1.80

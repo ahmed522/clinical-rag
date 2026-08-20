@@ -1,109 +1,244 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Tajawal:wght@500;700;900&display=swap");
 @import "tailwindcss";
 
-/* ============================================================
-   Design tokens — brand-neutral placeholder.
-   ------------------------------------------------------------
-   The real brand identity has not been supplied yet. Every color and
-   font in this app reads from these variables (never a literal), so
-   swapping the brand later is a one-file edit, not a re-theme of every
-   component. --accent is the one color safe to swap for a brand primary;
-   --danger is semantic (errors, the urgent-care safety banner) and
-   should stay visually distinct from whatever --accent becomes, per the
-   brand's own rule that urgent/alert color must never double as a brand
-   accent.
-   ============================================================ */
 :root {
-  --bg: #f7f8f7;
+  --bg: #f8fafc;
   --bg-raised: #ffffff;
   --surface: #ffffff;
-  --surface-muted: #eef0ee;
-  --border: #dde1de;
-  --ink: #1c211d;
-  --ink-soft: #565f58;
-  --ink-faint: #8b948c;
-
-  --accent: #3c6e5c;
-  --accent-ink: #ffffff;
-  --accent-soft: #e4ede8;
-
-  --danger: #a3372f;
-  --danger-bg: #f7e4e1;
-  --danger-ink: #7a251f;
-
-  --ok: #3c6e5c;
-  --ok-bg: #e4ede8;
-
-  --pending: #8a6a2f;
-  --pending-bg: #f1e6cc;
-
-  --radius: 14px;
-  --radius-sm: 9px;
-  --shadow: 0 10px 28px -14px rgba(28, 33, 29, 0.22);
-  --shadow-sm: 0 4px 12px -6px rgba(28, 33, 29, 0.18);
-
-  /* System stack, both scripts from one family per screen — see the
-     brand-identity note in README about a bilingual UI needing this. */
-  --font-ui: "Segoe UI", Tahoma, "Dubai", "Noto Naskh Arabic", system-ui, -apple-system, sans-serif;
+  --surface-muted: #eef5f4;
+  --surface-subtle: #f7faf9;
+  --border: #d9e8e6;
+  --border-strong: #b9d4d0;
+  --ink: #0f2537;
+  --ink-soft: #536875;
+  --ink-faint: #82939c;
+  --accent: #00a896;
+  --accent-2: #008f80;
+  --accent-ink: #0f2537;
+  --accent-soft: #e0f2f1;
+  --cura: #8e7cc3;
+  --cura-strong: #735fad;
+  --cura-soft: #f0ecf9;
+  --blue: #315fbe;
+  --blue-soft: #eaf0ff;
+  --danger: #c84b4b;
+  --danger-bg: #fff0ef;
+  --danger-ink: #9f2f2f;
+  --ok: #087c66;
+  --ok-bg: #e4f6ef;
+  --pending: #a96108;
+  --pending-bg: #fff5df;
+  --radius: 20px;
+  --radius-sm: 12px;
+  --shadow: 0 22px 60px -36px rgba(15, 37, 55, 0.34);
+  --shadow-sm: 0 12px 34px -24px rgba(15, 37, 55, 0.28);
+  --shadow-hover: 0 24px 54px -30px rgba(15, 37, 55, 0.34);
+  --font-ui: Inter, "Segoe UI", Arial, sans-serif;
+  --font-arabic: Tajawal, "Noto Sans Arabic", Tahoma, Arial, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #141815;
-    --bg-raised: #1b201c;
-    --surface: #1b201c;
-    --surface-muted: #232922;
-    --border: #313a32;
-    --ink: #eef1ee;
-    --ink-soft: #aab4ac;
-    --ink-faint: #6f786f;
-
-    --accent: #7fb69e;
-    --accent-ink: #0e1512;
-    --accent-soft: #1e2d27;
-
-    --danger: #e2857b;
-    --danger-bg: #2c1f1c;
-    --danger-ink: #f3cbc5;
-
-    --ok: #7fb69e;
-    --ok-bg: #1e2d27;
-
-    --pending: #e4c77f;
-    --pending-bg: #2c2718;
-
-    --shadow: 0 10px 28px -14px rgba(0, 0, 0, 0.55);
-    --shadow-sm: 0 4px 12px -6px rgba(0, 0, 0, 0.5);
-  }
+/*
+ * Per-role accent. The default teal serves clinic-facing roles (doctor,
+ * receptionist, patient). IT is internal operations, so it gets its own
+ * cyan accent to make "you are in the internal tools" unmistakable. Kept
+ * light enough that the sidebar's dark active-tab text stays legible.
+ */
+[data-role="it"] {
+  --accent: #1f9ec4;
+  --accent-2: #1683a6;
+  --accent-soft: #e2f2f8;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html,
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+html { scroll-behavior: smooth; }
 body {
-  height: 100%;
-}
-
-body {
-  background: var(--bg);
+  margin: 0;
+  background:
+    radial-gradient(circle at 8% -10%, rgba(0, 168, 150, 0.12), transparent 28rem),
+    radial-gradient(circle at 95% 8%, rgba(142, 124, 195, 0.08), transparent 24rem),
+    var(--bg);
   color: var(--ink);
   font-family: var(--font-ui);
+  font-weight: 500;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
+
+html[lang="ar"] body { font-family: var(--font-arabic); }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+::selection { background: rgba(0, 168, 150, 0.22); color: var(--ink); }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 6px;
+  outline: 3px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  outline-offset: 3px;
 }
 
-/* The chat surface is deliberately excluded from RTL: patient messages,
-   assistant answers, and citations stay English/LTR regardless of the
-   interface language, per the product decision that the pipeline is
-   English-only even though the interface chrome is bilingual. */
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; }
+
 .chat-ltr {
   direction: ltr;
   text-align: left;
   unicode-bidi: isolate;
+  font-family: var(--font-ui);
+}
+
+.clinical-grid {
+  background-image:
+    linear-gradient(rgba(15, 37, 55, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 37, 55, 0.025) 1px, transparent 1px),
+    radial-gradient(circle at 14% 4%, rgba(0, 168, 150, 0.06), transparent 22rem);
+  background-size: 30px 30px, 30px 30px, auto;
+}
+
+.surface-card {
+  position: relative;
+  isolation: isolate;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+.surface-card::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(255,255,255,.78), transparent 42%);
+  content: "";
+  pointer-events: none;
+}
+.surface-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+
+.brand-button {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 28px -16px rgba(0, 168, 150, 0.72);
+}
+.brand-button::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 20%, rgba(255,255,255,.25) 46%, transparent 72%);
+  content: "";
+  transform: translateX(-130%);
+  transition: transform 520ms ease;
+}
+.brand-button:hover::after { transform: translateX(130%); }
+.brand-button > * { position: relative; z-index: 1; }
+
+.brand-mark { transition: transform 240ms ease, box-shadow 240ms ease; }
+.brand-mark:hover { transform: translateY(-2px) rotate(-1deg); box-shadow: 0 16px 32px -18px rgba(0,168,150,.65); }
+
+/* Authentication: retain the existing split layout while giving the brand
+   a quieter, more deliberate focal point and making the form easier to scan. */
+.auth-story::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(140deg, rgba(255,255,255,.025), transparent 36%, rgba(0,168,150,.08));
+  content: "";
+  pointer-events: none;
+}
+.auth-outline-mark {
+  color: transparent;
+  font-size: clamp(19rem, 31vw, 31rem);
+  font-weight: 800;
+  letter-spacing: -.16em;
+  line-height: .8;
+  -webkit-text-stroke: 1px rgba(129, 223, 213, .16);
+  opacity: .9;
+  animation: auth-mark-drift 9s ease-in-out infinite;
+}
+.auth-logo-frame {
+  display: inline-flex;
+  width: fit-content;
+  padding: .7rem 1rem .7rem .7rem;
+  border: 1px solid rgba(163, 231, 224, .19);
+  border-radius: 1.15rem;
+  background: rgba(15, 37, 55, .18);
+  box-shadow: 0 14px 36px -28px rgba(0,0,0,.8), inset 0 1px rgba(255,255,255,.05);
+  backdrop-filter: blur(8px);
+}
+.auth-login-form input {
+  min-height: 3.25rem;
+  padding-inline: 1rem;
+  border-color: #d5e4e7;
+  background: #f8fbfd;
+  box-shadow: inset 0 1px 2px rgba(15,37,55,.025);
+}
+.auth-login-form input:hover { background: #fff; }
+.auth-login-form input:focus { background: #fff; box-shadow: 0 0 0 4px rgba(0,168,150,.12); }
+.auth-login-form button[type="submit"] { min-height: 3.4rem; margin-top: .35rem; border-radius: .9rem; }
+
+@keyframes auth-mark-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-2deg); }
+  50% { transform: translate3d(-.045em, .025em, 0) rotate(1deg); }
+}
+
+.page-enter { animation: page-enter 420ms cubic-bezier(.22,1,.36,1) both; }
+.motion-reveal { animation: reveal-up 420ms cubic-bezier(.22,1,.36,1) both; }
+.motion-reveal:nth-child(2) { animation-delay: 45ms; }
+.motion-reveal:nth-child(3) { animation-delay: 90ms; }
+.motion-reveal:nth-child(4) { animation-delay: 135ms; }
+.drawer-in { animation: drawer-in 260ms cubic-bezier(.22,1,.36,1) both; }
+.cura-float { animation: cura-float 4s ease-in-out infinite; }
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(8px) scale(.992); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes drawer-in {
+  from { opacity: 0; transform: translateX(-18px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+html[dir="rtl"] .drawer-in { animation-name: drawer-in-rtl; }
+@keyframes drawer-in-rtl {
+  from { opacity: 0; transform: translateX(18px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes cura-float {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-5px) rotate(1deg); }
+}
+
+@keyframes pulse-line {
+  0%, 100% { opacity: 0.18; transform: scaleX(0.35); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+.pulse-line {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--cura), transparent);
+  transform-origin: center;
+}
+.pulse-line[data-active="true"] { animation: pulse-line 1.5s ease-in-out infinite; }
+.pulse-line[data-active="false"] { opacity: 0; }
+
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(8px) scale(.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.msg-in { animation: msg-in 280ms cubic-bezier(.22,1,.36,1); }
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-muted), #fff, var(--surface-muted));
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

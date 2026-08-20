@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { Card, Field, Pill, PrimaryButton, SecondaryButton, TextInput } from "@/components/ui";
+import { Card, ErrorText, Field, PageHeader, Pill, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 
@@ -20,16 +20,74 @@ interface Appointment {
   status: "booked" | "cancelled" | "done";
 }
 
+interface AvailabilityWindow {
+  doctor_id: string;
+  day_of_week: number;
+  start_time: string; // "HH:MM:SS"
+  end_time: string;
+}
+
+const SLOT_MINUTES = 30;
+const DAYS_AHEAD = 14;
+
+/**
+ * Generates concrete bookable slots from the doctor's weekly recurring
+ * windows (doctor_availability) — that table holds only the recurring
+ * rule, not materialized slots.
+ *
+ * This deliberately does NOT try to exclude slots other patients already
+ * booked: RLS's appointments_select scopes a patient to only their OWN
+ * appointments (by design — one patient can't see another's booking
+ * history), so there is no privacy-safe way to know a doctor's full
+ * schedule client-side. Instead, booking is optimistic: the attempt goes
+ * to Postgres, and idx_appointments_doctor_slot's unique constraint
+ * rejects a real conflict, which the UI surfaces as "just taken, pick
+ * another" rather than silently failing.
+ */
+function generateSlots(windows: AvailabilityWindow[], doctorId: string): Date[] {
+  const doctorWindows = windows.filter((w) => w.doctor_id === doctorId);
+  if (doctorWindows.length === 0) return [];
+
+  const slots: Date[] = [];
+  const now = new Date();
+
+  for (let dayOffset = 0; dayOffset < DAYS_AHEAD; dayOffset++) {
+    const day = new Date(now);
+    day.setDate(day.getDate() + dayOffset);
+    const weekday = day.getDay();
+
+    for (const w of doctorWindows) {
+      if (w.day_of_week !== weekday) continue;
+      const [startH, startM] = w.start_time.split(":").map(Number);
+      const [endH, endM] = w.end_time.split(":").map(Number);
+
+      const cursor = new Date(day);
+      cursor.setHours(startH, startM, 0, 0);
+      const end = new Date(day);
+      end.setHours(endH, endM, 0, 0);
+
+      while (cursor < end) {
+        if (cursor > now) slots.push(new Date(cursor));
+        cursor.setMinutes(cursor.getMinutes() + SLOT_MINUTES);
+      }
+    }
+  }
+
+  return slots.sort((a, b) => a.getTime() - b.getTime());
+}
+
 export function AppointmentsTab() {
   const { t, lang } = useLang();
   const [patientId, setPatientId] = useState<string | null>(null);
   const [clinicId, setClinicId] = useState<string | null>(null);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [windows, setWindows] = useState<AvailabilityWindow[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [doctorId, setDoctorId] = useState("");
-  const [slot, setSlot] = useState("");
+  const [slotIso, setSlotIso] = useState("");
   const [booking, setBooking] = useState(false);
+  const [error, setError] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -42,40 +100,45 @@ export function AppointmentsTab() {
       setClinicId(patientRow.clinic_id);
     }
 
-    const { data: doctorRows } = await supabase.from("doctors").select("*").order("name");
+    const [{ data: doctorRows }, { data: windowRows }, { data: apptRows }] = await Promise.all([
+      supabase.from("doctors").select("*").order("name"),
+      supabase.from("doctor_availability").select("doctor_id, day_of_week, start_time, end_time"),
+      supabase.from("appointments").select("*").order("slot", { ascending: true }),
+    ]);
     if (doctorRows) setDoctors(doctorRows as Doctor[]);
-
-    const { data: apptRows } = await supabase
-      .from("appointments")
-      .select("*")
-      .order("slot", { ascending: true });
+    if (windowRows) setWindows(windowRows as AvailabilityWindow[]);
     if (apptRows) setAppointments(apptRows as Appointment[]);
 
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    load();
+    const timer = window.setTimeout(() => void load(), 0);
+    return () => window.clearTimeout(timer);
   }, [load]);
+
+  const slots = useMemo(() => (doctorId ? generateSlots(windows, doctorId) : []), [windows, doctorId]);
 
   async function handleBook(e: React.FormEvent) {
     e.preventDefault();
-    if (!patientId || !clinicId || !doctorId || !slot) return;
+    if (!patientId || !clinicId || !doctorId || !slotIso) return;
+    setError("");
     setBooking(true);
-    const { data, error } = await supabase
+    const { data, error: insertError } = await supabase
       .from("appointments")
-      .insert({
-        clinic_id: clinicId,
-        patient_id: patientId,
-        doctor_id: doctorId,
-        slot: new Date(slot).toISOString(),
-      })
+      .insert({ clinic_id: clinicId, patient_id: patientId, doctor_id: doctorId, slot: slotIso })
       .select()
       .single();
     setBooking(false);
-    if (!error && data) {
+    if (insertError) {
+      // 23505 = unique_violation — idx_appointments_doctor_slot caught a
+      // real double-booking race, not a client bug.
+      setError(insertError.code === "23505" ? t("error") : insertError.message);
+      return;
+    }
+    if (data) {
       setAppointments((prev) => [...prev, data as Appointment].sort((a, b) => a.slot.localeCompare(b.slot)));
-      setSlot("");
+      setSlotIso("");
     }
   }
 
@@ -97,6 +160,7 @@ export function AppointmentsTab() {
 
   return (
     <div className="flex flex-col gap-6">
+      <PageHeader eyebrow={t("rolePatient")} title={t("appointments")} description={t("bookAppointment")} />
       <Card>
         <p className="font-bold text-sm mb-3">{t("bookAppointment")}</p>
         <form onSubmit={handleBook} className="flex flex-col sm:flex-row gap-3 sm:items-end">
@@ -105,8 +169,11 @@ export function AppointmentsTab() {
               <select
                 required
                 value={doctorId}
-                onChange={(e) => setDoctorId(e.target.value)}
-                className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg-raised)] px-3.5 py-2.5 text-sm outline-none focus:border-[var(--accent)]"
+                onChange={(e) => {
+                  setDoctorId(e.target.value);
+                  setSlotIso("");
+                }}
+                className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg-raised)] px-3.5 py-2.5 text-sm outline-none focus:border-[var(--accent)] w-full"
               >
                 <option value="" disabled>
                   —
@@ -123,13 +190,35 @@ export function AppointmentsTab() {
           </div>
           <div className="flex-1">
             <Field label={t("slotDateTime")}>
-              <TextInput type="datetime-local" required value={slot} onChange={(e) => setSlot(e.target.value)} />
+              <select
+                required
+                disabled={!doctorId}
+                value={slotIso}
+                onChange={(e) => setSlotIso(e.target.value)}
+                className="rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg-raised)] px-3.5 py-2.5 text-sm outline-none focus:border-[var(--accent)] w-full disabled:opacity-50"
+              >
+                <option value="" disabled>
+                  —
+                </option>
+                {slots.map((s) => (
+                  <option key={s.toISOString()} value={s.toISOString()}>
+                    {s.toLocaleString(lang === "ar" ? "ar-EG" : "en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </option>
+                ))}
+              </select>
             </Field>
           </div>
-          <PrimaryButton type="submit" disabled={booking}>
+          <PrimaryButton type="submit" disabled={booking || !slotIso}>
             {t("book")}
           </PrimaryButton>
         </form>
+        <ErrorText>{error}</ErrorText>
       </Card>
 
       <div>

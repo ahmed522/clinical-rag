@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { useAuth } from "@/lib/auth-context";
 import { useLang } from "@/lib/i18n";
+import { LoadingScreen } from "@/components/ui";
 
 export default function Home() {
   const { session, role, loading } = useAuth();
@@ -17,16 +18,16 @@ export default function Home() {
       router.replace("/login");
     } else if (role === "clinic_admin") {
       router.replace("/clinic");
+    } else if (role === "doctor") {
+      router.replace("/doctor");
     } else if (role === "patient") {
       router.replace("/patient");
+    } else if (role === "it") {
+      router.replace("/it");
     } else {
       router.replace("/login");
     }
   }, [loading, session, role, router]);
 
-  return (
-    <div className="flex min-h-screen items-center justify-center text-[var(--ink-soft)]">
-      {t("loading")}
-    </div>
-  );
+  return <LoadingScreen label={t("loading")} />;
 }

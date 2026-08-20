@@ -21,8 +21,8 @@ Run with:
 
 import pytest
 
-from config import collection_name_for
-from embed import delete_collection, index_chunks
+from rag.config import collection_name_for
+from rag.embed import delete_collection, index_chunks
 
 
 CLINIC_A = "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa"
@@ -102,7 +102,7 @@ def _search(collection_name, persist_dir, query, k=5):
     from langchain_chroma import Chroma
     from langchain_huggingface import HuggingFaceEmbeddings
 
-    from config import EMBEDDING_MODEL
+    from rag.config import EMBEDDING_MODEL
 
     store = Chroma(
         collection_name=collection_name,

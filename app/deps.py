@@ -22,7 +22,13 @@ from supabase import Client
 from app.supabase_client import client_for, verify_token
 
 ROLE_CLINIC_ADMIN = "clinic_admin"
+ROLE_DOCTOR = "doctor"
 ROLE_PATIENT = "patient"
+# Internal operations role. Not clinic staff: an IT account carries a
+# reserved sentinel clinic_id (see migration 0008) only to satisfy the
+# invariant below, and reaches across clinics through its own narrow RLS
+# policies — never a blanket bypass.
+ROLE_IT = "it"
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -88,11 +94,40 @@ def require_clinic_admin(user: CurrentUser = Depends(get_current_user)) -> Curre
     return user
 
 
+def require_doctor(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
+    if user.role != ROLE_DOCTOR:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Doctor role required",
+        )
+    return user
+
+
+def require_clinical_staff(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
+    """Evaluation reports are visible to doctors and clinic administrators, not patients."""
+    if user.role not in {ROLE_DOCTOR, ROLE_CLINIC_ADMIN}:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Doctor or clinic admin role required",
+        )
+    return user
+
+
 def require_patient(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
     if user.role != ROLE_PATIENT:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Patient role required",
+        )
+    return user
+
+
+def require_it(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
+    """Internal IT role — cross-clinic pipeline monitoring and debugging."""
+    if user.role != ROLE_IT:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="IT role required",
         )
     return user
 

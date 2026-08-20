@@ -1,43 +1,75 @@
 """
-Guideline upload and verification (clinic admin only).
+Guideline upload and verification (doctor only).
+
+Ownership moved here from the clinic admin: uploading and verifying RAG
+source documents is medical judgment about what's authoritative, not an
+administrative task, so it lives with the doctor role — the admin has no
+access to this router at all (enforced both here, as the first friendly
+403, and independently by RLS's documents_doctor_write policy).
 
 Provenance lives in two places by design, mirrored: Supabase Postgres
 holds the `documents`/`chunks` rows (source of truth for what a citation
 points at), and the local Chroma index holds the embeddings. `vector_ref`
 is the join key between them, and it is the deterministic chunk id from
-src/chunk.py — not a fresh uuid — so re-ingesting a document overwrites
+rag/chunk.py — not a fresh uuid — so re-ingesting a document overwrites
 its own vectors instead of orphaning rows on either side.
 
 The raw PDF itself goes to the `guidelines` Supabase Storage bucket, keyed
 {clinic_id}/{document_id}.pdf; UPLOAD_DIR is only a local staging spot
-mid-request, since the extraction pipeline (src/ingest.py) reads from a
+mid-request, since the extraction pipeline (rag/ingest.py) reads from a
 filesystem path.
 """
 
-import sys
-from pathlib import Path
+import hashlib
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
 from app.config import settings
-from app.deps import CurrentUser, require_clinic_admin
-from app.schemas import DocumentOut
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-SRC = PROJECT_ROOT / "src"
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
-
-from chunk import chunk_document  # noqa: E402
-from config import collection_name_for  # noqa: E402
-from embed import index_chunks  # noqa: E402
-from ingest import extract_pdf  # noqa: E402
-from preprocessing import process_document  # noqa: E402
+from app.deps import CurrentUser, require_doctor
+from app.schemas import BugReportCreate, BugReportOut, DocumentOut
+from rag.chunk import chunk_document
+from rag.config import CHUNKING_VERSION, EXTRACTION_VERSION, collection_name_for
+from rag.embed import delete_document_chunks, index_chunks
+from rag.ingest import PDFExtractionError, extract_pdf
+from rag.preprocessing import process_document
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 STORAGE_BUCKET = "guidelines"
+
+
+def _has_pdf_signature(contents: bytes) -> bool:
+    """PDF headers may follow a few transport bytes, but must appear near the start."""
+
+    return b"%PDF-" in contents[:1024]
+
+
+def _cleanup_partial_ingestion(db, document_id: str, clinic_id: str, storage_path: str) -> List[str]:
+    """Best-effort compensation across Chroma, Storage, and PostgreSQL."""
+
+    errors = []
+    try:
+        delete_document_chunks(
+            document_id,
+            collection_name=collection_name_for(clinic_id),
+        )
+    except Exception as exc:
+        errors.append(f"vector cleanup failed: {exc}")
+
+    try:
+        # Attempt removal even when upload raised because a partial object may exist.
+        db.storage.from_(STORAGE_BUCKET).remove([storage_path])
+    except Exception as exc:
+        errors.append(f"storage cleanup failed: {exc}")
+
+    try:
+        db.table("chunks").delete().eq("document_id", document_id).execute()
+    except Exception as exc:
+        errors.append(f"chunk-row cleanup failed: {exc}")
+
+    return errors
 
 
 @router.post("/upload", response_model=DocumentOut, status_code=status.HTTP_201_CREATED)
@@ -47,13 +79,13 @@ def upload_document(
     publisher: Optional[str] = Form(None),
     source_url: Optional[str] = Form(None),
     topic: Optional[str] = Form(None),
-    admin: CurrentUser = Depends(require_clinic_admin),
+    doctor: CurrentUser = Depends(require_doctor),
 ):
     """
     Upload a PDF and run it through the ingestion pipeline.
 
-    The clinic is taken from the admin's verified token, so an upload
-    always lands in the caller's own tenant — RLS's documents_admin_write
+    The clinic is taken from the doctor's verified token, so an upload
+    always lands in the caller's own tenant — RLS's documents_doctor_write
     policy would reject any other clinic_id anyway, but the value is never
     even offered to the caller to begin with.
     """
@@ -63,7 +95,9 @@ def upload_document(
             detail="Only PDF uploads are supported",
         )
 
-    contents = file.file.read()
+    # Read at most one byte beyond the limit so an oversized upload does not
+    # have to be fully buffered before it can be rejected.
+    contents = file.file.read(settings.MAX_UPLOAD_BYTES + 1)
     if not contents:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty file")
     if len(contents) > settings.MAX_UPLOAD_BYTES:
@@ -72,36 +106,53 @@ def upload_document(
             detail=f"File exceeds {settings.MAX_UPLOAD_BYTES} bytes",
         )
 
-    db = admin.db  # this admin's own client — every call below runs under RLS as them
+    if not _has_pdf_signature(contents):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The uploaded file is not a valid PDF",
+        )
+
+    db = doctor.db  # this doctor's own client — every call below runs under RLS as them
+
+    file_sha256 = hashlib.sha256(contents).hexdigest()
 
     # Inserted with a placeholder file_path: the storage path is keyed by
     # this row's own generated id, so the id has to exist before the path
     # can be computed, and the path before the storage upload can happen.
     document = db.table("documents").insert({
-        "clinic_id": admin.clinic_id,
+        "clinic_id": doctor.clinic_id,
         "title": title,
         "publisher": publisher,
         "source_url": source_url,
         "topic": topic,
         "file_path": "",
-        "verified": False,  # guardrail #5: admin must confirm the source
+        "verified": False,
+        "status": "processing",
+        "processing_error": None,
+        "uploaded_by": doctor.user_id,
+        "file_sha256": file_sha256,
+        "extraction_version": EXTRACTION_VERSION,
+        "chunking_version": CHUNKING_VERSION,
     }).execute().data[0]
     document_id = document["id"]
+    storage_path = f"{doctor.clinic_id}/{document_id}.pdf"
 
-    local_dir = settings.UPLOAD_DIR / admin.clinic_id
+    local_dir = settings.UPLOAD_DIR / doctor.clinic_id
     local_dir.mkdir(parents=True, exist_ok=True)
     local_path = local_dir / f"{document_id}.pdf"
-    local_path.write_bytes(contents)
-
-    def _rollback():
-        db.table("documents").delete().eq("id", document_id).execute()
-        local_path.unlink(missing_ok=True)
 
     try:
+        local_path.write_bytes(contents)
         metadata = {"title": title, "publisher": publisher, "url": source_url, "topic": topic}
         extracted = extract_pdf(str(local_path), metadata=metadata)
         preprocessed, _removed, _dropped = process_document(extracted)
         chunks = chunk_document(preprocessed, document_id=document_id)
+        if not chunks:
+            raise PDFExtractionError(
+                "The PDF produced no searchable chunks after preprocessing.",
+                code="no_chunks",
+                report=extracted.get("extraction_report", {}),
+            )
 
         # persist_dir omitted, not passed as None: index_chunks's default
         # argument only applies when the parameter is left out entirely —
@@ -113,13 +164,13 @@ def upload_document(
         # by falling through to "no relevant sources" — indistinguishable
         # from a correctly-working system with a bad index, unless you
         # separately compare the collection's actual vector count.
-        index_chunks(chunks, collection_name=collection_name_for(admin.clinic_id))
+        index_chunks(chunks, collection_name=collection_name_for(doctor.clinic_id))
 
         if chunks:
             db.table("chunks").insert([
                 {
                     "document_id": document_id,
-                    "clinic_id": admin.clinic_id,
+                    "clinic_id": doctor.clinic_id,
                     "content": c["text"],
                     "section_title": c.get("section_title"),
                     "page_number": c.get("page_number"),
@@ -128,59 +179,130 @@ def upload_document(
                 for c in chunks
             ]).execute()
 
-        storage_path = f"{admin.clinic_id}/{document_id}.pdf"
         db.storage.from_(STORAGE_BUCKET).upload(
             storage_path,
             contents,
             file_options={"content-type": "application/pdf"},
         )
+
+        updated_rows = db.table("documents").update({
+            "status": "ready",
+            "processing_error": None,
+            "file_path": storage_path,
+            "page_count": extracted.get("total_pages", 0),
+            "chunk_count": len(chunks),
+            "extraction_report": extracted.get("extraction_report", {}),
+        }).eq("id", document_id).execute().data
+        if not updated_rows:
+            raise RuntimeError("Document row disappeared while finalizing ingestion")
+        updated = updated_rows[0]
     except Exception as exc:
-        # Leave nothing half-ingested: no document row, no chunk rows (the
-        # documents row's ON DELETE CASCADE takes those with it), no
-        # storage object, no local file. A partially indexed guideline is
-        # worse than a failed upload — it answers questions from a fragment.
-        _rollback()
+        # Keep the document row as a visible failed attempt, but remove every
+        # searchable or stored artifact. Failed/processing rows are excluded
+        # from patient retrieval even if an infrastructure cleanup also fails.
+        cleanup_errors = _cleanup_partial_ingestion(
+            db,
+            document_id=document_id,
+            clinic_id=doctor.clinic_id,
+            storage_path=storage_path,
+        )
+        failure_message = str(exc)[:1500]
+        if cleanup_errors:
+            failure_message += " | " + " | ".join(cleanup_errors)
+
+        failure_update = {
+            "status": "failed",
+            "verified": False,
+            "processing_error": failure_message[:2000],
+            "file_path": "",
+            "chunk_count": 0,
+            "extraction_report": getattr(exc, "report", {}),
+        }
+        try:
+            db.table("documents").update(failure_update).eq("id", document_id).execute()
+        except Exception:
+            # A stuck `processing` row remains non-retrievable and visible
+            # to the doctor for manual cleanup.
+            pass
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Could not process this PDF: {exc}",
+            detail=f"Could not process this PDF: {failure_message}",
         )
 
-    updated = db.table("documents").update({
-        "file_path": storage_path,
-        "page_count": extracted.get("total_pages", 0),
-        "chunk_count": len(chunks),
-    }).eq("id", document_id).execute().data[0]
-
-    local_path.unlink(missing_ok=True)
+    finally:
+        local_path.unlink(missing_ok=True)
 
     return updated
 
 
 @router.get("", response_model=List[DocumentOut])
-def list_documents(admin: CurrentUser = Depends(require_clinic_admin)):
+def list_documents(doctor: CurrentUser = Depends(require_doctor)):
     # No .eq("clinic_id", ...) filter here by choice: RLS's documents_select
-    # policy already restricts this to the admin's own clinic. Adding a
+    # policy already restricts this to the doctor's own clinic. Adding a
     # redundant filter would make it easy to believe the filter is what's
     # doing the isolating, when it is not.
-    return admin.db.table("documents").select("*").order("uploaded_at", desc=True).execute().data
+    return doctor.db.table("documents").select("*").order("uploaded_at", desc=True).execute().data
 
 
 @router.patch("/{document_id}/verify", response_model=DocumentOut)
 def verify_document(
     document_id: str,
     verified: bool = True,
-    admin: CurrentUser = Depends(require_clinic_admin),
+    doctor: CurrentUser = Depends(require_doctor),
 ):
-    """Confirm a source is official (guardrail #5)."""
-    result = (
-        admin.db.table("documents")
-        .update({"verified": verified})
-        .eq("id", document_id)
-        .execute()
-    )
-    # RLS scopes the update to the admin's own clinic already; an id from
+    """Confirm a ready source is doctor-approved for patient answers."""
+    changes = {
+        "verified": verified,
+        "verified_by": doctor.user_id if verified else None,
+        "verified_at": datetime.now(timezone.utc).isoformat() if verified else None,
+    }
+    query = doctor.db.table("documents").update(changes).eq("id", document_id)
+    if verified:
+        query = query.eq("status", "ready")
+    result = query.execute()
+    # RLS scopes the update to the doctor's own clinic already; an id from
     # another clinic (or one that doesn't exist) simply matches no row,
     # which reports as missing rather than forbidden.
     if not result.data:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+        detail = "Document is not ready for verification" if verified else "Document not found"
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail)
     return result.data[0]
+
+
+@router.post("/{document_id}/report", response_model=BugReportOut, status_code=status.HTTP_201_CREATED)
+def report_document_issue(
+    document_id: str,
+    payload: BugReportCreate,
+    doctor: CurrentUser = Depends(require_doctor),
+):
+    """
+    File a bug report against a document for the internal IT queue.
+
+    Used when a document uploaded fine but the assistant answers poorly from
+    it — the doctor describes the issue and IT picks it up in their Test
+    section. Written through the doctor's own client: bug_reports_doctor_insert
+    scopes it to this clinic. The document_id is stored as-is; RLS keeps the
+    doctor from filing against another clinic's document because they cannot
+    see it to reference it in the first place.
+    """
+    document = (
+        doctor.db.table("documents")
+        .select("id")
+        .eq("id", document_id)
+        .maybe_single()
+        .execute()
+        .data
+    )
+    if not document:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+
+    report = doctor.db.table("bug_reports").insert({
+        "clinic_id": doctor.clinic_id,
+        "document_id": document_id,
+        "reported_by": doctor.user_id,
+        "issue": payload.issue,
+    }).execute().data[0]
+    return report

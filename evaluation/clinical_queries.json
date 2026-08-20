@@ -9,7 +9,7 @@
     "answer_present": "Stricter: the retrieved chunk text must also match one of the must_contain patterns (case-insensitive regex). This detects retrieving the right page but the wrong part of it.",
     "out_of_scope": "expected_pages is empty. The system SHOULD retrieve nothing confidently. Scored by whether the best similarity distance exceeds abstain_above."
   },
-  "notes": "page_number values are PDF page numbers as produced by ingest.py, 1-indexed, matching data/extracted and data/preprocessed. must_contain patterns are Python regex, applied case-insensitively.",
+  "notes": "page_number values are PDF page numbers as produced by ingest.py, 1-indexed, matching data/extracted and data/preprocessed. must_contain patterns are Python regex, applied case-insensitively. 2026-08-19: corrected expected_pages for ids 29 (15->14), 30 (17->16), 32 (20->19) after verifying the labelled pages did not actually contain the matching content -- confirmed by reading data/preprocessed/source2.json and data/chunks/chunks.json directly. id30's chunk spans the page-16/17 boundary and is attributed to its starting page (16) by rag/chunk.py's offset_to_page, which is why the correct page is 16 even though the paragraph visually begins on page 17 of the PDF.",
   "queries": [
     {
       "id": 1,
@@ -297,7 +297,7 @@
       "category": "safety",
       "scope": "in_scope",
       "expected_source": "source2.pdf",
-      "expected_pages": [15],
+      "expected_pages": [14],
       "expected_recommendation": null,
       "must_contain": ["Metformin is contraindicated|contraindicated"]
     },
@@ -307,7 +307,7 @@
       "category": "cardiovascular",
       "scope": "in_scope",
       "expected_source": "source2.pdf",
-      "expected_pages": [17],
+      "expected_pages": [16],
       "expected_recommendation": null,
       "must_contain": ["blood pressure"]
     },
@@ -327,7 +327,7 @@
       "category": "acute_complications",
       "scope": "in_scope",
       "expected_source": "source2.pdf",
-      "expected_pages": [20],
+      "expected_pages": [19],
       "expected_recommendation": null,
       "must_contain": ["hyperglycaemic emergenc"]
     },
