@@ -18,7 +18,6 @@ Run with:
 
 import json
 
-import chromadb
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
@@ -29,6 +28,7 @@ from rag.config import (
     COLLECTION_NAME,
     EMBEDDING_MODEL,
     HF_LOCAL_FILES_ONLY,
+    get_chroma_client,
 )
 
 PERSIST_DIR = str(CHROMA_DIR)  # Chroma wants a string, not a Path
@@ -120,7 +120,7 @@ def index_chunks(chunks, collection_name=COLLECTION_NAME, persist_dir=None):
     vectorstore = Chroma(
         collection_name=collection_name,
         embedding_function=embeddings,
-        persist_directory=str(persist_dir or PERSIST_DIR),
+        client=get_chroma_client(persist_dir or PERSIST_DIR),
     )
 
     if documents:
@@ -138,7 +138,7 @@ def delete_collection(collection_name, persist_dir=PERSIST_DIR):
 
     Used when a document is removed or an index is rebuilt from scratch.
     """
-    client = chromadb.PersistentClient(path=str(persist_dir))
+    client = get_chroma_client(persist_dir or PERSIST_DIR)
     try:
         client.delete_collection(collection_name)
     except Exception:
@@ -159,7 +159,7 @@ def delete_document_chunks(document_id, collection_name=COLLECTION_NAME, persist
     collection is already clean and returns zero.
     """
 
-    client = chromadb.PersistentClient(path=str(persist_dir or PERSIST_DIR))
+    client = get_chroma_client(persist_dir or PERSIST_DIR)
     try:
         collection = client.get_collection(collection_name)
     except Exception as exc:

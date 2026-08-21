@@ -37,6 +37,7 @@ from rag.config import (
     RERANK_ENABLED,
     RETRIEVAL_K,
     collection_name_for,
+    get_chroma_client,
 )
 from rag.hybrid_retrieval import hybrid_retrieve
 
@@ -100,7 +101,7 @@ def retrieve(
         store = Chroma(
             collection_name=collection_name_for(clinic_id),
             embedding_function=_get_embeddings(),
-            persist_directory=str(persist_dir or CHROMA_DIR),
+            client=get_chroma_client(persist_dir or CHROMA_DIR),
         )
     except Exception as exc:
         raise RetrievalUnavailableError("Vector retrieval is temporarily unavailable") from exc

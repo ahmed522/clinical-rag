@@ -153,6 +153,30 @@ def collection_name_for(clinic_id):
     return f"clinic_{clinic_id}"
 
 
+def get_chroma_client(persist_dir=None):
+    """
+    Single place that decides how every caller talks to Chroma.
+
+    Local dev/CLI/tests get an unchanged local `PersistentClient`. In
+    production, disk on the free hosts this app deploys to is not
+    reliably kept across restarts/redeploys, which would silently lose
+    every clinic's uploaded guidelines — so when `CHROMA_CLOUD_API_KEY`
+    is set, every caller transparently switches to Chroma Cloud instead,
+    with no other code changes required.
+    """
+    import chromadb
+
+    api_key = os.getenv("CHROMA_CLOUD_API_KEY")
+    if api_key:
+        return chromadb.CloudClient(
+            api_key=api_key,
+            tenant=os.getenv("CHROMA_CLOUD_TENANT"),
+            database=os.getenv("CHROMA_CLOUD_DATABASE"),
+        )
+
+    return chromadb.PersistentClient(path=str(persist_dir or CHROMA_DIR))
+
+
 # ============================================================
 # Retrieval
 # ============================================================
