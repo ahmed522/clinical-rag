@@ -1,0 +1,24 @@
+# Render Blueprint for the FastAPI backend (app/main.py). Free tier: no
+# Docker needed, Render installs requirements.txt and runs uvicorn
+# directly. See deploy/README.md for the account-side setup and the
+# secrets that must be added by hand in the Render dashboard (this file
+# intentionally does not carry any secret values).
+services:
+  - type: web
+    name: tabeebak-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      # Render's free instances get a fresh filesystem on every deploy, so
+      # there is no pre-warmed model cache to trust the way there would be
+      # in a Docker image. Downloading on first use is the correct
+      # behavior here, not a fallback — see rag/config.py's
+      # HF_LOCAL_FILES_ONLY comment for the case this guard is FOR
+      # (a pre-warmed cache with no network), which does not apply on this
+      # host.
+      - key: HF_LOCAL_FILES_ONLY
+        value: "false"

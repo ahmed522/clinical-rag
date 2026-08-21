@@ -16,6 +16,71 @@ or replace a clinician.
 
 ---
 
+## Screenshots
+
+<table>
+<tr>
+<td width="50%">
+
+**Login — English**
+
+<img src="docs/screenshots/English_login.png" alt="Login screen in English" width="420">
+
+</td>
+<td width="50%">
+
+**Login — Arabic (RTL)**
+
+<img src="docs/screenshots/Arabic_login.png" alt="Login screen in Arabic with a mirrored right-to-left layout" width="420">
+
+</td>
+</tr>
+</table>
+
+**Doctor — Clinical assistant.** A grounded answer with a citation traced to `NICE NG28 p.13`
+and an evidence-strength badge. The chat surface stays English/LTR even when the rest of the
+UI is in Arabic.
+
+<img src="docs/screenshots/doctor-clinical-assistant.png" alt="Doctor's clinical assistant showing a grounded answer with a citation" width="820">
+
+**Doctor — Documents.** A verified source — `NICE NG28`, 131 pages, 350 chunks — the single
+gate between an uploaded PDF and any answer the assistant can give.
+
+<img src="docs/screenshots/doctor-documents.png" alt="Doctor's documents tab showing a verified NICE NG28 source" width="820">
+
+<table>
+<tr>
+<td width="50%">
+
+**Patient — Cura, idle**
+
+<img src="docs/screenshots/patient-chat-before_sending.png" alt="Cura appointment assistant before any messages are sent" width="420">
+
+</td>
+<td width="50%">
+
+**Patient — Cura, booking**
+
+<img src="docs/screenshots/patient-chat.png" alt="Cura appointment assistant handling a booking and an appointment lookup" width="420">
+
+</td>
+</tr>
+</table>
+
+Cura only ever handles scheduling — it refuses medical questions by design, not by omission.
+
+**IT — Cross-clinic overview.** Aggregate counts across every clinic, no patient data.
+
+<img src="docs/screenshots/it-overview.png" alt="IT overview showing aggregate cross-clinic statistics" width="820">
+
+**IT — Pipeline test.** Re-runs the real ingestion and retrieval pipeline against an isolated
+index and inspects each stage — indexing, retrieval, generation — independently of the live
+system.
+
+<img src="docs/screenshots/it-pipeline-test.png" alt="IT pipeline test showing the indexing stage in detail" width="820">
+
+---
+
 ## Sources
 
 | File | Document | Pages |
