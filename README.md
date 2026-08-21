@@ -81,13 +81,6 @@ system.
 
 ---
 
-## Sources
-
-| File | Document | Pages |
-|---|---|---|
-| `data/source/source1.pdf` | NICE NG28 — *Type 2 diabetes in adults: management* | 131 |
-| `data/source/source2.pdf` | WHO HEARTS-D — *Diagnosis and management of type 2 diabetes* | 35 |
-
 Source metadata (title, publisher, URL, topic) is registered in `SOURCE_METADATA` at the
 top of `rag/ingest.py`, **keyed by exact filename**. Adding a PDF without registering it
 there still works, but its provenance fields will read `UNKNOWN` and the script warns.
